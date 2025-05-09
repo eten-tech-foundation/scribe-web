@@ -38,18 +38,17 @@ declare module '@tanstack/react-router' {
 // Navigation component
 export const Navigation = () => {
   return (
-    <div className="flex gap-4" >
+    <div className='flex gap-4'>
       <Link
-        to="/"
-        className="text-blue-500 hover:text-blue-700 font-medium"
-        activeProps={{ className: 'font-bold text-blue-700' }
-        }
+        to='/'
+        className='font-medium text-blue-500 hover:text-blue-700'
+        activeProps={{ className: 'font-bold text-blue-700' }}
       >
         Home
       </Link>
-      < Link
-        to="/about"
-        className="text-blue-500 hover:text-blue-700 font-medium"
+      <Link
+        to='/about'
+        className='font-medium text-blue-500 hover:text-blue-700'
         activeProps={{ className: 'font-bold text-blue-700' }}
       >
         About
