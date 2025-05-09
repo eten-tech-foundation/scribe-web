@@ -1,8 +1,9 @@
 import { Navigation } from '@/routes';
-import { Card } from '@/components/shared/Card';
-import { Button } from '@/components/shared/Button';
-import { Counter } from '@/components/Counter';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Counter } from '@/components/counter';
 import { useAppStore } from '@/store/store';
+import { Calendar } from '@/components/ui/calendar';
 
 export function HomePage() {
   const { count, increment } = useAppStore();
@@ -24,6 +25,7 @@ export function HomePage() {
             <Button onClick={increment}>Increment Global Count</Button>
             <Counter initialValue={5} />
           </div>
+          <Calendar />
         </Card>
       </div>
     </div>

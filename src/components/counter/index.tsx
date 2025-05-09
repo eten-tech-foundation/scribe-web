@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button } from '@/components/shared/Button';
+import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/store';
 
 interface CounterProps {
