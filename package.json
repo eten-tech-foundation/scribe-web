@@ -3,14 +3,24 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": "22.15.x"
+  },
   "scripts": {
+    "start": "vite",
     "dev": "vite",
     "build": "tsc && vite build",
-    "clean": "pnpm prune && pnpm install",
-    "clean-aggressive": "rm -rf node_modules && rm pnpm-lock.yaml && pnpm install",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "build:analyze": "tsc && vite build --mode analyze",
     "preview": "vite preview",
-    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\""
+    "lint": "eslint . --ext ts,tsx,js,jsx --cache --no-error-on-unmatched-pattern",
+    "lint:fix": "eslint . --ext ts,tsx,js,jsx --fix --cache --no-error-on-unmatched-pattern",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "deps:clean": "pnpm prune && pnpm install",
+    "deps:reset": "rm -rf node_modules && rm pnpm-lock.yaml && pnpm install",
+    "type:check": "tsc --noEmit",
+    "prepare": "husky",
+    "lint-staged": "lint-staged"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.2",
@@ -29,24 +39,48 @@
     "zustand": "^4.5.6"
   },
   "devDependencies": {
+    "@eslint/js": "^9.26.0",
     "@tanstack/router-plugin": "^1.120.2",
     "@types/node": "^20.17.45",
     "@types/react": "^18.3.21",
     "@types/react-dom": "^18.3.7",
-    "@typescript-eslint/eslint-plugin": "^8.32.0",
-    "@typescript-eslint/parser": "^8.32.0",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
     "@vitejs/plugin-react": "^4.4.1",
-    "autoprefixer": "^10.4.21",
     "eslint": "^9.26.0",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-typescript": "^4.3.4",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-prettier": "^5.1.2",
+    "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
-    "postcss": "^8.5.3",
+    "eslint-plugin-unused-imports": "^3.2.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.5.14",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5.8.3",
+    "rollup-plugin-visualizer": "^5.12.0",
+    "tailwindcss": "^4.1.6",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^7.13.1",
     "vite": "^5.4.19",
     "vite-tsconfig-paths": "^4.3.2"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix --cache --no-error-on-unmatched-pattern",
+      "prettier --write"
+    ],
+    "*.{jsx,mjs}": [
+      "eslint --fix --cache --no-error-on-unmatched-pattern",
+      "prettier --write"
+    ],
+    "*.{cjs,js}": [
+      "prettier --write"
+    ],
+    "*.{json,css,md,html,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }

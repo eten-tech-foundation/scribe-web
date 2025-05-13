@@ -1,11 +1,13 @@
-import { Navigation } from '@/routes';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Counter } from '@/components/counter';
-import { useAppStore } from '@/store/store';
+import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { Card } from '@/components/ui/card';
+import { Navigation } from '@/routes';
+import { useAppStore } from '@/store/store';
 
-export function HomePage() {
+// Import Navigation last to avoid circular dependencies
+
+export function HomePage(): JSX.Element {
   const { count, increment } = useAppStore();
 
   return (

@@ -1,7 +1,8 @@
 import { Router, Link, createRootRoute, createRoute } from '@tanstack/react-router';
+
 import { App } from '@/app';
-import { HomePage } from '@/layouts/home';
 import { AboutPage } from '@/layouts/about';
+import { HomePage } from '@/layouts/home';
 
 // Create a root route
 const rootRoute = createRootRoute({
@@ -40,16 +41,16 @@ export const Navigation = () => {
   return (
     <div className='flex gap-4'>
       <Link
-        to='/'
-        className='font-medium text-blue-500 hover:text-blue-700'
         activeProps={{ className: 'font-bold text-blue-700' }}
+        className='font-medium text-blue-500 hover:text-blue-700'
+        to='/'
       >
         Home
       </Link>
       <Link
-        to='/about'
-        className='font-medium text-blue-500 hover:text-blue-700'
         activeProps={{ className: 'font-bold text-blue-700' }}
+        className='font-medium text-blue-500 hover:text-blue-700'
+        to='/about'
       >
         About
       </Link>

@@ -1,0 +1,26 @@
+# Build outputs
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Package files
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Config files
+.eslintcache
+
+# Generated files
+coverage/
+
+# Other
+.github/
+.husky/
+public/assets/
+
+# Specific files
+*.min.js
+*.d.ts

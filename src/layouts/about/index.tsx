@@ -1,6 +1,6 @@
-import { Navigation } from '@/routes';
-import { Card } from '@/components/ui/card';
 import { Counter } from '@/components/counter';
+import { Card } from '@/components/ui/card';
+import { Navigation } from '@/routes';
 import { useAppStore } from '@/store/store';
 
 export function AboutPage() {
