@@ -1,8 +1,9 @@
-import { Router, Link, createRootRoute, createRoute } from '@tanstack/react-router';
+import { Link, Router, createRootRoute, createRoute } from '@tanstack/react-router';
 
 import { App } from '@/app';
 import { AboutPage } from '@/layouts/about';
 import { HomePage } from '@/layouts/home';
+import { TailwindTestPage } from '@/layouts/tailwind-test';
 
 // Create a root route
 const rootRoute = createRootRoute({
@@ -23,8 +24,14 @@ const aboutRoute = createRoute({
   component: AboutPage,
 });
 
+const tailwindTestRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/tailwind-test',
+  component: TailwindTestPage,
+});
+
 // Create the route tree using the routes
-const routeTree = rootRoute.addChildren([indexRoute, aboutRoute]);
+const routeTree = rootRoute.addChildren([indexRoute, aboutRoute, tailwindTestRoute]);
 
 // Create the router using the route tree
 export const router = new Router({ routeTree });
@@ -53,6 +60,13 @@ export const Navigation = () => {
         to='/about'
       >
         About
+      </Link>
+      <Link
+        activeProps={{ className: 'font-bold text-blue-700' }}
+        className='font-medium text-blue-500 hover:text-blue-700'
+        to='/tailwind-test'
+      >
+        Tailwind
       </Link>
     </div>
   );
