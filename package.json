@@ -20,7 +20,8 @@
     "deps:reset": "rm -rf node_modules && rm pnpm-lock.yaml && pnpm install",
     "type:check": "tsc --noEmit",
     "prepare": "husky",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "set-env": "node scripts/set-env.js"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.2",

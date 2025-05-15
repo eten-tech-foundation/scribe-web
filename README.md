@@ -58,6 +58,12 @@ The application will be available at [http://localhost:5173](http://localhost:51
 - `pnpm build` - Build the application for production
 - `pnpm build:analyze` - Build with bundle analysis
 
+### Environment Configuration
+
+- `pnpm set-env <environment>` - Switch between environments (local, development, staging, production)
+
+See [Environment Configuration](docs/environment-config.md) for detailed documentation on how to set up and use environment variables.
+
 ### Code Quality
 
 - `pnpm lint` - Run ESLint to check for code issues
