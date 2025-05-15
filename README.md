@@ -82,6 +82,52 @@ The application will be available at [http://localhost:5173](http://localhost:51
   - `.editorconfig`: Sets consistent coding styles across editors
   - `.prettierrc.js`: Configures Prettier to use LF
   - VS Code settings: Configures the editor to use LF
+  - Husky pre-commit hook: Automatically converts CRLF to LF
+
+### Git Line Ending Configuration
+
+This project enforces consistent line endings (LF) across all platforms to prevent issues with mixed line endings, especially on cross-platform teams.
+
+#### Automatic Protection
+
+We have multiple layers of protection against line ending issues:
+
+1. **`.gitattributes` file**: Enforces LF line endings for all text files
+2. **Pre-commit hook**: Automatically converts CRLF to LF for staged files before commit
+
+#### Setup for Windows Users
+
+Windows users should configure Git to respect the `.gitattributes` file by running:
+
+```bash
+git config --global core.autocrlf false
+git config --global core.eol lf
+```
+
+#### Troubleshooting Line Endings
+
+If you experience line ending issues:
+
+1. Check file status with:
+
+   ```bash
+   git ls-files --eol | grep -E 'w/(mixed|crlf)'
+   ```
+
+2. If you need to fix line endings for the entire repository:
+
+   ```bash
+   # First commit or stash your changes
+   git rm --cached -r .
+   git reset --hard
+   git add .
+   git commit -m "Normalize line endings"
+   ```
+
+3. For new clones, after configuring Git as above:
+   ```bash
+   git clone --config core.autocrlf=false <repository-url>
+   ```
 
 ## Troubleshooting
 
