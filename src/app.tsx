@@ -1,12 +1,15 @@
 import { Outlet } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/router-devtools';
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+
+import { Navigation } from './routes';
 
 export function App() {
   return (
     <div className='min-h-screen'>
-      <header className='bg-primary px-6 py-4 text-primary-foreground shadow-md'>
+      <header className='bg-primary text-primary-foreground px-6 py-4 shadow-md'>
         <div className='container mx-auto flex items-center justify-between'>
-          <h1 className='text-xl font-bold'>Scibe Web</h1>
+          <h1 className='text-xl font-bold'>Scribe Web</h1>
+          <Navigation />
         </div>
       </header>
 
@@ -14,7 +17,7 @@ export function App() {
         <Outlet />
       </main>
 
-      <footer className='mt-8 bg-secondary px-6 py-4 text-secondary-foreground'>
+      <footer className='bg-secondary text-secondary-foreground mt-8 px-6 py-4'>
         <div className='container mx-auto text-center'>
           <p>&copy; {new Date().getFullYear()}</p>
         </div>

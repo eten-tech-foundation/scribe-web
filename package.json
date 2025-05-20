@@ -25,7 +25,7 @@
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.2",
     "@tanstack/react-router": "^1.120.2",
-    "@tanstack/router-devtools": "^1.120.2",
+    "@tanstack/react-router-devtools": "^1.120.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -40,6 +40,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
+    "@tailwindcss/postcss": "^4.1.6",
+    "@tailwindcss/vite": "^4.1.6",
     "@tanstack/router-plugin": "^1.120.2",
     "@types/node": "^20.17.45",
     "@types/react": "^18.3.21",
@@ -47,6 +49,7 @@
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
     "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9.26.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^4.3.4",
@@ -59,7 +62,7 @@
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2",
     "prettier": "^3.5.3",
-    "prettier-plugin-tailwindcss": "^0.5.14",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "rollup-plugin-visualizer": "^5.12.0",
     "tailwindcss": "^4.1.6",
     "typescript": "^5.5.3",
@@ -81,6 +84,11 @@
     ],
     "*.{json,css,md,html,yml,yaml}": [
       "prettier --write"
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@tailwindcss/oxide"
     ]
   }
 }

@@ -1,59 +1,70 @@
-import { Router, Link, createRootRoute, createRoute } from '@tanstack/react-router';
+import { Link, Router, createRootRoute, createRoute } from '@tanstack/react-router';
 
 import { App } from '@/app';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { AboutPage } from '@/layouts/about';
 import { HomePage } from '@/layouts/home';
+import { TailwindTestPage } from '@/layouts/tailwind-test';
 
-// Create a root route
 const rootRoute = createRootRoute({
   component: App,
 });
 
-// Create an index route
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: HomePage,
 });
 
-// Create an about route
 const aboutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/about',
   component: AboutPage,
 });
 
-// Create the route tree using the routes
-const routeTree = rootRoute.addChildren([indexRoute, aboutRoute]);
+const tailwindTestRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/tailwind-test',
+  component: TailwindTestPage,
+});
 
-// Create the router using the route tree
+const routeTree = rootRoute.addChildren([indexRoute, aboutRoute, tailwindTestRoute]);
+
 export const router = new Router({ routeTree });
 
-// Register the router for type safety
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;
   }
 }
 
-// Navigation component
 export const Navigation = () => {
   return (
-    <div className='flex gap-4'>
+    <div className='flex gap-6'>
       <Link
-        activeProps={{ className: 'font-bold text-blue-700' }}
-        className='font-medium text-blue-500 hover:text-blue-700'
+        activeProps={{ className: 'text-foreground font-bold hover:text-primary' }}
+        className='text-foreground hover:text-primary flex items-center font-medium'
         to='/'
       >
         Home
       </Link>
       <Link
-        activeProps={{ className: 'font-bold text-blue-700' }}
-        className='font-medium text-blue-500 hover:text-blue-700'
+        activeProps={{ className: 'text-foreground font-bold hover:text-primary' }}
+        className='text-foreground hover:text-primary flex items-center font-medium'
         to='/about'
       >
         About
       </Link>
+      <Link
+        activeProps={{ className: 'text-foreground font-bold hover:text-primary' }}
+        className='text-foreground hover:text-primary flex items-center font-medium'
+        to='/tailwind-test'
+      >
+        Tailwind Test
+      </Link>
+      <div className='flex items-center gap-2'>
+        <ThemeToggle />
+      </div>
     </div>
   );
 };
