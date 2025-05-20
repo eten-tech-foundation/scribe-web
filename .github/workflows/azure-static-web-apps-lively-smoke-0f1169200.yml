@@ -50,7 +50,7 @@ jobs:
           app_location: "/" # App source code path
           api_location: "" # Api source code path - optional
           output_location: "dist" # Built app content directory - fixed to match vite output
-          app_build_command: "pnpm install && pnpm build" # Use pnpm instead of npm
+          app_build_command: "pnpm install --no-strict-peer-dependencies --auto-install-peers=true --resolution-mode=highest && pnpm build" # Use flags matching .npmrc config
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
