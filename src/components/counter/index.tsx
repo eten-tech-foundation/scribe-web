@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/store';
 
@@ -10,6 +12,7 @@ interface CounterProps {
 export function Counter({ initialValue = 0 }: CounterProps) {
   const [count, setCount] = useState(initialValue);
   const { increment: incrementGlobal } = useAppStore();
+  const { t } = useTranslation();
 
   const increment = () => {
     setCount(prev => prev + 1);
@@ -31,21 +34,25 @@ export function Counter({ initialValue = 0 }: CounterProps) {
   return (
     <div className='space-y-4'>
       <div className='flex items-center gap-2'>
-        <span className='text-lg font-medium'>Local count: {count}</span>
+        <span className='text-lg font-medium'>
+          {t(`localCount`)}: {count}
+        </span>
       </div>
 
       <div className='flex flex-wrap gap-2'>
         <Button variant='outline' onClick={decrement}>
-          Decrement
+          {/* Decrement */}
+          {t('decrement')}
         </Button>
         <Button variant='default' onClick={increment}>
-          Increment
+          {/* Increment */}
+          {t('increment')}
         </Button>
         <Button variant='secondary' onClick={reset}>
-          Reset
+          {t('reset')}
         </Button>
         <Button variant='destructive' onClick={incrementBoth}>
-          Increment Both
+          {t('incrementBoth')}
         </Button>
       </div>
     </div>

@@ -1,9 +1,14 @@
 import { Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { useTranslation } from 'react-i18next';
+
+import LanguageSelector from '@/components/LanguageSelector';
 
 import { Navigation } from './routes';
 
 export function App() {
+  const { t } = useTranslation();
+
   return (
     <div className='min-h-screen'>
       <header className='bg-primary text-primary-foreground px-6 py-4 shadow-md'>
@@ -11,6 +16,7 @@ export function App() {
           <h1 className='text-xl font-bold'>Scribe Web</h1>
           <Navigation />
         </div>
+        <LanguageSelector />
       </header>
 
       <main className='container mx-auto px-4 py-8'>
