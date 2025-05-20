@@ -11,7 +11,6 @@ import typescriptEslint from 'typescript-eslint';
 /* Module path resolution */
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Define the shared plugin configuration
 const basePlugins = {
   react: reactPlugin,
   'react-hooks': reactHooksPlugin,
@@ -22,7 +21,6 @@ const basePlugins = {
   prettier: prettierPlugin,
 };
 
-// Define the shared language options
 const baseLanguageOptions = {
   ecmaVersion: 'latest',
   sourceType: 'module',
@@ -33,7 +31,6 @@ const baseLanguageOptions = {
   },
 };
 
-// Language options with TypeScript parser and project references
 const tsLanguageOptions = {
   ...baseLanguageOptions,
   parser: typescriptEslint.parser,
@@ -47,7 +44,6 @@ const tsLanguageOptions = {
   },
 };
 
-// Language options for JS files without TypeScript checking
 const jsLanguageOptions = {
   ...baseLanguageOptions,
   parser: typescriptEslint.parser,
@@ -58,7 +54,6 @@ const jsLanguageOptions = {
   },
 };
 
-// Import plugin settings - explicitly define the resolver
 const importSettings = {
   'import/resolver': {
     node: {
@@ -202,11 +197,12 @@ export default typescriptEslint.config(
       'import/no-cycle': 'warn',
       'import/no-named-as-default-member': 'warn',
       'import/no-named-as-default': 'warn',
-      'eol-last': ['error', 'always'],
 
       /* Code quality */
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-debugger': 'warn',
+      'no-multiple-empty-lines': ['error', { max: 1 }],
+      'eol-last': ['error', 'always'],
     },
     settings: {
       react: {
