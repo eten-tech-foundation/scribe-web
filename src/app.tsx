@@ -1,14 +1,11 @@
 import { Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import { useTranslation } from 'react-i18next';
 
 import LanguageSelector from '@/components/LanguageSelector';
 
 import { Navigation } from './routes';
 
 export function App() {
-  const { t } = useTranslation();
-
   return (
     <div className='min-h-screen'>
       <header className='bg-primary text-primary-foreground px-6 py-4 shadow-md'>
