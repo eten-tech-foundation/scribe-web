@@ -3,7 +3,7 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 import LanguageSelector from '@/components/LanguageSelector';
 
-import { Navigation } from './routes';
+import { Navigation } from './components/navigation';
 
 export function App() {
   return (

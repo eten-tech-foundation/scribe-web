@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
 import { Counter } from '@/components/counter';
+import { Navigation } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
-import { Navigation } from '@/routes';
 import { useAppStore } from '@/store/store';
 
 // Import Navigation last to avoid circular dependencies
