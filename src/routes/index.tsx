@@ -1,4 +1,5 @@
 import { Link, Router, createRootRoute, createRoute } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 
 import { App } from '@/app';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -39,6 +40,8 @@ declare module '@tanstack/react-router' {
 }
 
 export const Navigation = () => {
+  const { t } = useTranslation();
+
   return (
     <div className='flex gap-6'>
       <Link
@@ -46,21 +49,21 @@ export const Navigation = () => {
         className='text-foreground hover:text-primary flex items-center font-medium'
         to='/'
       >
-        Home
+        {t(`home`)}
       </Link>
       <Link
         activeProps={{ className: 'text-foreground font-bold hover:text-primary' }}
         className='text-foreground hover:text-primary flex items-center font-medium'
         to='/about'
       >
-        About
+        {t(`about`)}
       </Link>
       <Link
         activeProps={{ className: 'text-foreground font-bold hover:text-primary' }}
         className='text-foreground hover:text-primary flex items-center font-medium'
         to='/tailwind-test'
       >
-        Tailwind Test
+        {t(`tailwind`)}
       </Link>
       <div className='flex items-center gap-2'>
         <ThemeToggle />

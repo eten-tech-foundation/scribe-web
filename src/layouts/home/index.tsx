@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { Counter } from '@/components/counter';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -9,20 +11,23 @@ import { useAppStore } from '@/store/store';
 
 export function HomePage(): JSX.Element {
   const { count, increment } = useAppStore();
+  const { t } = useTranslation();
 
   return (
     <div className='space-y-8'>
       <Navigation />
 
       <div className='space-y-6'>
-        <h1 className='text-3xl font-bold'>Home Page</h1>
-        <p className='text-lg text-muted-foreground'>Welcome to the Scribe-web</p>
+        <h1 className='text-3xl font-bold'>{t(`homePage`)}</h1>
+        <p className='text-muted-foreground text-lg'>{t(`welcome`)}</p>
 
         <Card className='p-6'>
-          <h2 className='mb-4 text-xl font-semibold'>Shared Counter Component Example</h2>
+          <h2 className='mb-4 text-xl font-semibold'>{t(`sharedCounterExample`)}</h2>
           <div className='space-y-4'>
-            <p>Global state count: {count}</p>
-            <Button onClick={increment}>Increment Global Count</Button>
+            <p>
+              {t(`globalStateCount`)}: {count}
+            </p>
+            <Button onClick={increment}>{t(`incrementGobalCount`)}</Button>
             <Counter initialValue={5} />
           </div>
           <Calendar />

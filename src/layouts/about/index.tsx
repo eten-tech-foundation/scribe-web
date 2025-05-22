@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { Counter } from '@/components/counter';
 import { Card } from '@/components/ui/card';
 import { Navigation } from '@/routes';
@@ -5,20 +7,21 @@ import { useAppStore } from '@/store/store';
 
 export function AboutPage() {
   const { count } = useAppStore();
+  const { t } = useTranslation();
 
   return (
     <div className='space-y-8'>
       <Navigation />
 
       <div className='space-y-6'>
-        <h1 className='text-3xl font-bold'>About Page</h1>
-        <p className='text-lg text-muted-foreground'>This is the about page.</p>
+        <h1 className='text-3xl font-bold'>{t(`aboutPage`)}</h1>
+        <p className='text-muted-foreground text-lg'>{t(`aboutPageDescription`)}.</p>
 
         <Card className='p-6'>
-          <h2 className='mb-4 text-xl font-semibold'>
-            Shared Component &amp; Global State Example
-          </h2>
-          <p className='mb-4'>Global count from store: {count}</p>
+          <h2 className='mb-4 text-xl font-semibold'>{t(`sharedComponentExample`)}</h2>
+          <p className='mb-4'>
+            {t(`globalCount`)}: {count}
+          </p>
           <Counter initialValue={10} />
         </Card>
       </div>

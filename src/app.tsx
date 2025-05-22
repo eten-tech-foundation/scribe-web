@@ -1,6 +1,8 @@
 import { Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
+import LanguageSelector from '@/components/LanguageSelector';
+
 import { Navigation } from './routes';
 
 export function App() {
@@ -11,6 +13,7 @@ export function App() {
           <h1 className='text-xl font-bold'>Scribe Web</h1>
           <Navigation />
         </div>
+        <LanguageSelector />
       </header>
 
       <main className='container mx-auto px-4 py-8'>
