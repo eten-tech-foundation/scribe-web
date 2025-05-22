@@ -84,6 +84,7 @@ export default typescriptEslint.config(
       '**/build/**',
       '**/coverage/**',
       '**/*.config.js',
+      'eslint.config.js',
       'vite.config.ts',
       'tailwind.config.js',
       '**/stats.html',
@@ -215,8 +216,27 @@ export default typescriptEslint.config(
   /* JavaScript-specific config */
   {
     files: ['**/*.{js,jsx,mjs,cjs}'],
+    ignores: ['.prettierrc.js', 'eslint.config.js', '**/*.config.js'],
     plugins: basePlugins,
     languageOptions: jsLanguageOptions,
+    rules: {
+      '@typescript-eslint/no-var-requires': 'off',
+    },
+  },
+
+  /* JavaScript files that need parserOptions.project */
+  {
+    files: ['scripts/**/*.js'],
+    plugins: basePlugins,
+    languageOptions: {
+      ...jsLanguageOptions,
+      parserOptions: {
+        ...jsLanguageOptions.parserOptions,
+        project: ['./tsconfig.json', './tsconfig.node.json'],
+        skipLibCheck: true,
+        warnOnUnsupportedTypeScriptVersion: false,
+      },
+    },
     rules: {
       '@typescript-eslint/no-var-requires': 'off',
     },
@@ -234,8 +254,13 @@ export default typescriptEslint.config(
           allowExpressions: true,
           allowTypedFunctionExpressions: true,
           allowHigherOrderFunctions: true,
+          allowDirectConstAssertionInArrowFunctions: true,
+          allowConciseArrowFunctionExpressionsStartingWithVoid: true,
+          allowFunctionsWithoutTypeParameters: true,
+          allowedNames: ['Component', 'App', 'Page', 'Layout', 'Route'],
         },
       ],
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/naming-convention': [
         'warn',
         /* Type definitions */

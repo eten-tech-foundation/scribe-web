@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
 import { Counter } from '@/components/counter';
+import { Navigation } from '@/components/navigation';
 import { Card } from '@/components/ui/card';
-import { Navigation } from '@/routes';
 import { useAppStore } from '@/store/store';
 
 export function AboutPage() {
