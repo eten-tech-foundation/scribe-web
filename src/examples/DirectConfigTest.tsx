@@ -3,7 +3,6 @@ import React from 'react';
 import { config } from '@/lib/config';
 
 const DirectConfigTest: React.FC = () => {
-  // Using config directly in the component
   const isDevEnvironment = config.environment.isDevelopment;
   const apiEndpoint = config.api.url;
 

@@ -42,7 +42,8 @@
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.4",
-    "zustand": "^4.5.6"
+    "zustand": "^4.5.6",
+    "@microsoft/applicationinsights-web": "^3.3.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
