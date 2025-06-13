@@ -7,8 +7,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
 import { useAppStore } from '@/store/store';
 
-// Import Navigation last to avoid circular dependencies
-
 export function HomePage(): JSX.Element {
   const { count, increment } = useAppStore();
   const { t } = useTranslation();
