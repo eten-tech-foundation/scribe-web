@@ -50,12 +50,9 @@ jobs:
           app_location: "/" # App source code path
           api_location: "" # Api source code path - optional
           output_location: "dist" # Built app content directory - fixed to match vite output
-          app_build_command: "pnpm install && pnpm build" # Use pnpm instead of npm
+          app_build_command: "npm install -g pnpm && pnpm install && pnpm build" # Use npm to install pnpm globally within Oryx
           skip_app_build: false
           ###### End of Repository/Build Configurations ######
-        env:
-          # Force Azure to use the specified build command
-          CUSTOM_BUILD_COMMAND: "pnpm install && pnpm build"
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
