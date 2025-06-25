@@ -3,7 +3,7 @@ name: Azure Static Web Apps CI/CD
 on:
   push:
     branches:
-      - main
+      - fix/azure-deploy
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
@@ -51,7 +51,11 @@ jobs:
           api_location: "" # Api source code path - optional
           output_location: "dist" # Built app content directory - fixed to match vite output
           app_build_command: "pnpm install && pnpm build" # Use pnpm instead of npm
+          skip_app_build: false
           ###### End of Repository/Build Configurations ######
+        env:
+          # Force Azure to use the specified build command
+          CUSTOM_BUILD_COMMAND: "pnpm install && pnpm build"
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
