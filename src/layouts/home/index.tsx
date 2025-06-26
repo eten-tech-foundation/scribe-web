@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Counter } from '@/components/counter';
 import { Navigation } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
 import { useAppStore } from '@/store/store';
 
@@ -28,7 +27,6 @@ export function HomePage(): JSX.Element {
             <Button onClick={increment}>{t(`incrementGobalCount`)}</Button>
             <Counter initialValue={5} />
           </div>
-          <Calendar />
         </Card>
       </div>
     </div>
