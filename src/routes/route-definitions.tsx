@@ -3,6 +3,8 @@ import { createRootRoute, createRoute } from '@tanstack/react-router';
 import { App } from '@/app';
 import { AboutPage } from '@/layouts/about';
 import { AppInsightsTestPage } from '@/layouts/app-insights-test';
+import { CallbackPage } from '@/layouts/callback';
+import { DashboardPage } from '@/layouts/dashboard';
 import { HomePage } from '@/layouts/home';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 
@@ -27,8 +29,21 @@ export const tailwindTestRoute = createRoute({
   path: '/tailwind-test',
   component: TailwindTestPage,
 });
+
 export const appInsightsTestRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app-insights-test',
   component: AppInsightsTestPage,
+});
+
+export const callbackRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/callback',
+  component: CallbackPage,
+});
+
+export const dashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/dashboard',
+  component: DashboardPage,
 });

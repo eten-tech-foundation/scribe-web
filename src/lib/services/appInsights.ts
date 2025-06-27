@@ -26,6 +26,8 @@ class AppInsightsService {
           enableUnhandledPromiseRejectionTracking: true,
           disableExceptionTracking: false,
           enablePerfMgr: true,
+          excludeRequestFromAutoTrackingPatterns: [/.*\.auth0\.com.*/i, /.*auth0.*/i],
+          correlationHeaderExcludedDomains: ['*.auth0.com', 'auth0.com'],
         },
       });
 

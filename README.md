@@ -1,6 +1,120 @@
 # Scribe Web
 
-The front-end web application for Scribe.
+A modern web application built with React, TypeScript, and TanStack Router.
+
+## Features
+
+- **Authentication**: Complete Auth0 integration with login, signup, and user management
+- **Modern UI**: Beautiful, responsive design with Tailwind CSS
+- **Type Safety**: Full TypeScript support
+- **Routing**: TanStack Router for type-safe routing
+- **Internationalization**: i18next for multi-language support
+- **State Management**: Zustand for global state
+- **Form Validation**: Zod for schema validation
+- **UI Components**: Radix UI primitives with custom styling
+
+## Authentication
+
+This application includes a complete authentication system powered by Auth0:
+
+- **Login Page**: Beautiful sign-in interface at `/login`
+- **User Profile**: Dropdown menu with user information and logout
+- **Protected Routes**: Easy-to-use `ProtectedRoute` component
+- **Dashboard**: Example protected page showing user information
+- **Account Creation**: Seamless signup flow integrated with login
+
+### Quick Start with Auth0
+
+1. Create a `.env` file with your Auth0 credentials:
+
+   ```env
+   VITE_AUTH0_DOMAIN=your-tenant.auth0.com
+   VITE_AUTH0_CLIENT_ID=your-client-id
+   VITE_AUTH0_AUDIENCE=your-api-audience
+   ```
+
+2. Configure your Auth0 application:
+
+   - Allowed Callback URLs: `http://localhost:5173/callback`
+   - Allowed Logout URLs: `http://localhost:5173`
+   - Allowed Web Origins: `http://localhost:5173`
+
+3. Start the development server:
+
+   ```bash
+   pnpm dev
+   ```
+
+4. Visit `/login` to test the authentication flow
+
+For detailed setup instructions, see [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md).
+
+## Development
+
+### Prerequisites
+
+- Node.js 22.15.x
+- pnpm
+
+### Installation
+
+```bash
+pnpm install
+```
+
+### Development Server
+
+```bash
+pnpm dev
+```
+
+### Build
+
+```bash
+pnpm build
+```
+
+### Linting
+
+```bash
+pnpm lint
+pnpm lint:fix
+```
+
+### Type Checking
+
+```bash
+pnpm type:check
+```
+
+## Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── auth/           # Authentication components
+│   └── ui/             # Base UI components
+├── hooks/              # Custom React hooks
+├── layouts/            # Page layouts
+├── lib/                # Utility libraries
+├── routes/             # Route definitions
+├── store/              # Global state management
+└── app.tsx             # Main app component
+```
+
+## Technologies
+
+- **React 18** - UI framework
+- **TypeScript** - Type safety
+- **TanStack Router** - Type-safe routing
+- **Tailwind CSS** - Styling
+- **Auth0** - Authentication
+- **Zustand** - State management
+- **Zod** - Schema validation
+- **i18next** - Internationalization
+- **Vite** - Build tool
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
 
 ## Prerequisites
 
