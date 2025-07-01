@@ -30,9 +30,8 @@ coverage
 
 # Environment files
 .env
-.env.local
-.env.*.local
 .env.development
+.env.staging
 .env.production
 .env.test.local
 !.env.example
