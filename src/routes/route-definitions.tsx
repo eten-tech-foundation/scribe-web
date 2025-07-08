@@ -7,6 +7,7 @@ import { CallbackPage } from '@/layouts/callback';
 import { DashboardPage } from '@/layouts/dashboard';
 import { HomePage } from '@/layouts/home';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
+import { UsersPage } from '@/layouts/users';
 
 export const rootRoute = createRootRoute({
   component: App,
@@ -46,4 +47,10 @@ export const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/dashboard',
   component: DashboardPage,
+});
+
+export const usersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/users',
+  component: UsersPage,
 });

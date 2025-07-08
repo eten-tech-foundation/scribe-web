@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -10,15 +8,6 @@ import { useAuth } from '@/hooks/useAuth';
 export const Navigation = () => {
   const { t } = useTranslation();
   const { isAuthenticated, isLoading, user, login } = useAuth();
-
-  // Debug logging
-  useEffect(() => {
-    console.log('Auth Debug:', {
-      isAuthenticated,
-      isLoading,
-      user: user ? { email: user.email, name: user.name } : null,
-    });
-  }, [isAuthenticated, isLoading, user]);
 
   const handleSignIn = () => {
     login();
@@ -46,6 +35,13 @@ export const Navigation = () => {
         to='/tailwind-test'
       >
         {t(`tailwind`)}
+      </Link>
+      <Link
+        activeProps={{ className: 'text-foreground font-bold hover:text-primary' }}
+        className='text-foreground hover:text-primary flex items-center font-medium'
+        to='/users'
+      >
+        Users
       </Link>
 
       {isAuthenticated && (

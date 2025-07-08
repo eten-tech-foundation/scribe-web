@@ -141,7 +141,7 @@ export default typescriptEslint.config(
       ],
       '@typescript-eslint/prefer-nullish-coalescing': 'warn',
       '@typescript-eslint/prefer-optional-chain': 'warn',
-      '@typescript-eslint/no-restricted-types': 'error',
+      '@typescript-eslint/ban-types': 'warn',
 
       /* Clean up unused code */
       'unused-imports/no-unused-imports': 'error',
