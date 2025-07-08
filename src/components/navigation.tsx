@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 export const Navigation = () => {
   const { t } = useTranslation();
-  const { isAuthenticated, isLoading, user, login } = useAuth();
+  const { isAuthenticated, isLoading, login } = useAuth();
 
   const handleSignIn = () => {
     login();
