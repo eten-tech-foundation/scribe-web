@@ -8,6 +8,7 @@ import {
   indexRoute,
   rootRoute,
   tailwindTestRoute,
+  usersRoute,
 } from './route-definitions';
 
 const routeTree = rootRoute.addChildren([
@@ -17,6 +18,7 @@ const routeTree = rootRoute.addChildren([
   appInsightsTestRoute,
   callbackRoute,
   dashboardRoute,
+  usersRoute,
 ]);
 
 export const router = new Router({ routeTree });

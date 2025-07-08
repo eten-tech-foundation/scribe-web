@@ -14,9 +14,8 @@ export function DashboardPage() {
     try {
       const token = await getAccessToken();
       setAccessToken(token);
-      console.log('Access Token:', token);
     } catch (error) {
-      console.error('Error getting access token:', error);
+      // Token retrieval failed
     }
   };
 
@@ -26,7 +25,7 @@ export function DashboardPage() {
       const data = await response.json();
       setApiResponse({ type: 'public', data });
     } catch (error) {
-      console.error('Error calling public API:', error);
+      // Public API call failed
     }
   };
 
@@ -41,7 +40,7 @@ export function DashboardPage() {
       const data = await response.json();
       setApiResponse({ type: 'protected', data });
     } catch (error) {
-      console.error('Error calling protected API:', error);
+      // Protected API call failed
     }
   };
 
