@@ -4,6 +4,8 @@ import { RouterProvider } from '@tanstack/react-router';
 import ReactDOM from 'react-dom/client';
 import './i18n';
 
+import { Toaster } from '@/components/ui/sonner';
+
 import { Auth0ProviderWrapper } from './components/auth/Auth0Provider';
 import './index.css';
 import { router } from './routes';
@@ -14,5 +16,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <Auth0ProviderWrapper>
       <RouterProvider router={router} />
     </Auth0ProviderWrapper>
+    <Toaster />
   </React.StrictMode>
 );
