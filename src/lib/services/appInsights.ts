@@ -34,9 +34,7 @@ class AppInsightsService {
       this.appInsights.loadAppInsights();
       this.initialize();
       this.isInitialized = true;
-      console.log('✅ Application Insights initialized successfully');
-    } catch (error) {
-      console.error('❌ Failed to initialize Application Insights:', error);
+    } catch {
       this.appInsights = undefined;
     }
   }

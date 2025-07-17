@@ -33,10 +33,6 @@ export function UserProfile() {
             <User className='h-4 w-4 text-white' />
           )}
         </div>
-        <div className='hidden text-left md:block'>
-          <div className='text-sm font-medium text-gray-900'>{user.name || user.email}</div>
-          <div className='text-xs text-gray-500'>{user.email}</div>
-        </div>
         <ChevronDown className='h-4 w-4 text-gray-400' />
       </button>
 

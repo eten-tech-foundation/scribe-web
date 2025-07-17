@@ -14,7 +14,6 @@ export function DashboardPage() {
     try {
       const token = await getAccessToken();
       setAccessToken(token);
-      console.log('Access Token:', token);
     } catch (error) {
       console.error('Error getting access token:', error);
     }

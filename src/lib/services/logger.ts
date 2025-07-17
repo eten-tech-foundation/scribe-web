@@ -4,7 +4,6 @@ export class Logger {
   private static appInsights = appInsightsService.getInstance();
   static setUser(userId: string, accountId?: string, userName?: string) {
     if (!appInsightsService.isReady()) {
-      console.log(`User context would be set: ${userName} (${userId})`);
       return;
     }
     appInsightsService.setUser(userId, accountId, userName);
@@ -16,7 +15,6 @@ export class Logger {
     measurements?: Record<string, number>
   ) {
     if (!this.appInsights) {
-      console.error('AppInsights not initialized:', error);
       return;
     }
     this.appInsights.trackException({
@@ -35,7 +33,6 @@ export class Logger {
     measurements?: Record<string, number>
   ) {
     if (!this.appInsights) {
-      console.log(`Event: ${name}`, properties);
       return;
     }
     this.appInsights.trackEvent({
@@ -50,7 +47,6 @@ export class Logger {
 
   static logTrace(message: string, severityLevel?: number, properties?: Record<string, any>) {
     if (!this.appInsights) {
-      console.log(`Trace: ${message}`, properties);
       return;
     }
     this.appInsights.trackTrace({

@@ -27,8 +27,6 @@ if (!fs.existsSync(sourceFile)) {
 
 try {
   fs.copyFileSync(sourceFile, targetFile);
-  console.log(`✅ Successfully switched to ${envArg} environment`);
-} catch (error) {
-  console.error(`❌ Error switching environment: ${error.message}`);
+} catch {
   process.exit(1);
 }

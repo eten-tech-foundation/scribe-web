@@ -48,7 +48,6 @@ export function App() {
       <div className='min-h-screen'>
         <header className='bg-primary text-primary-foreground px-6 py-4 shadow-md'>
           <div className='container mx-auto flex items-center justify-between'>
-            <h1 className='text-xl font-bold'>Scribe Web</h1>
             <Navigation />
           </div>
           <LanguageSelector />
