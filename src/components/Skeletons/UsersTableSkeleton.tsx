@@ -16,7 +16,7 @@ export function UsersTableSkeleton() {
           {skeletonConfig.map(skeleton => (
             <TableCell key={skeleton.key}>
               <Skeleton
-                className={`h-5 ${skeleton.width} ${skeleton.isRounded ? 'rounded-full' : ''}`}
+                className={`h-5 ${skeleton.width} ${skeleton.isRounded ? 'rounded-full' : ''} dark:bg-gray-700`}
               />
             </TableCell>
           ))}

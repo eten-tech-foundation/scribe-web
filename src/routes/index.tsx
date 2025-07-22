@@ -4,7 +4,6 @@ import {
   appInsightsTestRoute,
   callbackRoute,
   usersRoute,
-  dashboardRoute,
   indexRoute,
   rootRoute,
 } from './route-definitions';
@@ -13,7 +12,6 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   appInsightsTestRoute,
   callbackRoute,
-  dashboardRoute,
   usersRoute,
 ]);
 

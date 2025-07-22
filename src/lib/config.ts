@@ -9,9 +9,7 @@ const envSchema = z.object({
   }),
 
   ENVIRONMENT: z.enum(['local', 'development', 'staging', 'production'], {
-    errorMap: () => ({
-      message: 'ENVIRONMENT must be one of: local, development, staging, production',
-    }),
+    message: 'ENVIRONMENT must be one of: local, development, staging, production',
   }),
 
   APPINSIGHTS_CONNECTION_STRING: z.string().optional(),
@@ -36,7 +34,7 @@ function validateEnv(): Env {
     return envSchema.parse(processEnv);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessages = error.errors
+      const errorMessages = error.issues
         .map(err => {
           return `- ${err.path.join('.')}: ${err.message}`;
         })

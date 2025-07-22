@@ -1,13 +1,19 @@
-import { useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import { LogOut, User } from 'lucide-react';
 
-import { ChevronDown, LogOut, User } from 'lucide-react';
-
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
+import logger from '@/lib/error-logger';
 
 export function UserProfile() {
   const { user, logout, isAuthenticated } = useAuth();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
   if (!isAuthenticated || !user) {
     return null;
   }
@@ -16,49 +22,42 @@ export function UserProfile() {
     try {
       await logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error(error as Error, 'UserProfile', 'handleLogout');
     }
   };
 
   return (
-    <div className='relative'>
-      <button
-        className='flex items-center space-x-3 rounded-lg p-2 transition-colors duration-200 hover:bg-gray-100'
-        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-      >
-        <div className='flex h-8 w-8 items-center justify-center rounded-full bg-blue-600'>
-          {user.picture ? (
-            <img alt={user.name || 'User'} className='h-8 w-8 rounded-full' src={user.picture} />
-          ) : (
-            <User className='h-4 w-4 text-white' />
-          )}
-        </div>
-        <ChevronDown className='h-4 w-4 text-gray-400' />
-      </button>
-
-      {isDropdownOpen && (
-        <div className='absolute right-0 z-50 mt-2 w-56 rounded-lg border border-gray-200 bg-white py-2 shadow-lg'>
-          <div className='border-b border-gray-100 px-4 py-3'>
-            <div className='text-sm font-medium text-gray-900'>{user.name || 'User'}</div>
-            <div className='text-sm text-gray-500'>{user.email}</div>
-          </div>
-
-          <div className='py-1'>
-            <button
-              className='flex w-full items-center px-4 py-2 text-sm text-red-600 transition-colors duration-200 hover:bg-red-50'
-              onClick={handleLogout}
-            >
-              <LogOut className='mr-3 h-4 w-4' />
-              Sign Out
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Backdrop to close dropdown */}
-      {isDropdownOpen && (
-        <div className='fixed inset-0 z-40' onClick={() => setIsDropdownOpen(false)} />
-      )}
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button className='flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-white px-2.5 py-2 text-lg font-medium text-gray-800 hover:bg-gray-100'>
+          <User className='h-4 w-4' />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className='dark:bg-background mr-2 ml-6 w-48 border border-gray-300 bg-[#f5f3ee] p-4 text-black dark:text-white'>
+        <DropdownMenuItem asChild>
+          <Link
+            className='text-medium mb-2 flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-300 dark:hover:bg-gray-700'
+            to='/'
+          >
+            <User className='h-4 w-4' />
+            Edit Profile
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <div className='text-medium flex items-center gap-2'>{user.name}</div>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Button
+            className='text-md flex h-8 w-full cursor-pointer items-center justify-start gap-2 font-medium text-gray-800 dark:text-white dark:hover:bg-gray-700'
+            variant='ghost'
+            onClick={handleLogout}
+          >
+            <LogOut className='h-4 w-4' />
+            Log out
+          </Button>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

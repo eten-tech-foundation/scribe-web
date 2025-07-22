@@ -2,6 +2,8 @@ import { useCallback } from 'react';
 
 import { useAuth0 } from '@auth0/auth0-react';
 
+import logger from '@/lib/error-logger';
+
 export function useAuth() {
   const auth0 = useAuth0();
 
@@ -12,7 +14,7 @@ export function useAuth() {
           appState: { returnTo: returnTo || window.location.pathname },
         });
       } catch (error) {
-        console.error('Login error:', error);
+        logger.error(error as Error, 'useAuth', 'login');
         throw error;
       }
     },
@@ -29,7 +31,7 @@ export function useAuth() {
           },
         });
       } catch (error) {
-        console.error('Sign up error:', error);
+        logger.error(error as Error, 'useAuth', 'signUp');
         throw error;
       }
     },
@@ -44,7 +46,7 @@ export function useAuth() {
         },
       });
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error(error as Error, 'useAuth', 'logout');
       throw error;
     }
   }, [auth0]);
@@ -53,7 +55,7 @@ export function useAuth() {
     try {
       return await auth0.getAccessTokenSilently();
     } catch (error) {
-      console.error('Get access token error:', error);
+      logger.error(error as Error, 'useAuth', 'getAccessToken');
       throw error;
     }
   }, [auth0]);

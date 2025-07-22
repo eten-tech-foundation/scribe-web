@@ -1,20 +1,26 @@
+import { Link } from '@tanstack/react-router';
+import { FeatherIcon } from 'lucide-react';
+
 import { UserProfile } from '@/components/auth/UserProfile';
 import { NavDropdown } from '@/components/NavDropdown';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useAuth } from '@/hooks/useAuth';
 
 export const Navigation = () => {
-  const { isAuthenticated, isLoading, user, login } = useAuth();
+  const { isAuthenticated, isLoading, login } = useAuth();
 
   const handleSignIn = () => {
     login();
   };
 
   return (
-    <div className='flex w-full items-center justify-between gap-2'>
+    <div className='flex w-full items-center justify-between'>
       <div className='flex items-center gap-2'>
         <NavDropdown />
-        <h1 className='text-xl font-bold'>Scribe Web</h1>
+        <Link className='ml-4 flex items-center gap-2 text-xl font-bold' to='/'>
+          <FeatherIcon className='h-6 w-6' />
+          Scribe
+        </Link>
       </div>
 
       <div className='flex items-center gap-2'>

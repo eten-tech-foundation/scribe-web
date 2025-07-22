@@ -13,3 +13,11 @@ export interface Column {
   label: string;
   accessor: (user: User) => React.ReactNode;
 }
+
+export interface UserFormValues {
+  email: string;
+  username: string;
+  role: string;
+  firstName?: string;
+  lastName?: string;
+}
