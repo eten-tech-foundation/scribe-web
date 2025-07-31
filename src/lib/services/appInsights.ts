@@ -2,6 +2,16 @@ import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 
 import { config } from '@/lib/config';
 
+import type { ITelemetryItem } from '@microsoft/applicationinsights-web';
+
+interface TelemetryEnvelope {
+  data?: {
+    baseData?: {
+      properties?: Record<string, string | number | boolean>;
+    };
+  };
+}
+
 class AppInsightsService {
   private appInsights?: ApplicationInsights;
   private isInitialized = false;
@@ -34,32 +44,35 @@ class AppInsightsService {
       this.appInsights.loadAppInsights();
       this.initialize();
       this.isInitialized = true;
-      console.log('✅ Application Insights initialized successfully');
+      console.warn('✅ Application Insights initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize Application Insights:', error);
       this.appInsights = undefined;
     }
   }
 
-  private initialize() {
+  private initialize(): void {
     if (!this.appInsights) return;
 
-    this.appInsights.addTelemetryInitializer(envelope => {
-      if (envelope.data?.baseData) {
-        envelope.data.baseData.properties = {
-          ...envelope.data.baseData.properties,
+    this.appInsights.addTelemetryInitializer((envelope: ITelemetryItem): boolean => {
+      const typedEnvelope = envelope as unknown as TelemetryEnvelope;
+      if (typedEnvelope.data?.baseData) {
+        const currentProperties = typedEnvelope.data.baseData.properties ?? {};
+        typedEnvelope.data.baseData.properties = {
+          ...currentProperties,
           browserSize: `${window.innerWidth}x${window.innerHeight}`,
           browserName: navigator.userAgent,
           screenResolution: `${screen.width}x${screen.height}`,
           environment: config.environment.current,
         };
       }
+      return true;
     });
 
     this.appInsights.trackPageView();
   }
 
-  setUser(userId: string, accountId?: string, userName?: string) {
+  setUser(userId: string, accountId?: string, userName?: string): void {
     if (!this.appInsights) {
       console.warn('Cannot set user context - Application Insights not initialized');
       return;
@@ -67,22 +80,25 @@ class AppInsightsService {
 
     this.appInsights.setAuthenticatedUserContext(userId, accountId);
 
-    this.appInsights.addTelemetryInitializer(envelope => {
-      if (envelope.data?.baseData) {
-        envelope.data.baseData.properties = {
-          ...envelope.data.baseData.properties,
+    this.appInsights.addTelemetryInitializer((envelope: ITelemetryItem): boolean => {
+      const typedEnvelope = envelope as unknown as TelemetryEnvelope;
+      if (typedEnvelope.data?.baseData) {
+        const currentProperties = typedEnvelope.data.baseData.properties ?? {};
+        typedEnvelope.data.baseData.properties = {
+          ...currentProperties,
           userId: userId,
-          userName: userName || 'Unknown',
+          userName: userName ?? 'Unknown',
         };
       }
+      return true;
     });
   }
 
-  getInstance() {
+  getInstance(): ApplicationInsights | undefined {
     return this.appInsights;
   }
 
-  isReady() {
+  isReady(): boolean {
     return this.isInitialized && !!this.appInsights;
   }
 }
