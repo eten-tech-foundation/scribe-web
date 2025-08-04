@@ -17,6 +17,9 @@ const Header: React.FC = () => {
   const onEditProfile = () => {
     void navigate({ to: '/user-info' });
   };
+  const onNavigateToUsers = () => {
+    void navigate({ to: '/user-list' });
+  };
 
   const toggleMainMenu = () => {
     setIsMainMenuOpen(!isMainMenuOpen);
@@ -42,6 +45,10 @@ const Header: React.FC = () => {
               onClose={() => setIsMainMenuOpen(false)}
               onDashboardClick={() => {
                 onNavigateToDashboard();
+                setIsMainMenuOpen(false);
+              }}
+              onUsersClick={() => {
+                onNavigateToUsers();
                 setIsMainMenuOpen(false);
               }}
             />

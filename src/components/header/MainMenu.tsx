@@ -8,9 +8,10 @@ interface MainMenuProps {
   isOpen: boolean;
   onClose: () => void;
   onDashboardClick: () => void;
+  onUsersClick: () => void;
 }
 
-const MainMenu: React.FC<MainMenuProps> = ({ isOpen, onClose, onDashboardClick }) => {
+const MainMenu: React.FC<MainMenuProps> = ({ isOpen, onClose, onDashboardClick, onUsersClick }) => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,13 +40,7 @@ const MainMenu: React.FC<MainMenuProps> = ({ isOpen, onClose, onDashboardClick }
       <div className='py-2'>
         <MenuItem icon={<Home size={18} />} text='Dashboard' onClick={onDashboardClick} />
 
-        <MenuItem
-          icon={<Users size={18} />}
-          text='Other Menu Item'
-          onClick={function (): void {
-            console.warn('Other menu item clicked');
-          }}
-        />
+        <MenuItem icon={<Users size={18} />} text='Users' onClick={onUsersClick} />
       </div>
     </div>
   );

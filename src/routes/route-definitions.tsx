@@ -7,6 +7,7 @@ import { CallbackPage } from '@/layouts/callback';
 import { HomePage } from '@/layouts/home';
 import { EditProfile } from '@/layouts/profile/EditProfile';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
+import { UsersWrapper } from '@/layouts/users/UsersWrapper';
 
 export const rootRoute = createRootRoute({
   component: App,
@@ -46,4 +47,9 @@ export const userInfoRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/user-info',
   component: EditProfile,
+});
+export const userListRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/user-list',
+  component: UsersWrapper,
 });
