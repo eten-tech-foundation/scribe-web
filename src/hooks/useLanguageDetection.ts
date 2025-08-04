@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 
 import { useTranslation } from 'react-i18next';
 
-import { languages } from '../components/LanguageSelector';
+import { LANGUAGE_STORAGE_KEY, languages } from '@/lib/constants/languages';
 
-// Local storage key for language preference
-const LANGUAGE_STORAGE_KEY = 'app-language-preference';
+// Define navigator interface to fix TypeScript issues
+interface NavigatorWithUserLanguage extends Navigator {
+  userLanguage?: string;
+}
 
 export const useLanguageDetection = () => {
   const { i18n } = useTranslation();
@@ -14,10 +16,12 @@ export const useLanguageDetection = () => {
   const getBrowserLanguage = (): string => {
     const supportedLanguages = languages.map(lang => lang.code);
 
-    // Get browser languages array
-    const browserLangs = navigator.languages || [
-      navigator.language || (navigator as any).userLanguage || 'en',
-    ]; // Fallback to English
+    // Get browser languages array - navigator.languages is always defined in modern browsers
+    const nav = navigator as NavigatorWithUserLanguage;
+    const browserLangs =
+      navigator.languages.length > 0
+        ? navigator.languages
+        : [nav.userLanguage ?? navigator.language];
 
     // Try to find a match in our supported languages
     const primaryLang = browserLangs[0].split('-')[0].toLowerCase();
@@ -43,11 +47,18 @@ export const useLanguageDetection = () => {
   });
 
   useEffect(() => {
-    // Apply the language
-    i18n.changeLanguage(currentLanguage);
+    // Apply the language with proper promise handling
+    const applyLanguage = async () => {
+      try {
+        await i18n.changeLanguage(currentLanguage);
+        // Save to local storage whenever language changes
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLanguage);
+      } catch (error) {
+        console.error('Failed to change language:', error);
+      }
+    };
 
-    // Save to local storage whenever language changes
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLanguage);
+    void applyLanguage();
 
     // Listen for changes from i18n that might happen from elsewhere
     const handleLanguageChanged = (lng: string) => {

@@ -18,10 +18,11 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "deps:clean": "pnpm prune && pnpm install",
     "deps:reset": "rm -rf node_modules && rm pnpm-lock.yaml && pnpm install",
-    "type:check": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "precheck": "pnpm lint && pnpm format:check && pnpm typecheck",
     "prepare": "husky",
     "lint-staged": "lint-staged",
-    "set-env": "node scripts/set-env.js"
+    "set-env": "node scripts/set-env.ts"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.3.0",

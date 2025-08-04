@@ -1,6 +1,6 @@
 import { type FC } from 'react';
 
-import ConfigExample from './ConfigExample';
+import { ConfigExample } from './ConfigExample';
 
 const ConfigTest: FC = () => {
   return (
