@@ -4,8 +4,8 @@ import { App } from '@/app';
 import { AboutPage } from '@/layouts/about';
 import { AppInsightsTestPage } from '@/layouts/app-insights-test';
 import { CallbackPage } from '@/layouts/callback';
-import { DashboardPage } from '@/layouts/dashboard';
 import { HomePage } from '@/layouts/home';
+import { EditProfile } from '@/layouts/profile/EditProfile';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 
 export const rootRoute = createRootRoute({
@@ -42,8 +42,8 @@ export const callbackRoute = createRoute({
   component: CallbackPage,
 });
 
-export const dashboardRoute = createRoute({
+export const userInfoRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/dashboard',
-  component: DashboardPage,
+  path: '/user-info',
+  component: EditProfile,
 });

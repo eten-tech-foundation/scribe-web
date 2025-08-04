@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 import { Counter } from '@/components/counter';
-import { Navigation } from '@/components/navigation';
+// import { Navigation } from '@/components/navigation';
 import { Card } from '@/components/ui/card';
 import { useAppStore } from '@/store/store';
 
@@ -11,7 +11,7 @@ export function AboutPage() {
 
   return (
     <div className='space-y-8'>
-      <Navigation />
+      {/* <Navigation /> */}
 
       <div className='space-y-6'>
         <h1 className='text-3xl font-bold'>{t(`aboutPage`)}</h1>

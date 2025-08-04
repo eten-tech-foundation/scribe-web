@@ -1,15 +1,14 @@
 import { useEffect } from 'react';
 
 import { Outlet } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { LanguageSelector } from '@/components/LanguageSelector';
+import { useAuth } from '@/hooks/useAuth';
+import Header from '@/layouts/header';
 import { Logger } from '@/lib/services/logger';
 
-import { Navigation } from './components/navigation';
-
 export function App() {
+  const { isAuthenticated, isLoading, loginWithRedirect } = useAuth();
   useEffect(() => {
     Logger.logEvent('AppStarted', {
       startTime: new Date().toISOString(),
@@ -42,30 +41,56 @@ export function App() {
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
+  // Handle authentication redirect
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      // Log the authentication attempt
+      Logger.logEvent('AuthenticationRequired', {
+        timestamp: new Date().toISOString(),
+        currentUrl: window.location.href,
+      });
+
+      // Redirect to Auth0 login
+      void loginWithRedirect({
+        appState: {
+          returnTo: window.location.pathname + window.location.search,
+        },
+      });
+    }
+  }, [isAuthenticated, isLoading, loginWithRedirect]);
+
+  if (isLoading) {
+    return (
+      <ErrorBoundary>
+        <div className='flex min-h-screen items-center justify-center bg-gray-50'>
+          <div className='text-center'>
+            <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
+            <p className='text-lg text-gray-600'>Loading...</p>
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <ErrorBoundary>
+        <div className='flex min-h-screen items-center justify-center bg-gray-50'>
+          <div className='text-center'>
+            <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
+            <p className='text-lg text-gray-600'>Redirecting to login...</p>
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  }
 
   return (
     <ErrorBoundary>
-      <div className='min-h-screen'>
-        <header className='bg-primary text-primary-foreground px-6 py-4 shadow-md'>
-          <div className='container mx-auto flex items-center justify-between'>
-            <h1 className='text-xl font-bold'>Scribe Web</h1>
-            <Navigation />
-          </div>
-          <LanguageSelector />
-        </header>
-
-        <main className='container mx-auto px-4 py-8'>
-          <Outlet />
-        </main>
-
-        <footer className='bg-secondary text-secondary-foreground mt-8 px-6 py-4'>
-          <div className='container mx-auto text-center'>
-            <p>&copy; {new Date().getFullYear()}</p>
-          </div>
-        </footer>
-
-        {process.env.NODE_ENV === 'development' && <TanStackRouterDevtools />}
-      </div>
+      <Header />
+      <main className='p-4'>
+        <Outlet />
+      </main>
     </ErrorBoundary>
   );
 }
