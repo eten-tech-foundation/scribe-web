@@ -8,34 +8,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
-// Local storage key for language preference (same as in useLanguageDetection hook)
-const LANGUAGE_STORAGE_KEY = 'app-language-preference';
-
-interface Language {
-  code: string;
-  name: string;
-}
+import { LANGUAGE_STORAGE_KEY, languages } from '@/lib/constants/languages';
 
 interface LanguageSelectorProps {
   position?: 'absolute' | 'relative';
   className?: string;
 }
 
-export const languages: Language[] = [
-  { code: 'en', name: 'English' },
-  { code: 'hi', name: 'हिन्दी' },
-];
-
 export const LanguageSelector = ({ className = '' }: LanguageSelectorProps) => {
   const { i18n } = useTranslation();
 
-  const changeLanguage = (lng: string): void => {
-    // Update i18n language
-    i18n.changeLanguage(lng);
+  const changeLanguage = async (lng: string): Promise<void> => {
+    try {
+      // Update i18n language with proper promise handling
+      await i18n.changeLanguage(lng);
 
-    // Save to local storage
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, lng);
+      // Save to local storage
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, lng);
+    } catch (error) {
+      console.error('Failed to change language:', error);
+    }
   };
 
   return (
@@ -51,7 +43,7 @@ export const LanguageSelector = ({ className = '' }: LanguageSelectorProps) => {
             <DropdownMenuItem
               key={lang.code}
               className={i18n.language === lang.code ? 'bg-accent' : ''}
-              onClick={() => changeLanguage(lang.code)}
+              onClick={() => void changeLanguage(lang.code)}
             >
               {lang.name}
             </DropdownMenuItem>

@@ -84,7 +84,7 @@ pnpm lint:fix
 ### Type Checking
 
 ```bash
-pnpm type:check
+pnpm typecheck
 ```
 
 ## Project Structure
@@ -184,7 +184,7 @@ See [Environment Configuration](docs/environment-config.md) for detailed documen
 - `pnpm lint:fix` - Run ESLint and automatically fix issues
 - `pnpm format` - Format code with Prettier
 - `pnpm format:check` - Check formatting without making changes
-- `pnpm type:check` - Run TypeScript type checking
+- `pnpm typecheck` - Run TypeScript type checking
 
 ### Dependencies
 

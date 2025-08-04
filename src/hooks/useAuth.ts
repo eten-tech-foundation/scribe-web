@@ -9,7 +9,7 @@ export function useAuth() {
     async (returnTo?: string) => {
       try {
         await auth0.loginWithRedirect({
-          appState: { returnTo: returnTo || window.location.pathname },
+          appState: { returnTo: returnTo ?? window.location.pathname },
         });
       } catch (error) {
         console.error('Login error:', error);
@@ -23,7 +23,7 @@ export function useAuth() {
     async (returnTo?: string) => {
       try {
         await auth0.loginWithRedirect({
-          appState: { returnTo: returnTo || window.location.pathname },
+          appState: { returnTo: returnTo ?? window.location.pathname },
           authorizationParams: {
             screen_hint: 'signup',
           },

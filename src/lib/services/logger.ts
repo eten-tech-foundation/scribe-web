@@ -1,10 +1,16 @@
 import appInsightsService from '@/lib/services/appInsights';
 
+// Define proper types for Application Insights
+type LogProperties = Record<string, string | number | boolean | undefined>;
+
+type LogMeasurements = Record<string, number>;
+
 export class Logger {
   private static appInsights = appInsightsService.getInstance();
-  static setUser(userId: string, accountId?: string, userName?: string) {
+
+  static setUser(userId: string, accountId?: string, userName?: string): void {
     if (!appInsightsService.isReady()) {
-      console.log(`User context would be set: ${userName} (${userId})`);
+      console.warn(`User context would be set: ${userName ?? 'Unknown'} (${userId})`);
       return;
     }
     appInsightsService.setUser(userId, accountId, userName);
@@ -12,9 +18,9 @@ export class Logger {
 
   static logException(
     error: Error,
-    properties?: Record<string, any>,
-    measurements?: Record<string, number>
-  ) {
+    properties?: LogProperties,
+    measurements?: LogMeasurements
+  ): void {
     if (!this.appInsights) {
       console.error('AppInsights not initialized:', error);
       return;
@@ -29,13 +35,9 @@ export class Logger {
     });
   }
 
-  static logEvent(
-    name: string,
-    properties?: Record<string, any>,
-    measurements?: Record<string, number>
-  ) {
+  static logEvent(name: string, properties?: LogProperties, measurements?: LogMeasurements): void {
     if (!this.appInsights) {
-      console.log(`Event: ${name}`, properties);
+      console.warn(`Event: ${name}`, properties);
       return;
     }
     this.appInsights.trackEvent({
@@ -48,9 +50,9 @@ export class Logger {
     });
   }
 
-  static logTrace(message: string, severityLevel?: number, properties?: Record<string, any>) {
+  static logTrace(message: string, severityLevel?: number, properties?: LogProperties): void {
     if (!this.appInsights) {
-      console.log(`Trace: ${message}`, properties);
+      console.warn(`Trace: ${message}`, properties);
       return;
     }
     this.appInsights.trackTrace({
@@ -63,7 +65,7 @@ export class Logger {
     });
   }
 
-  static logPageView(name?: string, url?: string, properties?: Record<string, any>) {
+  static logPageView(name?: string, url?: string, properties?: LogProperties): void {
     if (!this.appInsights) return;
     this.appInsights.trackPageView({
       name,
@@ -78,8 +80,8 @@ export class Logger {
     startTime: Date,
     duration: number,
     success: boolean,
-    properties?: Record<string, any>
-  ) {
+    properties?: LogProperties
+  ): void {
     if (!this.appInsights) return;
     this.appInsights.trackDependencyData({
       name,
@@ -93,7 +95,7 @@ export class Logger {
     });
   }
 
-  static logMetric(name: string, average: number, properties?: Record<string, any>) {
+  static logMetric(name: string, average: number, properties?: LogProperties): void {
     if (!this.appInsights) return;
     this.appInsights.trackMetric({
       name,
@@ -101,19 +103,20 @@ export class Logger {
       properties,
     });
   }
-  static info(message: string, properties?: Record<string, any>) {
+
+  static info(message: string, properties?: LogProperties): void {
     this.logTrace(message, 1, properties);
   }
 
-  static warn(message: string, properties?: Record<string, any>) {
+  static warn(message: string, properties?: LogProperties): void {
     this.logTrace(message, 2, properties);
   }
 
-  static error(message: string, properties?: Record<string, any>) {
+  static error(message: string, properties?: LogProperties): void {
     this.logTrace(message, 3, properties);
   }
 
-  static critical(message: string, properties?: Record<string, any>) {
+  static critical(message: string, properties?: LogProperties): void {
     this.logTrace(message, 4, properties);
   }
 }
