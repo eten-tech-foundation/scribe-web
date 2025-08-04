@@ -49,5 +49,8 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    test: {
+      environment: 'jsdom',
+    },
   };
 });
