@@ -4,21 +4,29 @@ import { useNavigate } from '@tanstack/react-router';
 
 import { useAuth } from '@/hooks/useAuth';
 
-export function CallbackPage() {
+export function CallbackPage(): JSX.Element {
   const { isAuthenticated, isLoading, error } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (isAuthenticated) {
-        // Redirect to home page on successful authentication
-        navigate({ to: '/' });
-      } else if (error) {
-        // Handle error - redirect to home instead of login to avoid loop
-        console.error('Auth0 error:', error);
-        navigate({ to: '/' });
+    const handleNavigation = async (): Promise<void> => {
+      if (!isLoading) {
+        try {
+          if (isAuthenticated) {
+            // Redirect to home page on successful authentication
+            await navigate({ to: '/' });
+          } else if (error) {
+            // Handle error - redirect to home instead of login to avoid loop
+            console.error('Auth0 error:', error);
+            await navigate({ to: '/' });
+          }
+        } catch (navigationError) {
+          console.error('Navigation error:', navigationError);
+        }
       }
-    }
+    };
+
+    void handleNavigation();
   }, [isAuthenticated, isLoading, error, navigate]);
 
   return (

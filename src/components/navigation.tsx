@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -9,19 +7,12 @@ import { useAuth } from '@/hooks/useAuth';
 
 export const Navigation = () => {
   const { t } = useTranslation();
-  const { isAuthenticated, isLoading, user, login } = useAuth();
-
-  // Debug logging
-  useEffect(() => {
-    console.log('Auth Debug:', {
-      isAuthenticated,
-      isLoading,
-      user: user ? { email: user.email, name: user.name } : null,
-    });
-  }, [isAuthenticated, isLoading, user]);
+  const { isAuthenticated, isLoading, login } = useAuth();
 
   const handleSignIn = () => {
-    login();
+    login().catch(error => {
+      console.error('Sign in failed:', error);
+    });
   };
 
   return (

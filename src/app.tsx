@@ -4,7 +4,7 @@ import { Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import LanguageSelector from '@/components/LanguageSelector';
+import { LanguageSelector } from '@/components/LanguageSelector';
 import { Logger } from '@/lib/services/logger';
 
 import { Navigation } from './components/navigation';

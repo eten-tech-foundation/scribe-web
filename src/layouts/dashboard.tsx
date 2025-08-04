@@ -5,32 +5,37 @@ import { Key, User } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/hooks/useAuth';
 
-export function DashboardPage() {
+interface ApiResponse {
+  type: 'public' | 'protected';
+  data: unknown;
+}
+
+export function DashboardPage(): JSX.Element {
   const { user, getAccessToken } = useAuth();
   const [accessToken, setAccessToken] = useState<string>('');
-  const [apiResponse, setApiResponse] = useState<any>(null);
+  const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
 
-  const handleGetToken = async () => {
+  const handleGetToken = async (): Promise<void> => {
     try {
       const token = await getAccessToken();
       setAccessToken(token);
-      console.log('Access Token:', token);
+      console.warn('Access Token:', token);
     } catch (error) {
       console.error('Error getting access token:', error);
     }
   };
 
-  const testPublicAPI = async () => {
+  const testPublicAPI = async (): Promise<void> => {
     try {
       const response = await fetch('http://localhost:9999/api/public');
-      const data = await response.json();
+      const data: unknown = await response.json();
       setApiResponse({ type: 'public', data });
     } catch (error) {
       console.error('Error calling public API:', error);
     }
   };
 
-  const testProtectedAPI = async () => {
+  const testProtectedAPI = async (): Promise<void> => {
     try {
       const token = await getAccessToken();
       const response = await fetch('http://localhost:9999/api/protected', {
@@ -38,7 +43,7 @@ export function DashboardPage() {
           Authorization: `Bearer ${token}`,
         },
       });
-      const data = await response.json();
+      const data: unknown = await response.json();
       setApiResponse({ type: 'protected', data });
     } catch (error) {
       console.error('Error calling protected API:', error);
@@ -53,7 +58,7 @@ export function DashboardPage() {
             <div className='flex h-16 w-16 items-center justify-center rounded-full bg-blue-600'>
               {user?.picture ? (
                 <img
-                  alt={user.name || 'User'}
+                  alt={user.name ?? 'User'}
                   className='h-16 w-16 rounded-full'
                   src={user.picture}
                 />
@@ -63,7 +68,7 @@ export function DashboardPage() {
             </div>
             <div>
               <h1 className='text-3xl font-bold text-gray-900'>
-                Welcome back, {user?.name || 'User'}!
+                Welcome back, {user?.name ?? 'User'}!
               </h1>
               <p className='text-gray-600'>Here's your dashboard overview</p>
             </div>
@@ -121,7 +126,7 @@ export function DashboardPage() {
             <div className='space-y-3'>
               <div className='flex justify-between'>
                 <span className='font-medium text-gray-700'>Name:</span>
-                <span className='text-gray-900'>{user?.name || 'Not provided'}</span>
+                <span className='text-gray-900'>{user?.name ?? 'Not provided'}</span>
               </div>
               <div className='flex justify-between'>
                 <span className='font-medium text-gray-700'>Email:</span>
@@ -134,7 +139,7 @@ export function DashboardPage() {
               <div className='flex justify-between'>
                 <span className='font-medium text-gray-700'>User ID:</span>
                 <span className='font-mono text-sm text-gray-900'>
-                  {user?.sub || 'Not available'}
+                  {user?.sub ?? 'Not available'}
                 </span>
               </div>
             </div>
