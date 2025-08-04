@@ -39,16 +39,6 @@ export const Navigation = () => {
         {t(`tailwind`)}
       </Link>
 
-      {isAuthenticated && (
-        <Link
-          activeProps={{ className: 'text-foreground font-bold hover:text-primary' }}
-          className='text-foreground hover:text-primary flex items-center font-medium'
-          to='/dashboard'
-        >
-          Dashboard
-        </Link>
-      )}
-
       <div className='flex items-center gap-2'>
         <ThemeToggle />
         {isLoading ? (
