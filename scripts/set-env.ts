@@ -4,11 +4,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
 
-const validEnvs = ['local', 'development', 'staging', 'production'];
-const envArg = process.argv[2]?.toLowerCase();
+const validEnvs = ['local', 'development', 'staging', 'production'] as const;
+type Environment = (typeof validEnvs)[number];
+
+const envArg = process.argv[2]?.toLowerCase() as Environment;
 
 if (!validEnvs.includes(envArg)) {
   console.error(`Error: Please specify a valid environment: ${validEnvs.join(', ')}`);
@@ -16,8 +18,8 @@ if (!validEnvs.includes(envArg)) {
   process.exit(1);
 }
 
-const sourceFile = path.resolve(__dirname, `../.env.${envArg}`);
-const targetFile = path.resolve(__dirname, '../.env');
+const sourceFile = path.resolve(_dirname, `../.env.${envArg}`);
+const targetFile = path.resolve(_dirname, '../.env');
 
 if (!fs.existsSync(sourceFile)) {
   console.error(`Error: Environment file ${sourceFile} does not exist`);
@@ -27,8 +29,7 @@ if (!fs.existsSync(sourceFile)) {
 
 try {
   fs.copyFileSync(sourceFile, targetFile);
-  console.log(`✅ Successfully switched to ${envArg} environment`);
 } catch (error) {
-  console.error(`❌ Error switching environment: ${error.message}`);
+  console.error(`❌ Error switching environment: ${(error as Error).message}`);
   process.exit(1);
 }

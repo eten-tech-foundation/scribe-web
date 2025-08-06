@@ -11,7 +11,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      login();
+      login().catch(error => {
+        console.error('Auto-login failed:', error);
+      });
     }
   }, [isAuthenticated, isLoading, login]);
 

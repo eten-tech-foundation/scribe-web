@@ -8,12 +8,13 @@ export const AppInsightsTestPage: React.FC = () => {
   const [shouldThrowError, setShouldThrowError] = useState(false);
   const [testResults, setTestResults] = useState<string[]>([]);
 
-  const addResult = (message: string) => {
+  const addResult = (message: string): void => {
     setTestResults(prev => [`${new Date().toLocaleTimeString()}: ${message}`, ...prev.slice(0, 9)]);
   };
+
   const isAppInsightsReady = appInsightsService.isReady();
 
-  const testLogEvent = () => {
+  const testLogEvent = (): void => {
     Logger.logEvent('TestButtonClicked', {
       buttonType: 'event-test',
       timestamp: new Date().toISOString(),
@@ -21,7 +22,8 @@ export const AppInsightsTestPage: React.FC = () => {
     });
     addResult('✅ Event logged: TestButtonClicked');
   };
-  const testLogException = () => {
+
+  const testLogException = (): void => {
     const testError = new Error('This is a test exception for Application Insights');
     Logger.logException(testError, {
       testType: 'manual-exception',
@@ -30,7 +32,7 @@ export const AppInsightsTestPage: React.FC = () => {
     addResult('✅ Exception logged: Test exception');
   };
 
-  const testLogTrace = (level: 'info' | 'warn' | 'error' | 'critical') => {
+  const testLogTrace = (level: 'info' | 'warn' | 'error' | 'critical'): void => {
     const messages = {
       info: 'This is an info trace message',
       warn: 'This is a warning trace message',
@@ -44,14 +46,16 @@ export const AppInsightsTestPage: React.FC = () => {
     });
     addResult(`✅ ${level.toUpperCase()} trace logged`);
   };
-  const testLogPageView = () => {
+
+  const testLogPageView = (): void => {
     Logger.logPageView('AppInsights Test Page', '/app-insights-test', {
       testType: 'page-view-test',
       userAgent: navigator.userAgent,
     });
     addResult('✅ Page view logged');
   };
-  const testLogDependency = async () => {
+
+  const testLogDependency = async (): Promise<void> => {
     const startTime = new Date();
     await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
 
@@ -66,7 +70,8 @@ export const AppInsightsTestPage: React.FC = () => {
 
     addResult(`✅ Dependency logged: ${success ? 'Success' : 'Failed'} (${duration}ms)`);
   };
-  const testLogMetric = () => {
+
+  const testLogMetric = (): void => {
     const randomValue = Math.random() * 100;
     Logger.logMetric('TestMetric', randomValue, {
       testType: 'metric-test',
@@ -75,7 +80,7 @@ export const AppInsightsTestPage: React.FC = () => {
     addResult(`✅ Metric logged: ${randomValue.toFixed(2)}`);
   };
 
-  const testSetUser = () => {
+  const testSetUser = (): void => {
     const testUserId = `test-user-${Date.now()}`;
     const testUserName = 'Test User';
     const testAccountId = `account-${Date.now()}`;
@@ -85,17 +90,19 @@ export const AppInsightsTestPage: React.FC = () => {
     addResult(`✅ User context set: ${testUserName} (${testUserId})`);
   };
 
-  const testErrorBoundary = () => {
+  const testErrorBoundary = (): void => {
     setShouldThrowError(true);
   };
-  const testGlobalError = () => {
+
+  const testGlobalError = (): void => {
     setTimeout(() => {
       throw new Error('This is a test global error for Application Insights');
     }, 100);
     addResult('✅ Global error thrown (check console/AppInsights)');
   };
-  const testUnhandledPromiseRejection = () => {
-    Promise.reject(new Error('This is a test unhandled promise rejection'));
+
+  const testUnhandledPromiseRejection = (): void => {
+    void Promise.reject(new Error('This is a test unhandled promise rejection'));
     addResult('✅ Unhandled promise rejection triggered');
   };
 
@@ -241,7 +248,7 @@ export const AppInsightsTestPage: React.FC = () => {
         <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
           <button
             className='rounded bg-teal-600 px-4 py-2 font-medium text-white hover:bg-teal-700'
-            onClick={testLogDependency}
+            onClick={() => void testLogDependency()}
           >
             Test API Dependency (Random Success/Fail)
           </button>
