@@ -20,5 +20,21 @@
   "counter": "Counter",
   "increment": "Increment",
   "decrement": "Decrement",
-  "count": "Count: {{count}}"
+  "count": "Count: {{count}}",
+  "editProfile": "Edit Profile",
+  "logout": "Logout",
+  "name": "Name",
+  "email": "Email",
+  "role": "Role",
+  "status": "Status",
+  "dashboard": "Dashboard",
+  "users": "Users",
+  "displayName": "Display Name",
+  "firstName": "First Name",
+  "lastName": "Last Name",
+  "saveUser": "Save User",
+  "cancel": "Cancel",
+  "addUser": "Add User",
+  "verified": "Verified",
+  "invited": "Invited"
 }

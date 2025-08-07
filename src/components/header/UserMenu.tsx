@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
 import { LogOut, UserPen } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '@/hooks/useAuth';
 
@@ -21,6 +22,8 @@ interface UserMenuProps {
 
 const UserMenu: React.FC<UserMenuProps> = ({ isOpen, onClose, onEditProfile }) => {
   const { user, logout, isAuthenticated } = useAuth();
+  const { t } = useTranslation();
+
   //   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -59,13 +62,13 @@ const UserMenu: React.FC<UserMenuProps> = ({ isOpen, onClose, onEditProfile }) =
       className='absolute top-full right-[18px] z-50 mt-1 w-56 rounded-md border border-gray-200 bg-[#E7E4DD] shadow-lg'
     >
       <div className='py-2'>
-        <MenuItem icon={<UserPen size={18} />} text='Edit Profile' onClick={onEditProfile} />
+        <MenuItem icon={<UserPen size={18} />} text={t('editProfile')} onClick={onEditProfile} />
         <div className='mx-2 my-1 border-t border-gray-300' />
         <div className='my-1 px-8 py-2'>
           <p className='text-sm font-medium text-[#726639]'>{user.nickname}</p>
         </div>
         <div>
-          <MenuItem icon={<LogOut size={18} />} text='Logout' onClick={handleLogout} />
+          <MenuItem icon={<LogOut size={18} />} text={t('logout')} onClick={handleLogout} />
         </div>
       </div>
     </div>

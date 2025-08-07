@@ -32,7 +32,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className='relative flex h-[56px] items-center bg-[#007EA7]'>
+    <header className='bg-primary relative flex h-[56px] items-center'>
       <div className='my-4 flex w-full items-center justify-between'>
         <div className='flex items-center'>
           <div className='relative flex items-center pl-[18px]'>
