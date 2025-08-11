@@ -1,29 +1,22 @@
 // UsersPage Component
 import { useMemo } from 'react';
 
+import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-
-// Types
-interface User {
-  id: string;
-  displayName: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  status: 'invited' | 'verified';
-}
+import { getRoleLabel } from '@/lib/constants/roles';
+import { type User } from '@/lib/types';
 
 interface UsersPageProps {
   users: User[];
+  loading?: boolean;
   onAddUser: () => void;
   onEditUser: (user: User) => void;
 }
 
-export const UsersPage: React.FC<UsersPageProps> = ({ users, onAddUser, onEditUser }) => {
+export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser, onEditUser }) => {
   const { t } = useTranslation();
 
   const getStatusVariant = (status: 'invited' | 'verified') => {
@@ -31,7 +24,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ users, onAddUser, onEditUs
   };
 
   const sortedUsers = useMemo(() => {
-    return [...users].sort((a, b) => a.displayName.localeCompare(b.displayName));
+    return [...users].sort((a, b) => a.username.localeCompare(b.username));
   }, [users]);
 
   return (
@@ -62,28 +55,39 @@ export const UsersPage: React.FC<UsersPageProps> = ({ users, onAddUser, onEditUs
             </tr>
           </thead>
           <tbody className='divide-y divide-[#D9D8D0] bg-white'>
-            {sortedUsers.map(user => (
-              <tr
-                key={user.id}
-                className='cursor-pointer transition-colors hover:bg-gray-50'
-                onClick={() => onEditUser(user)}
-              >
-                <td className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                  {user.displayName}
-                </td>
-                <td className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                  {user.role}
-                </td>
-                <td className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                  {user.email}
-                </td>
-                <td className='px-6 py-4 whitespace-nowrap'>
-                  <Badge variant={getStatusVariant(user.status)}>
-                    {user.status === 'invited' ? t('invited') : t('verified')}
-                  </Badge>
+            {loading ? (
+              <tr>
+                <td className='px-6 py-8 text-center' colSpan={4}>
+                  <div className='flex items-center justify-center gap-2'>
+                    <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
+                    <span className='text-gray-500'>Loading...</span>
+                  </div>
                 </td>
               </tr>
-            ))}
+            ) : (
+              sortedUsers.map(user => (
+                <tr
+                  key={user.id}
+                  className='cursor-pointer transition-colors hover:bg-gray-50'
+                  onClick={() => onEditUser(user)}
+                >
+                  <td className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                    {user.username}
+                  </td>
+                  <td className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                    {getRoleLabel(user.role)}
+                  </td>
+                  <td className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                    {user.email}
+                  </td>
+                  <td className='px-6 py-4 whitespace-nowrap'>
+                    <Badge variant={getStatusVariant(user.status as 'invited' | 'verified')}>
+                      {user.status === 'invited' ? t('invited') : t('verified')}
+                    </Badge>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

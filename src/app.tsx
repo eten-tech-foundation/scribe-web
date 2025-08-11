@@ -4,11 +4,16 @@ import { Outlet } from '@tanstack/react-router';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
+import { useGetUserDetailsMutation } from '@/hooks/useUsers';
 import Header from '@/layouts/header';
 import { Logger } from '@/lib/services/logger';
+import { useAppStore } from '@/store/store';
 
 export function App() {
-  const { isAuthenticated, isLoading, loginWithRedirect } = useAuth();
+  const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth();
+  const { mutate: fetchUserDetails } = useGetUserDetailsMutation();
+  const { setUserDetail } = useAppStore();
+
   useEffect(() => {
     Logger.logEvent('AppStarted', {
       startTime: new Date().toISOString(),
@@ -56,8 +61,31 @@ export function App() {
           returnTo: window.location.pathname + window.location.search,
         },
       });
+    } else if (isAuthenticated && user?.email) {
+      // Log successful authentication
+      Logger.logEvent('UserAuthenticated', {
+        userId: user.sub,
+        userEmail: user.email,
+        timestamp: new Date().toISOString(),
+      });
+      // Fetch user details
+      fetchUserDetails(user.email, {
+        onSuccess: userDetails => {
+          setUserDetail({
+            id: typeof userDetails.id === 'number' ? userDetails.id : 0,
+            email: userDetails.email || '',
+            username: userDetails.username || '',
+            role: typeof userDetails.role === 'number' ? userDetails.role : 0,
+            organization:
+              typeof userDetails.organization === 'number' ? userDetails.organization : 0,
+          });
+        },
+        onError: error => {
+          console.error('Failed to fetch user details:', error);
+        },
+      });
     }
-  }, [isAuthenticated, isLoading, loginWithRedirect]);
+  }, [isAuthenticated, isLoading, loginWithRedirect, user, fetchUserDetails, setUserDetail]);
 
   if (isLoading) {
     return (

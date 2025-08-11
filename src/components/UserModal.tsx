@@ -1,59 +1,64 @@
-// Common User Modal Component
 import { useEffect, useState } from 'react';
 
+import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import { FormInput } from '@/components/ui/FormInput';
 import { FormSelect } from '@/components/ui/FormSelect';
 import { Modal } from '@/components/ui/Modal';
-import { type User } from '@/data/mockUsers';
+import { roleOptions } from '@/lib/constants/roles';
+import { type User } from '@/lib/types';
 
 interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
   user?: User | null;
-  onSave: (user: User | Omit<User, 'id'>) => void;
+  onSave: (user: User | Omit<User, 'id'>) => Promise<void>;
   mode: 'create' | 'edit';
+  isLoading?: boolean;
 }
 
-export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user, onSave, mode }) => {
+interface FormData {
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: number;
+  status: string;
+}
+
+export const UserModal: React.FC<UserModalProps> = ({
+  isOpen,
+  onClose,
+  user,
+  onSave,
+  mode,
+  isLoading = false,
+}) => {
   const { t } = useTranslation();
 
-  const [formData, setFormData] = useState<{
-    displayName: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    role: string;
-    status: 'invited' | 'verified';
-  }>({
-    displayName: '',
+  const [formData, setFormData] = useState<FormData>({
+    username: '',
     firstName: '',
     lastName: '',
     email: '',
-    role: '',
+    role: 0,
     status: 'invited',
   });
 
   const [errors, setErrors] = useState({
-    displayName: false,
+    username: false,
     email: false,
     role: false,
   });
-
-  const roleOptions = [
-    { value: 'Team Member', label: 'Team Member' },
-    { value: 'Team Lead', label: 'Team Lead' },
-    { value: 'Organization Manager', label: 'Organization Manager' },
-  ];
 
   // Reset form when modal opens or user changes
   useEffect(() => {
     if (isOpen) {
       if (mode === 'edit' && user) {
         setFormData({
-          displayName: user.displayName,
+          username: user.username,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
@@ -62,44 +67,47 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user, onS
         });
       } else {
         setFormData({
-          displayName: '',
+          username: '',
           firstName: '',
           lastName: '',
           email: '',
-          role: '',
+          role: 0,
           status: 'invited',
         });
       }
-      setErrors({ displayName: false, email: false, role: false });
+      setErrors({ username: false, email: false, role: false });
     }
   }, [isOpen, user, mode]);
 
   const validateForm = () => {
     const newErrors = {
-      displayName: formData.displayName.trim() === '',
-      email: formData.email.trim() === '',
-      role: formData.role.trim() === '',
+      username: !formData.username.trim(),
+      email: !formData.email.trim(),
+      role: !formData.role || formData.role === 0,
     };
 
     setErrors(newErrors);
     return !Object.values(newErrors).some(Boolean);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
 
-    if (mode === 'edit' && user) {
-      onSave({ ...user, ...formData });
-    } else {
-      onSave(formData);
+    try {
+      if (mode === 'edit' && user) {
+        await onSave({ ...user, ...formData });
+      } else {
+        await onSave(formData as Omit<User, 'id'>);
+      }
+    } catch (error) {
+      // Error handling is done in the parent component
+      console.error('Error in handleSubmit:', error);
     }
-
-    onClose();
   };
 
-  const updateFormData = (field: string, value: string) => {
+  const updateFormData = (field: keyof FormData, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -126,16 +134,16 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user, onS
 
           <FormInput
             required
-            error={errors.displayName}
-            errorMessage='Display name is required.'
+            error={errors.username}
+            errorMessage='Username is required.'
             helperText='Visible to all Scribe users'
             label={
               <>
-                <span style={{ color: 'red' }}>*</span> {t('displayName')}
+                <span style={{ color: 'red' }}>*</span> {t('username')}
               </>
             }
-            value={formData.displayName}
-            onChange={value => updateFormData('displayName', value)}
+            value={formData.username}
+            onChange={value => updateFormData('username', value)}
           />
 
           <FormInput
@@ -160,18 +168,25 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user, onS
             }
             options={roleOptions}
             placeholder={mode === 'create' ? 'Select Role' : undefined}
-            value={formData.role}
-            onChange={value => updateFormData('role', value)}
+            value={formData.role.toString()}
+            onChange={value => updateFormData('role', Number(value))}
           />
 
-          {/* <FormActions submitText={submitText} onSubmit={handleSubmit} /> */}
-          <div className='my-7 flex justify-end'>
+          <div className='my-7 flex justify-end gap-2'>
             <Button
               className='bg-primary hover:bg-primary/90 text-white hover:cursor-pointer'
+              disabled={isLoading}
               type='button'
               onClick={handleSubmit}
             >
-              {submitText}
+              {isLoading ? (
+                <div className='flex items-center gap-2'>
+                  <Loader2 className='h-4 w-4 animate-spin' />
+                  <span>{mode === 'create' ? 'Creating...' : 'Saving...'}</span>
+                </div>
+              ) : (
+                submitText
+              )}
             </Button>
           </div>
         </div>
