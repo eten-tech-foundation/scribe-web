@@ -26,6 +26,8 @@ interface FormData {
   email: string;
   role: number;
   status: string;
+  disabled?: boolean;
+  required?: boolean;
 }
 
 export const UserModal: React.FC<UserModalProps> = ({
@@ -59,11 +61,11 @@ export const UserModal: React.FC<UserModalProps> = ({
       if (mode === 'edit' && user) {
         setFormData({
           username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: user.firstName ?? '',
+          lastName: user.lastName ?? '',
           email: user.email,
           role: user.role,
-          status: user.status,
+          status: user.status ?? '',
         });
       } else {
         setFormData({
@@ -120,6 +122,7 @@ export const UserModal: React.FC<UserModalProps> = ({
         <div>
           <FormInput
             required
+            disabled={mode === 'edit'}
             error={errors.email}
             errorMessage='Email is required.'
             label={

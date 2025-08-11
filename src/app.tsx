@@ -78,6 +78,9 @@ export function App() {
             role: typeof userDetails.role === 'number' ? userDetails.role : 0,
             organization:
               typeof userDetails.organization === 'number' ? userDetails.organization : 0,
+            firstName: userDetails.firstName,
+            lastName: userDetails.lastName,
+            status: userDetails.status,
           });
         },
         onError: error => {

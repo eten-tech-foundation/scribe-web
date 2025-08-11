@@ -8,6 +8,7 @@ interface FormInputProps {
   error?: boolean;
   errorMessage?: string;
   required?: boolean;
+  disabled?: boolean;
 }
 
 export const FormInput: React.FC<FormInputProps> = ({
@@ -19,6 +20,7 @@ export const FormInput: React.FC<FormInputProps> = ({
   error = false,
   errorMessage,
   required = false,
+  disabled = false,
 }) => {
   return (
     <div className='mb-4'>
@@ -26,7 +28,8 @@ export const FormInput: React.FC<FormInputProps> = ({
       <input
         className={`w-full rounded-md border px-3 py-2 focus:ring-2 focus:outline-none ${
           error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
-        }`}
+        } ${disabled ? 'cursor-not-allowed bg-gray-200' : 'bg-white'}`}
+        disabled={disabled}
         required={required}
         type={type}
         value={value}

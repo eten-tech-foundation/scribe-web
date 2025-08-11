@@ -7,6 +7,9 @@ interface User {
   username: string;
   role: number;
   organization: number;
+  firstName?: string;
+  lastName?: string;
+  status?: string;
 }
 
 interface AppState {
