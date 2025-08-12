@@ -4,15 +4,17 @@ import { Outlet } from '@tanstack/react-router';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
-import { useGetUserDetailsMutation } from '@/hooks/useUsers';
+import { useGetUserDetailsMutation, useUpdateUser } from '@/hooks/useUsers';
 import Header from '@/layouts/header';
 import { Logger } from '@/lib/services/logger';
+import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 export function App() {
   const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth();
   const { mutate: fetchUserDetails, isPending: isFetchingUserDetails } =
     useGetUserDetailsMutation();
+  const updateUserMutation = useUpdateUser();
   const { setUserDetail } = useAppStore();
 
   const [userDetailsFetched, setUserDetailsFetched] = useState(false);
@@ -80,21 +82,28 @@ export function App() {
       // Fetch user details
       fetchUserDetails(user.email, {
         onSuccess: userDetails => {
-          setUserDetail({
-            id: userDetails.id,
-            email: userDetails.email,
-            username: userDetails.username,
-            role: userDetails.role,
-            organization: userDetails.organization,
-            firstName: userDetails.firstName,
-            lastName: userDetails.lastName,
-            status: userDetails.status,
-          });
-          setUserDetailsFetched(true);
+          void (async () => {
+            if (userDetails.status !== 'verified' && user.email_verified) {
+              userDetails.status = 'verified';
+              await updateUserMutation.mutateAsync({
+                userData: userDetails as User,
+                email: userDetails.email,
+              });
+            }
+            setUserDetail({
+              id: userDetails.id,
+              email: userDetails.email,
+              username: userDetails.username,
+              role: userDetails.role,
+              organization: userDetails.organization,
+              firstName: userDetails.firstName,
+              lastName: userDetails.lastName,
+              status: userDetails.status,
+            });
+            setUserDetailsFetched(true);
+          })();
         },
         onError: error => {
-          console.error('Failed to fetch user details:', error);
-
           // Log the error
           Logger.logException(error instanceof Error ? error : new Error(String(error)), {
             source: 'FetchUserDetails',
@@ -122,45 +131,19 @@ export function App() {
     fetchUserDetails,
     setUserDetail,
     fetchInitiated,
+    updateUserMutation,
   ]);
 
   if (isLoading) {
-    return (
-      <ErrorBoundary>
-        <div className='flex h-screen items-center justify-center bg-gray-50'>
-          <div className='text-center'>
-            <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
-            <p className='text-lg text-gray-600'>Loading...</p>
-          </div>
-        </div>
-      </ErrorBoundary>
-    );
+    return LoadingScreen('Loading...');
   }
 
   if (!isAuthenticated) {
-    return (
-      <ErrorBoundary>
-        <div className='flex h-screen items-center justify-center bg-gray-50'>
-          <div className='text-center'>
-            <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
-            <p className='text-lg text-gray-600'>Redirecting to login...</p>
-          </div>
-        </div>
-      </ErrorBoundary>
-    );
+    return LoadingScreen('Redirecting to login...');
   }
 
   if (isFetchingUserDetails || !userDetailsFetched) {
-    return (
-      <ErrorBoundary>
-        <div className='flex h-screen items-center justify-center bg-gray-50'>
-          <div className='text-center'>
-            <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
-            <p className='text-lg text-gray-600'>Loading user details...</p>
-          </div>
-        </div>
-      </ErrorBoundary>
-    );
+    return LoadingScreen('Loading user details...');
   }
 
   return (
@@ -170,6 +153,19 @@ export function App() {
         <main className='flex-1 overflow-hidden p-4'>
           <Outlet />
         </main>
+      </div>
+    </ErrorBoundary>
+  );
+}
+
+function LoadingScreen(message: string) {
+  return (
+    <ErrorBoundary>
+      <div className='flex h-screen items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
+          <p className='text-lg text-gray-600'>{message}</p>
+        </div>
       </div>
     </ErrorBoundary>
   );
