@@ -18,14 +18,14 @@ export const UsersWrapper: React.FC = () => {
   const handleSaveUser = async (userData: User | Omit<User, 'id'>) => {
     try {
       if (modalMode === 'create') {
-        (userData.organization = userdetail?.organization ?? 0),
-          (userData.createdBy = userdetail?.id ?? 0),
-          (userData.isActive = true),
-          // Creating new user - pass both userData and email as an object
-          await createUserMutation.mutateAsync({
-            userData: userData as Omit<User, 'id'>,
-            email: userdetail ? userdetail.email : '',
-          });
+        userData.organization = userdetail?.organization ?? 0;
+        userData.createdBy = userdetail?.id ?? 0;
+        userData.isActive = true;
+        // Creating new user - pass both userData and email as an object
+        await createUserMutation.mutateAsync({
+          userData: userData as Omit<User, 'id'>,
+          email: userdetail ? userdetail.email : '',
+        });
       } else {
         // Updating existing user - pass both userData and email as an object
         await updateUserMutation.mutateAsync({

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Outlet } from '@tanstack/react-router';
 
@@ -11,8 +11,12 @@ import { useAppStore } from '@/store/store';
 
 export function App() {
   const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth();
-  const { mutate: fetchUserDetails } = useGetUserDetailsMutation();
+  const { mutate: fetchUserDetails, isPending: isFetchingUserDetails } =
+    useGetUserDetailsMutation();
   const { setUserDetail } = useAppStore();
+
+  const [userDetailsFetched, setUserDetailsFetched] = useState(false);
+  const [fetchInitiated, setFetchInitiated] = useState(false);
 
   useEffect(() => {
     Logger.logEvent('AppStarted', {
@@ -46,6 +50,7 @@ export function App() {
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
+
   // Handle authentication redirect
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -61,34 +66,63 @@ export function App() {
           returnTo: window.location.pathname + window.location.search,
         },
       });
-    } else if (isAuthenticated && user?.email) {
+    } else if (isAuthenticated && user?.email && !fetchInitiated) {
       // Log successful authentication
       Logger.logEvent('UserAuthenticated', {
         userId: user.sub,
         userEmail: user.email,
         timestamp: new Date().toISOString(),
       });
+
+      // Mark that we've initiated the fetch
+      setFetchInitiated(true);
+
       // Fetch user details
       fetchUserDetails(user.email, {
         onSuccess: userDetails => {
           setUserDetail({
-            id: typeof userDetails.id === 'number' ? userDetails.id : 0,
-            email: userDetails.email || '',
-            username: userDetails.username || '',
-            role: typeof userDetails.role === 'number' ? userDetails.role : 0,
-            organization:
-              typeof userDetails.organization === 'number' ? userDetails.organization : 0,
+            id: userDetails.id,
+            email: userDetails.email,
+            username: userDetails.username,
+            role: userDetails.role,
+            organization: userDetails.organization,
             firstName: userDetails.firstName,
             lastName: userDetails.lastName,
             status: userDetails.status,
           });
+          setUserDetailsFetched(true);
         },
         onError: error => {
           console.error('Failed to fetch user details:', error);
+
+          // Log the error
+          Logger.logException(error instanceof Error ? error : new Error(String(error)), {
+            source: 'FetchUserDetails',
+            userEmail: user.email,
+          });
+
+          // Reset states and redirect to login on error
+          setFetchInitiated(false);
+          setUserDetailsFetched(false);
+
+          // Redirect to login
+          void loginWithRedirect({
+            appState: {
+              returnTo: window.location.pathname + window.location.search,
+            },
+          });
         },
       });
     }
-  }, [isAuthenticated, isLoading, loginWithRedirect, user, fetchUserDetails, setUserDetail]);
+  }, [
+    isAuthenticated,
+    isLoading,
+    loginWithRedirect,
+    user,
+    fetchUserDetails,
+    setUserDetail,
+    fetchInitiated,
+  ]);
 
   if (isLoading) {
     return (
@@ -110,6 +144,19 @@ export function App() {
           <div className='text-center'>
             <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
             <p className='text-lg text-gray-600'>Redirecting to login...</p>
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  if (isFetchingUserDetails || !userDetailsFetched) {
+    return (
+      <ErrorBoundary>
+        <div className='flex h-screen items-center justify-center bg-gray-50'>
+          <div className='text-center'>
+            <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
+            <p className='text-lg text-gray-600'>Loading user details...</p>
           </div>
         </div>
       </ErrorBoundary>

@@ -1,11 +1,8 @@
 import { createRootRoute, createRoute } from '@tanstack/react-router';
 
 import { App } from '@/app';
-import { AboutPage } from '@/layouts/about';
 import { AppInsightsTestPage } from '@/layouts/app-insights-test';
-import { CallbackPage } from '@/layouts/callback';
 import { HomePage } from '@/layouts/home';
-import { EditProfile } from '@/layouts/profile/EditProfile';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 import { UsersWrapper } from '@/layouts/users/UsersWrapper';
 
@@ -17,12 +14,6 @@ export const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: HomePage,
-});
-
-export const aboutRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/about',
-  component: AboutPage,
 });
 
 export const tailwindTestRoute = createRoute({
@@ -37,17 +28,6 @@ export const appInsightsTestRoute = createRoute({
   component: AppInsightsTestPage,
 });
 
-export const callbackRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/callback',
-  component: CallbackPage,
-});
-
-export const userInfoRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/user-info',
-  component: EditProfile,
-});
 export const userListRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/user-list',

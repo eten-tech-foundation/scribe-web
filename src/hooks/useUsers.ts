@@ -73,7 +73,7 @@ export const useCreateUser = () => {
       createUser(userData, email),
     onSuccess: () => {
       // Invalidate and refetch users list
-      void void void void queryClient.invalidateQueries({ queryKey: ['users'] });
+      void queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: error => {
       console.error('Error creating user:', error);

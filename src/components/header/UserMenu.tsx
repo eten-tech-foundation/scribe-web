@@ -8,13 +8,7 @@ import { useAppStore } from '@/store/store';
 
 import MenuItem from './MenuItem';
 
-// interface User {
-//   displayName: string;
-//   email?: string;
-// }
-
 interface UserMenuProps {
-  //   user: User;
   isOpen: boolean;
   onClose: () => void;
   onEditProfile: () => void;
@@ -26,7 +20,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ isOpen, onClose, onEditProfile }) =
   const { userdetail } = useAppStore();
   const { t } = useTranslation();
 
-  //   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
