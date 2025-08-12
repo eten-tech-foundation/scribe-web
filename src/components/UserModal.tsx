@@ -132,7 +132,7 @@ export const UserModal: React.FC<UserModalProps> = ({
             }
             type='email'
             value={formData.email}
-            onChange={value => updateFormData('email', value)}
+            onChange={value => updateFormData('email', value.toLowerCase())}
           />
 
           <FormInput

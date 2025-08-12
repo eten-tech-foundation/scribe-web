@@ -93,7 +93,7 @@ export function App() {
   if (isLoading) {
     return (
       <ErrorBoundary>
-        <div className='flex min-h-screen items-center justify-center bg-gray-50'>
+        <div className='flex h-screen items-center justify-center bg-gray-50'>
           <div className='text-center'>
             <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
             <p className='text-lg text-gray-600'>Loading...</p>
@@ -106,7 +106,7 @@ export function App() {
   if (!isAuthenticated) {
     return (
       <ErrorBoundary>
-        <div className='flex min-h-screen items-center justify-center bg-gray-50'>
+        <div className='flex h-screen items-center justify-center bg-gray-50'>
           <div className='text-center'>
             <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
             <p className='text-lg text-gray-600'>Redirecting to login...</p>
@@ -118,10 +118,12 @@ export function App() {
 
   return (
     <ErrorBoundary>
-      <Header />
-      <main className='p-4'>
-        <Outlet />
-      </main>
+      <div className='flex h-screen flex-col overflow-hidden'>
+        <Header />
+        <main className='flex-1 overflow-hidden p-4'>
+          <Outlet />
+        </main>
+      </div>
     </ErrorBoundary>
   );
 }

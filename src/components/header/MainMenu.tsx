@@ -3,6 +3,8 @@ import React, { useEffect, useRef } from 'react';
 import { Home, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { useAppStore } from '@/store/store';
+
 import MenuItem from './MenuItem';
 
 interface MainMenuProps {
@@ -15,6 +17,7 @@ interface MainMenuProps {
 const MainMenu: React.FC<MainMenuProps> = ({ isOpen, onClose, onDashboardClick, onUsersClick }) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
+  const { userdetail } = useAppStore();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -41,8 +44,9 @@ const MainMenu: React.FC<MainMenuProps> = ({ isOpen, onClose, onDashboardClick, 
     >
       <div className='py-2'>
         <MenuItem icon={<Home size={18} />} text={t('dashboard')} onClick={onDashboardClick} />
-
-        <MenuItem icon={<Users size={18} />} text={t('users')} onClick={onUsersClick} />
+        {userdetail?.role === 1 && (
+          <MenuItem icon={<Users size={18} />} text={t('users')} onClick={onUsersClick} />
+        )}
       </div>
     </div>
   );
