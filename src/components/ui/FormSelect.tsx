@@ -1,4 +1,3 @@
-// Form Select Component
 interface FormSelectProps {
   label: React.ReactNode;
   value: string;

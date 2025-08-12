@@ -1,4 +1,3 @@
-// Form Input Component
 interface FormInputProps {
   label: React.ReactNode;
   type?: string;

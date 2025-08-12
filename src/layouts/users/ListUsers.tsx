@@ -1,4 +1,3 @@
-// UsersPage Component
 import { useMemo } from 'react';
 
 import { Loader2 } from 'lucide-react';
@@ -29,7 +28,6 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
 
   return (
     <div className='flex h-full flex-col'>
-      {/* Header Section - Fixed Height */}
       <div className='mb-6 flex-shrink-0'>
         <h1 className='text-foreground mb-4 text-3xl font-semibold'>{t('users')}</h1>
         <Button className='bg-primary hover:bg-primary/90 text-white' onClick={onAddUser}>
@@ -37,10 +35,8 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
         </Button>
       </div>
 
-      {/* Table Container - Takes remaining space */}
       <div className='flex-1 overflow-hidden rounded-lg border border-[#D9D8D0] bg-white shadow'>
         <div className='flex h-full flex-col'>
-          {/* Table Header - Fixed */}
           <div
             className='grid flex-shrink-0 grid-cols-4 gap-0 border-b border-[#D9D8D0] bg-[#F6F4EE]'
             style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}
@@ -59,7 +55,6 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
             </div>
           </div>
 
-          {/* Table Body - Scrollable */}
           <div className='flex-1 overflow-y-auto'>
             {loading ? (
               <div className='flex items-center justify-center gap-2 py-8'>
@@ -86,7 +81,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
                     </div>
                     <div className='px-6 py-4 whitespace-nowrap'>
                       <Badge variant={getStatusVariant(user.status as 'invited' | 'verified')}>
-                        {user.status === 'invited' ? t('invited') : t('verified')}
+                        {user.status}
                       </Badge>
                     </div>
                   </div>

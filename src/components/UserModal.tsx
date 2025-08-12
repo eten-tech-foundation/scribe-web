@@ -8,6 +8,7 @@ import { FormInput } from '@/components/ui/FormInput';
 import { FormSelect } from '@/components/ui/FormSelect';
 import { Modal } from '@/components/ui/Modal';
 import { roleOptions } from '@/lib/constants/roles';
+import { Logger } from '@/lib/services/logger';
 import { type User } from '@/lib/types';
 
 interface UserModalProps {
@@ -104,8 +105,9 @@ export const UserModal: React.FC<UserModalProps> = ({
         await onSave(formData as Omit<User, 'id'>);
       }
     } catch (error) {
-      // Error handling is done in the parent component
-      console.error('Error in handleSubmit:', error);
+      Logger.logException(error instanceof Error ? error : new Error(String(error)), {
+        source: 'handle user submit',
+      });
     }
   };
 

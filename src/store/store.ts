@@ -12,7 +12,7 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     set => ({
-      userdetail: null, // Initial null user
+      userdetail: null,
       setUserDetail: (userdetail: User) => set({ userdetail }),
       clearUserDetail: () => set({ userdetail: null }),
     }),

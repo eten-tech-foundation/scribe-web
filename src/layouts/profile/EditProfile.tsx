@@ -1,6 +1,7 @@
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { UserModal } from '@/components/UserModal';
 import { useUpdateUser } from '@/hooks/useUsers';
+import { Logger } from '@/lib/services/logger';
 import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
@@ -15,7 +16,7 @@ export function EditProfile({ isOpen, onClose }: EditProfileProps) {
 
   const handleSaveUser = async (userData: User | Omit<User, 'id'>) => {
     try {
-      // Updating existing user - pass both userData and email as an object
+      // Updating existing user
       const res = await updateUserMutation.mutateAsync({
         userData: userData as User,
         email: userdetail ? userdetail.email : '',
@@ -33,9 +34,9 @@ export function EditProfile({ isOpen, onClose }: EditProfileProps) {
 
       onClose();
     } catch (error) {
-      const errorMessage = 'Failed to update user. Please try again.';
-      console.error(errorMessage);
-      console.error('Error saving user:', error);
+      Logger.logException(error instanceof Error ? error : new Error(String(error)), {
+        source: 'Failed to update user profile',
+      });
     }
   };
 

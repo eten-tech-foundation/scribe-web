@@ -76,7 +76,6 @@ export function App() {
         timestamp: new Date().toISOString(),
       });
 
-      // Mark that we've initiated the fetch
       setFetchInitiated(true);
 
       // Fetch user details
@@ -110,7 +109,7 @@ export function App() {
             userEmail: user.email,
           });
 
-          // Reset states and redirect to login on error
+          // Reset states
           setFetchInitiated(false);
           setUserDetailsFetched(false);
 

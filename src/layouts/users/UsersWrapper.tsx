@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { UserModal } from '@/components/UserModal';
 import { useCreateUser, useUpdateUser, useUsers } from '@/hooks/useUsers';
 import { UsersPage } from '@/layouts/users/ListUsers';
+import { Logger } from '@/lib/services/logger';
 import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
@@ -21,13 +22,13 @@ export const UsersWrapper: React.FC = () => {
         userData.organization = userdetail?.organization ?? 0;
         userData.createdBy = userdetail?.id ?? 0;
         userData.isActive = true;
-        // Creating new user - pass both userData and email as an object
+        // Creating new user
         await createUserMutation.mutateAsync({
           userData: userData as Omit<User, 'id'>,
           email: userdetail ? userdetail.email : '',
         });
       } else {
-        // Updating existing user - pass both userData and email as an object
+        // Updating existing user
         await updateUserMutation.mutateAsync({
           userData: userData as User,
           email: userdetail ? userdetail.email : '',
@@ -35,12 +36,9 @@ export const UsersWrapper: React.FC = () => {
       }
       closeModal();
     } catch (error) {
-      const errorMessage =
-        modalMode === 'create'
-          ? 'Failed to create user. Please try again.'
-          : 'Failed to update user. Please try again.';
-      console.error(errorMessage);
-      console.error('Error saving user:', error);
+      Logger.logException(error instanceof Error ? error : new Error(String(error)), {
+        source: modalMode === 'create' ? 'Failed to create user.' : 'Failed to update user.',
+      });
     }
   };
 

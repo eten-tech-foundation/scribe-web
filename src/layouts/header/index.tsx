@@ -100,8 +100,7 @@ const Header: React.FC = () => {
           </div>
         </div>
       </header>
-
-      {/* Render EditProfile as a modal when needed */}
+      {/* Edit Profile Modal */}
       {isEditProfileOpen && <EditProfile isOpen={isEditProfileOpen} onClose={closeEditProfile} />}
     </>
   );
