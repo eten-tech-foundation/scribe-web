@@ -29,7 +29,7 @@
   "status": "Status",
   "dashboard": "Dashboard",
   "users": "Users",
-  "displayName": "Display Name",
+  "username": "Display Name",
   "firstName": "First Name",
   "lastName": "Last Name",
   "saveUser": "Save User",

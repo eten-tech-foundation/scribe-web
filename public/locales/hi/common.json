@@ -29,7 +29,7 @@
   "status": "स्थिति",
   "dashboard": "डैशबोर्ड",
   "users": "उपयोगकर्ता",
-  "displayName": "प्रदर्शित नाम",
+  "username": "प्रदर्शित नाम",
   "firstName": "पहला नाम",
   "lastName": "अंतिम नाम",
   "saveUser": "उपयोगकर्ता सहेजें",
