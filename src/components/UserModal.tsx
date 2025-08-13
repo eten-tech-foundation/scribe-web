@@ -18,6 +18,7 @@ interface UserModalProps {
   onSave: (user: User | Omit<User, 'id'>) => Promise<void>;
   mode: 'create' | 'edit';
   isLoading?: boolean;
+  disableRoleSelection?: boolean;
 }
 
 interface FormData {
@@ -38,6 +39,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   onSave,
   mode,
   isLoading = false,
+  disableRoleSelection = false,
 }) => {
   const { t } = useTranslation();
 
@@ -82,7 +84,14 @@ export const UserModal: React.FC<UserModalProps> = ({
     }
   }, [isOpen, user, mode]);
 
-  const validateForm = () => {
+  const isFormValid = (): boolean => {
+    const hasUsername = Boolean(formData.username.trim());
+    const hasEmail = Boolean(formData.email.trim());
+    const hasValidRole = Boolean(formData.role && formData.role !== 0);
+    return hasUsername && hasEmail && hasValidRole;
+  };
+
+  const validateForm = (): boolean => {
     const newErrors = {
       username: !formData.username.trim(),
       email: !formData.email.trim(),
@@ -93,7 +102,7 @@ export const UserModal: React.FC<UserModalProps> = ({
     return !Object.values(newErrors).some(Boolean);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (): Promise<void> => {
     if (!validateForm()) {
       return;
     }
@@ -111,12 +120,13 @@ export const UserModal: React.FC<UserModalProps> = ({
     }
   };
 
-  const updateFormData = (field: keyof FormData, value: string | number) => {
+  const updateFormData = (field: keyof FormData, value: string | number): void => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const modalTitle = mode === 'create' ? t('addUser') : t('editProfile');
   const submitText = mode === 'create' ? t('addUser') : t('saveUser');
+  const isButtonDisabled = isLoading || (mode === 'edit' && !isFormValid());
 
   return (
     <div className='text-gray-800'>
@@ -164,6 +174,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           />
 
           <FormSelect
+            disabled={disableRoleSelection}
             error={errors.role}
             errorMessage='Role is required.'
             label={
@@ -180,7 +191,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           <div className='my-7 flex justify-end gap-2'>
             <Button
               className='bg-primary hover:bg-primary/90 text-white hover:cursor-pointer'
-              disabled={isLoading}
+              disabled={isButtonDisabled}
               type='button'
               onClick={handleSubmit}
             >

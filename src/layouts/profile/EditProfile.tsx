@@ -43,6 +43,7 @@ export function EditProfile({ isOpen, onClose }: EditProfileProps) {
   return (
     <ProtectedRoute>
       <UserModal
+        disableRoleSelection={true}
         isLoading={updateUserMutation.isPending}
         isOpen={isOpen}
         mode={'edit'}

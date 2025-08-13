@@ -6,6 +6,7 @@ interface FormSelectProps {
   error?: boolean;
   errorMessage?: string;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 export const FormSelect: React.FC<FormSelectProps> = ({
@@ -16,6 +17,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({
   error = false,
   errorMessage,
   placeholder,
+  disabled = false,
 }) => {
   return (
     <div className='mb-4'>
@@ -23,7 +25,8 @@ export const FormSelect: React.FC<FormSelectProps> = ({
       <select
         className={`w-full rounded-md border px-3 py-2 focus:ring-2 focus:outline-none ${
           error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
-        }`}
+        } ${disabled ? 'cursor-not-allowed bg-gray-200' : 'bg-white'}`}
+        disabled={disabled}
         value={value}
         onChange={e => onChange(e.target.value)}
       >
