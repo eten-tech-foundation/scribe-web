@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { FormInput } from '@/components/ui/FormInput';
@@ -52,12 +53,6 @@ export const UserModal: React.FC<UserModalProps> = ({
     status: 'invited',
   });
 
-  const [errors, setErrors] = useState({
-    username: false,
-    email: false,
-    role: false,
-  });
-
   // Reset form when modal opens or user changes
   useEffect(() => {
     if (isOpen) {
@@ -80,33 +75,29 @@ export const UserModal: React.FC<UserModalProps> = ({
           status: 'invited',
         });
       }
-      setErrors({ username: false, email: false, role: false });
     }
   }, [isOpen, user, mode]);
 
-  const isFormValid = (): boolean => {
-    const hasUsername = Boolean(formData.username.trim());
-    const hasEmail = Boolean(formData.email.trim());
-    const hasValidRole = Boolean(formData.role && formData.role !== 0);
-    return hasUsername && hasEmail && hasValidRole;
+  const emailSchema = z.string().email();
+
+  const isEmailValid = (email: string): boolean => {
+    try {
+      emailSchema.parse(email);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
-  const validateForm = (): boolean => {
-    const newErrors = {
-      username: !formData.username.trim(),
-      email: !formData.email.trim(),
-      role: !formData.role || formData.role === 0,
-    };
+  const isFormValid = (): boolean => {
+    const hasUsername = Boolean(formData.username.trim());
+    const hasValidEmail = Boolean(formData.email.trim()) && isEmailValid(formData.email.trim());
+    const hasValidRole = Boolean(formData.role && formData.role !== 0);
 
-    setErrors(newErrors);
-    return !Object.values(newErrors).some(Boolean);
+    return hasUsername && hasValidEmail && hasValidRole;
   };
 
   const handleSubmit = async (): Promise<void> => {
-    if (!validateForm()) {
-      return;
-    }
-
     try {
       if (mode === 'edit' && user) {
         await onSave({ ...user, ...formData });
@@ -126,7 +117,7 @@ export const UserModal: React.FC<UserModalProps> = ({
 
   const modalTitle = mode === 'create' ? t('addUser') : t('editProfile');
   const submitText = mode === 'create' ? t('addUser') : t('saveUser');
-  const isButtonDisabled = isLoading || (mode === 'edit' && !isFormValid());
+  const isButtonDisabled = isLoading || !isFormValid();
 
   return (
     <div className='text-gray-800'>
@@ -135,8 +126,6 @@ export const UserModal: React.FC<UserModalProps> = ({
           <FormInput
             required
             disabled={mode === 'edit'}
-            error={errors.email}
-            errorMessage='Email is required.'
             label={
               <>
                 <span style={{ color: 'red' }}>*</span> {t('email')}
@@ -149,8 +138,6 @@ export const UserModal: React.FC<UserModalProps> = ({
 
           <FormInput
             required
-            error={errors.username}
-            errorMessage='Username is required.'
             helperText='Visible to all Scribe users'
             label={
               <>
@@ -175,8 +162,6 @@ export const UserModal: React.FC<UserModalProps> = ({
 
           <FormSelect
             disabled={disableRoleSelection}
-            error={errors.role}
-            errorMessage='Role is required.'
             label={
               <>
                 <span style={{ color: 'red' }}>*</span> {t('role')}
