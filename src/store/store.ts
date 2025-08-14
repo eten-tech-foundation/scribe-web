@@ -1,20 +1,20 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { type User } from '@/lib/types';
+
 interface AppState {
-  count: number;
-  increment: () => void;
-  decrement: () => void;
-  reset: () => void;
+  userdetail: User | null;
+  setUserDetail: (user: User) => void;
+  clearUserDetail: () => void;
 }
 
 export const useAppStore = create<AppState>()(
   persist(
     set => ({
-      count: 0,
-      increment: () => set(state => ({ count: state.count + 1 })),
-      decrement: () => set(state => ({ count: state.count - 1 })),
-      reset: () => set({ count: 0 }),
+      userdetail: null,
+      setUserDetail: (userdetail: User) => set({ userdetail }),
+      clearUserDetail: () => set({ userdetail: null }),
     }),
     {
       name: 'app-store',

@@ -4,24 +4,14 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: http://localhost:*; font-src 'self' data:;"
+
+    <!-- Inter Font from CDNJS (CSP compliant) -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/4.1.1/inter-latin.min.css"
     />
-    <title>React App Foundation</title>
-    <script>
-      (function () {
-        const savedTheme = localStorage.getItem('theme');
-        if (
-          savedTheme === 'dark' ||
-          (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
-        ) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      })();
-    </script>
+
+    <title>Fluent</title>
   </head>
 
   <body>

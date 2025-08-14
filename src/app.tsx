@@ -1,14 +1,25 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Outlet } from '@tanstack/react-router';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
+import { useGetUserDetailsMutation, useUpdateUser } from '@/hooks/useUsers';
 import Header from '@/layouts/header';
 import { Logger } from '@/lib/services/logger';
+import { type User } from '@/lib/types';
+import { useAppStore } from '@/store/store';
 
 export function App() {
-  const { isAuthenticated, isLoading, loginWithRedirect } = useAuth();
+  const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth();
+  const { mutate: fetchUserDetails, isPending: isFetchingUserDetails } =
+    useGetUserDetailsMutation();
+  const updateUserMutation = useUpdateUser();
+  const { setUserDetail } = useAppStore();
+
+  const [userDetailsFetched, setUserDetailsFetched] = useState(false);
+  const [fetchInitiated, setFetchInitiated] = useState(false);
+
   useEffect(() => {
     Logger.logEvent('AppStarted', {
       startTime: new Date().toISOString(),
@@ -41,6 +52,7 @@ export function App() {
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
+
   // Handle authentication redirect
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -56,41 +68,104 @@ export function App() {
           returnTo: window.location.pathname + window.location.search,
         },
       });
+    } else if (isAuthenticated && user?.email && !fetchInitiated) {
+      // Log successful authentication
+      Logger.logEvent('UserAuthenticated', {
+        userId: user.sub,
+        userEmail: user.email,
+        timestamp: new Date().toISOString(),
+      });
+
+      setFetchInitiated(true);
+
+      // Fetch user details
+      fetchUserDetails(user.email, {
+        onSuccess: userDetails => {
+          void (async () => {
+            if (userDetails.status !== 'verified' && user.email_verified) {
+              userDetails.status = 'verified';
+              await updateUserMutation.mutateAsync({
+                userData: userDetails as User,
+                email: userDetails.email,
+              });
+            }
+            setUserDetail({
+              id: userDetails.id,
+              email: userDetails.email,
+              username: userDetails.username,
+              role: userDetails.role,
+              organization: userDetails.organization,
+              firstName: userDetails.firstName,
+              lastName: userDetails.lastName,
+              status: userDetails.status,
+            });
+            setUserDetailsFetched(true);
+          })();
+        },
+        onError: error => {
+          // Log the error
+          Logger.logException(error instanceof Error ? error : new Error(String(error)), {
+            source: 'FetchUserDetails',
+            userEmail: user.email,
+          });
+
+          // Reset states
+          setFetchInitiated(false);
+          setUserDetailsFetched(false);
+
+          // Redirect to login
+          void loginWithRedirect({
+            appState: {
+              returnTo: window.location.pathname + window.location.search,
+            },
+          });
+        },
+      });
     }
-  }, [isAuthenticated, isLoading, loginWithRedirect]);
+  }, [
+    isAuthenticated,
+    isLoading,
+    loginWithRedirect,
+    user,
+    fetchUserDetails,
+    setUserDetail,
+    fetchInitiated,
+    updateUserMutation,
+  ]);
 
   if (isLoading) {
-    return (
-      <ErrorBoundary>
-        <div className='flex min-h-screen items-center justify-center bg-gray-50'>
-          <div className='text-center'>
-            <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
-            <p className='text-lg text-gray-600'>Loading...</p>
-          </div>
-        </div>
-      </ErrorBoundary>
-    );
+    return LoadingScreen('Loading...');
   }
 
   if (!isAuthenticated) {
-    return (
-      <ErrorBoundary>
-        <div className='flex min-h-screen items-center justify-center bg-gray-50'>
-          <div className='text-center'>
-            <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
-            <p className='text-lg text-gray-600'>Redirecting to login...</p>
-          </div>
-        </div>
-      </ErrorBoundary>
-    );
+    return LoadingScreen('Redirecting to login...');
+  }
+
+  if (isFetchingUserDetails || !userDetailsFetched) {
+    return LoadingScreen('Loading user details...');
   }
 
   return (
     <ErrorBoundary>
-      <Header />
-      <main className='p-4'>
-        <Outlet />
-      </main>
+      <div className='flex h-screen flex-col overflow-hidden'>
+        <Header />
+        <main className='flex-1 overflow-hidden p-4'>
+          <Outlet />
+        </main>
+      </div>
+    </ErrorBoundary>
+  );
+}
+
+function LoadingScreen(message: string) {
+  return (
+    <ErrorBoundary>
+      <div className='flex h-screen items-center justify-center bg-gray-50'>
+        <div className='text-center'>
+          <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
+          <p className='text-lg text-gray-600'>{message}</p>
+        </div>
+      </div>
     </ErrorBoundary>
   );
 }
