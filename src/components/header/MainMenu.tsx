@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-import { Home, Users } from 'lucide-react';
+import { FolderOpen, Home, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useAppStore } from '@/store/store';
@@ -12,9 +12,16 @@ interface MainMenuProps {
   onClose: () => void;
   onDashboardClick: () => void;
   onUsersClick: () => void;
+  onProjectsClick: () => void;
 }
 
-const MainMenu: React.FC<MainMenuProps> = ({ isOpen, onClose, onDashboardClick, onUsersClick }) => {
+const MainMenu: React.FC<MainMenuProps> = ({
+  isOpen,
+  onClose,
+  onDashboardClick,
+  onUsersClick,
+  onProjectsClick,
+}) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
   const { userdetail } = useAppStore();
@@ -45,7 +52,14 @@ const MainMenu: React.FC<MainMenuProps> = ({ isOpen, onClose, onDashboardClick, 
       <div className='py-2'>
         <MenuItem icon={<Home size={18} />} text={t('dashboard')} onClick={onDashboardClick} />
         {userdetail?.role === 1 && (
-          <MenuItem icon={<Users size={18} />} text={t('users')} onClick={onUsersClick} />
+          <>
+            <MenuItem icon={<Users size={18} />} text={t('users')} onClick={onUsersClick} />
+            <MenuItem
+              icon={<FolderOpen size={18} />}
+              text={t('projects')}
+              onClick={onProjectsClick}
+            />
+          </>
         )}
       </div>
     </div>

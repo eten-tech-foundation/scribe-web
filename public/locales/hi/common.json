@@ -16,5 +16,16 @@
   "cancel": "रद्द करें",
   "addUser": "उपयोगकर्ता जोड़ें",
   "verified": "सत्यापित",
-  "invited": "निमंत्रित"
+  "invited": "निमंत्रित",
+  "projects": "प्रोजेक्ट्स",
+  "createProject": "प्रोजेक्ट बनाएं",
+  "title": "शीर्षक",
+  "sourceLanguage": "स्रोत भाषा",
+  "targetLanguage": "लक्ष्य भाषा",
+  "sourceBible": "स्रोत बाइबल",
+  "noProjectsFound": "कोई प्रोजेक्ट नहीं मिला",
+  "loadingProjects": "प्रोजेक्ट लोड हो रहे हैं...",
+  "loadingUsers": "उपयोगकर्ता लोड हो रहे हैं...",
+  "projectName": "प्रोजेक्ट का नाम",
+  "books": "पुस्तकें"
 }

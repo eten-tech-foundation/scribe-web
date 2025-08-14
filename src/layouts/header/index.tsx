@@ -21,6 +21,10 @@ const Header: React.FC = () => {
     void navigate({ to: '/user-list' });
   };
 
+  const onNavigateToProjects = () => {
+    void navigate({ to: '/projects' });
+  };
+
   const toggleMainMenu = () => {
     setIsMainMenuOpen(!isMainMenuOpen);
     setIsUserMenuOpen(false);
@@ -55,6 +59,10 @@ const Header: React.FC = () => {
                 onClose={() => setIsMainMenuOpen(false)}
                 onDashboardClick={() => {
                   onNavigateToDashboard();
+                  setIsMainMenuOpen(false);
+                }}
+                onProjectsClick={() => {
+                  onNavigateToProjects();
                   setIsMainMenuOpen(false);
                 }}
                 onUsersClick={() => {

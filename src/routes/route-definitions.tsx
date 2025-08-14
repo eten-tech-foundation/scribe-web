@@ -3,6 +3,7 @@ import { createRootRoute, createRoute } from '@tanstack/react-router';
 import { App } from '@/app';
 import { AppInsightsTestPage } from '@/layouts/app-insights-test';
 import { HomePage } from '@/layouts/home';
+import { ProjectsWrapper } from '@/layouts/projects/ProjectsWrapper';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 import { UsersWrapper } from '@/layouts/users/UsersWrapper';
 
@@ -32,4 +33,10 @@ export const userListRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/user-list',
   component: UsersWrapper,
+});
+
+export const projectsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/projects',
+  component: ProjectsWrapper,
 });
