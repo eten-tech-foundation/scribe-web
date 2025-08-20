@@ -5,9 +5,16 @@ import { useTranslation } from 'react-i18next';
 
 import { BibleBookMultiSelectPopover } from '@/components/BookSelector';
 import { Button } from '@/components/ui/button';
-import { FormInput } from '@/components/ui/FormInput';
-import { FormSelect } from '@/components/ui/FormSelect';
-import { Modal } from '@/components/ui/Modal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Logger } from '@/lib/services/logger';
 
 // Language options - you can move this to a constants file
@@ -210,110 +217,143 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleTitleChange = (value: string): void => {
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const value = e.target.value;
     // Limit to 100 characters
     if (value.length <= 100) {
       updateFormData('title', value);
     }
   };
 
-  const handleBooksChange = (value: string): void => {
-    // Handle multi-select for books
-    const currentBooks = formData.books;
-    const newBooks = currentBooks.includes(value)
-      ? currentBooks.filter(book => book !== value)
-      : [...currentBooks, value];
-    updateFormData('books', newBooks);
-  };
-
   const getAvailableSourceBibles = () => {
     return sourceBibleOptions[formData.sourceLanguage] || [];
   };
-
-  //   const getSelectedBooksDisplay = () => {
-  //     if (formData.books.length === 0) return 'Select Books';
-  //     if (formData.books.length === 1) {
-  //       const book = bibleBooks.find(b => b.value === formData.books[0]);
-  //       return book?.label ?? formData.books[0];
-  //     }
-  //     return `${formData.books.length} books selected`;
-  //   };
 
   const isButtonDisabled = isLoading || !isFormValid();
 
   return (
     <div className='text-gray-800'>
-      <Modal isOpen={isOpen} title={t('createProject')} onClose={onClose}>
-        <div className='py-10'>
-          <FormInput
-            required
-            // helperText={`${formData.title.length}/100 characters`}
-            label={t('projectName')}
-            value={formData.title}
-            onChange={handleTitleChange}
-          />
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className='sm:max-w-[425px]'>
+          <DialogHeader>
+            <DialogTitle>{t('createProject')}</DialogTitle>
+          </DialogHeader>
+          <div className='space-y-6 py-6'>
+            {/* Project Title */}
+            <div className='space-y-2'>
+              <Label htmlFor='title'>{t('projectName')} </Label>
+              <Input
+                id='title'
+                maxLength={100}
+                placeholder='Enter project name'
+                value={formData.title}
+                onChange={handleTitleChange}
+              />
+              {/* <p className='text-muted-foreground text-sm'>
+                {formData.title.length}/100 characters
+              </p> */}
+            </div>
 
-          <FormSelect
-            // required
-            label={t('targetLanguage')}
-            options={languageOptions}
-            placeholder='Select Target Language'
-            value={formData.targetLanguage}
-            onChange={value => updateFormData('targetLanguage', value)}
-          />
+            {/* Target Language */}
+            <div className='space-y-2'>
+              <Label>{t('targetLanguage')} </Label>
+              <Select
+                value={formData.targetLanguage}
+                onValueChange={value => updateFormData('targetLanguage', value)}
+              >
+                <SelectTrigger className='w-full bg-white'>
+                  <SelectValue placeholder='Select Target Language' />
+                </SelectTrigger>
+                <SelectContent>
+                  {languageOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <FormSelect
-            // required
-            label={t('sourceLanguage')}
-            options={languageOptions}
-            placeholder='Select Source Language'
-            value={formData.sourceLanguage}
-            onChange={value => updateFormData('sourceLanguage', value)}
-          />
+            {/* Source Language */}
+            <div className='space-y-2'>
+              <Label>{t('sourceLanguage')}</Label>
+              <Select
+                value={formData.sourceLanguage}
+                onValueChange={value => updateFormData('sourceLanguage', value)}
+              >
+                <SelectTrigger className='w-full bg-white'>
+                  <SelectValue placeholder='Select Source Language' />
+                </SelectTrigger>
+                <SelectContent>
+                  {languageOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <FormSelect
-            // required
-            // disabled={!formData.sourceLanguage}
-            label={t('sourceBible')}
-            options={getAvailableSourceBibles()}
-            placeholder={
-              formData.sourceLanguage ? 'Select Source Bible' : 'Select Source Language First'
-            }
-            value={formData.sourceBible}
-            onChange={value => updateFormData('sourceBible', value)}
-          />
+            {/* Source Bible */}
+            <div className='space-y-2'>
+              <Label>{t('sourceBible')} </Label>
+              <Select
+                disabled={!formData.sourceLanguage}
+                value={formData.sourceBible}
+                onValueChange={value => updateFormData('sourceBible', value)}
+              >
+                <SelectTrigger className='w-full bg-white'>
+                  <SelectValue
+                    placeholder={
+                      formData.sourceLanguage
+                        ? 'Select Source Bible'
+                        : 'Select Source Language First'
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailableSourceBibles().map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Multi-select Books - Custom implementation */}
-          <div className='mb-4'>
-            {t('books')}
-            <BibleBookMultiSelectPopover
-              value={formData.books}
-              onChange={newBooks => setFormData(prev => ({ ...prev, books: newBooks }))}
-              // optional:
-              // placeholder="Select Books"
-              // maxVisibleNames={3}
-            />
+            {/* Books Selection */}
+            <div className='space-y-2'>
+              <Label>{t('books')} </Label>
+              <BibleBookMultiSelectPopover
+                value={formData.books}
+                onChange={newBooks => setFormData(prev => ({ ...prev, books: newBooks }))}
+                // optional:
+                // placeholder="Select Books"
+                // maxVisibleNames={3}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className='flex justify-end gap-2 pt-4'>
+              <Button
+                className='bg-primary hover:bg-primary/90 text-white hover:cursor-pointer'
+                disabled={isButtonDisabled}
+                type='button'
+                onClick={handleSubmit}
+              >
+                {isLoading ? (
+                  <div className='flex items-center gap-2'>
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                    <span>Creating...</span>
+                  </div>
+                ) : (
+                  t('createProject')
+                )}
+              </Button>
+            </div>
           </div>
-
-          <div className='my-7 flex justify-end gap-2'>
-            <Button
-              className='bg-primary hover:bg-primary/90 text-white hover:cursor-pointer'
-              disabled={isButtonDisabled}
-              type='button'
-              onClick={handleSubmit}
-            >
-              {isLoading ? (
-                <div className='flex items-center gap-2'>
-                  <Loader2 className='h-4 w-4 animate-spin' />
-                  <span>Creating...</span>
-                </div>
-              ) : (
-                t('createProject')
-              )}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

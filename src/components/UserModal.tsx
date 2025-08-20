@@ -5,9 +5,23 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { FormInput } from '@/components/ui/FormInput';
-import { FormSelect } from '@/components/ui/FormSelect';
-import { Modal } from '@/components/ui/Modal';
+import {
+  Dialog,
+  // DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { roleOptions } from '@/lib/constants/roles';
 import { Logger } from '@/lib/services/logger';
 import { type User } from '@/lib/types';
@@ -120,78 +134,102 @@ export const UserModal: React.FC<UserModalProps> = ({
   const isButtonDisabled = isLoading || !isFormValid();
 
   return (
-    <div className='text-gray-800'>
-      <Modal isOpen={isOpen} title={modalTitle} onClose={onClose}>
-        <div>
-          <FormInput
-            required
-            disabled={mode === 'edit'}
-            label={
-              <>
-                <span style={{ color: 'red' }}>*</span> {t('email')}
-              </>
-            }
-            type='email'
-            value={formData.email}
-            onChange={value => updateFormData('email', value.toLowerCase())}
-          />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className='sm:max-w-[500px]' onInteractOutside={e => e.preventDefault()}>
+        <DialogHeader>
+          <DialogTitle className='text-gray-800'>{modalTitle}</DialogTitle>
+        </DialogHeader>
 
-          <FormInput
-            required
-            helperText='Visible to all Scribe users'
-            label={
-              <>
-                <span style={{ color: 'red' }}>*</span> {t('username')}
-              </>
-            }
-            value={formData.username}
-            onChange={value => updateFormData('username', value)}
-          />
+        <div className='grid gap-4'>
+          <div className='grid gap-3'>
+            <Label htmlFor='email'>
+              <span style={{ color: 'red' }}>*</span> {t('email')}
+            </Label>
+            <Input
+              disabled={mode === 'edit'}
+              id='email'
+              type='email'
+              value={formData.email}
+              onChange={e => updateFormData('email', e.target.value.toLowerCase())}
+            />
+          </div>
 
-          <FormInput
-            label={t('firstName')}
-            value={formData.firstName}
-            onChange={value => updateFormData('firstName', value)}
-          />
+          <div className='grid gap-3'>
+            <Label htmlFor='username'>
+              <span style={{ color: 'red' }}>*</span> {t('username')}
+            </Label>
+            <Input
+              className='bg-white'
+              id='username'
+              value={formData.username}
+              onChange={e => updateFormData('username', e.target.value)}
+            />
+            <p className='text-xs text-gray-500'>Visible to all Scribe users</p>
+          </div>
 
-          <FormInput
-            label={t('lastName')}
-            value={formData.lastName}
-            onChange={value => updateFormData('lastName', value)}
-          />
+          <div className='grid gap-3'>
+            <Label htmlFor='firstName'>{t('firstName')}</Label>
+            <Input
+              className='bg-white'
+              id='firstName'
+              value={formData.firstName}
+              onChange={e => updateFormData('firstName', e.target.value)}
+            />
+          </div>
 
-          <FormSelect
-            disabled={disableRoleSelection}
-            label={
-              <>
-                <span style={{ color: 'red' }}>*</span> {t('role')}
-              </>
-            }
-            options={roleOptions}
-            placeholder={mode === 'create' ? 'Select Role' : undefined}
-            value={formData.role.toString()}
-            onChange={value => updateFormData('role', Number(value))}
-          />
+          <div className='grid gap-3'>
+            <Label htmlFor='lastName'>{t('lastName')}</Label>
+            <Input
+              className='bg-white'
+              id='lastName'
+              value={formData.lastName}
+              onChange={e => updateFormData('lastName', e.target.value)}
+            />
+          </div>
 
-          <div className='my-7 flex justify-end gap-2'>
-            <Button
-              className='bg-primary hover:bg-primary/90 text-white hover:cursor-pointer'
-              disabled={isButtonDisabled}
-              type='button'
-              onClick={handleSubmit}
+          <div className='disabled grid gap-3'>
+            <Label htmlFor='role'>
+              <span style={{ color: 'red' }}>*</span> {t('role')}
+            </Label>
+            <Select
+              value={formData.role === 0 ? '' : formData.role.toString()}
+              onValueChange={value => updateFormData('role', Number(value))}
             >
-              {isLoading ? (
-                <div className='flex items-center gap-2'>
-                  <Loader2 className='h-4 w-4 animate-spin' />
-                  <span>{mode === 'create' ? 'Creating...' : 'Saving...'}</span>
-                </div>
-              ) : (
-                submitText
-              )}
-            </Button>
+              <SelectTrigger className='w-full bg-white' disabled={disableRoleSelection}>
+                <SelectValue placeholder={mode === 'create' ? 'Select Role' : undefined} />
+              </SelectTrigger>
+              <SelectContent>
+                {roleOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
-      </Modal>
-    </div>
+
+        <DialogFooter>
+          {/* <DialogClose asChild>
+            <Button variant='outline'>Cancel</Button>
+          </DialogClose> */}
+          <Button
+            className='bg-primary hover:bg-primary/90 text-white'
+            disabled={isButtonDisabled}
+            type='button'
+            onClick={handleSubmit}
+          >
+            {isLoading ? (
+              <div className='flex items-center gap-2'>
+                <Loader2 className='h-4 w-4 animate-spin' />
+                <span>{mode === 'create' ? 'Creating...' : 'Saving...'}</span>
+              </div>
+            ) : (
+              submitText
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
