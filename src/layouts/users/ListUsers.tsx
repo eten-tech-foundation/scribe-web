@@ -5,6 +5,14 @@ import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { getRoleLabel } from '@/lib/constants/roles';
 import { type User } from '@/lib/types';
 
@@ -37,24 +45,6 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
 
       <div className='flex-1 overflow-hidden rounded-lg border border-[#D9D8D0] bg-white shadow'>
         <div className='flex h-full flex-col'>
-          <div
-            className='grid flex-shrink-0 grid-cols-4 gap-0 border-b border-[#D9D8D0] bg-[#F6F4EE]'
-            style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}
-          >
-            <div className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-              {t(`name`)}
-            </div>
-            <div className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-              {t(`role`)}
-            </div>
-            <div className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-              {t(`email`)}
-            </div>
-            <div className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-              {t(`status`)}
-            </div>
-          </div>
-
           <div className='flex-1 overflow-y-auto'>
             {loading ? (
               <div className='flex items-center justify-center gap-2 py-8'>
@@ -62,31 +52,48 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
                 <span className='text-gray-500'>Loading...</span>
               </div>
             ) : (
-              <div className='divide-y divide-[#D9D8D0] bg-white'>
-                {sortedUsers.map(user => (
-                  <div
-                    key={user.id}
-                    className='grid cursor-pointer grid-cols-4 gap-0 transition-colors hover:bg-gray-50'
-                    style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}
-                    onClick={() => onEditUser(user)}
-                  >
-                    <div className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                      {user.username}
-                    </div>
-                    <div className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                      {getRoleLabel(user.role)}
-                    </div>
-                    <div className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                      {user.email}
-                    </div>
-                    <div className='px-6 py-4 whitespace-nowrap'>
-                      <Badge variant={getStatusVariant(user.status as 'invited' | 'verified')}>
-                        {user.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <Table>
+                <TableHeader className='border-b border-[#D9D8D0] bg-[#F6F4EE]'>
+                  <TableRow className='hover:bg-transparent'>
+                    <TableHead className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                      {t(`name`)}
+                    </TableHead>
+                    <TableHead className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                      {t(`role`)}
+                    </TableHead>
+                    <TableHead className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                      {t(`email`)}
+                    </TableHead>
+                    <TableHead className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                      {t(`status`)}
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className='divide-y divide-[#D9D8D0] bg-white'>
+                  {sortedUsers.map(user => (
+                    <TableRow
+                      key={user.id}
+                      className='cursor-pointer border-b border-[#D9D8D0] transition-colors hover:bg-gray-50'
+                      onClick={() => onEditUser(user)}
+                    >
+                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                        {user.username}
+                      </TableCell>
+                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                        {getRoleLabel(user.role)}
+                      </TableCell>
+                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                        {user.email}
+                      </TableCell>
+                      <TableCell className='px-6 py-4 whitespace-nowrap'>
+                        <Badge variant={getStatusVariant(user.status as 'invited' | 'verified')}>
+                          {user.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </div>
         </div>
