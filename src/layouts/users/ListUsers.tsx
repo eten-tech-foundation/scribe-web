@@ -27,7 +27,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
   const { t } = useTranslation();
 
   const getStatusVariant = (status: 'invited' | 'verified') => {
-    return status === 'invited' ? 'muted' : 'default';
+    return status === 'invited' ? 'primary' : 'accent';
   };
 
   const sortedUsers = useMemo(() => {

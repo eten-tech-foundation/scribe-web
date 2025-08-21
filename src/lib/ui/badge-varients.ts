@@ -5,17 +5,17 @@ export const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: 'hover:bg-primary/80 bg-primary text-primary-foreground border-transparent',
+        primary: 'hover:bg-primary/80 bg-primary text-primary-foreground border-transparent',
         secondary:
           'hover:bg-secondary/80 bg-secondary text-secondary-foreground border-transparent',
         destructive:
           'hover:bg-destructive/80 bg-destructive text-destructive-foreground border-transparent',
         outline: 'text-foreground',
-        muted: 'text-muted-foreground bg-muted border-muted',
+        accent: 'hover:bg-accent/80 bg-accent text-accent-foreground border-transparent',
       },
     },
     defaultVariants: {
-      variant: 'default',
+      variant: 'primary',
     },
   }
 );
