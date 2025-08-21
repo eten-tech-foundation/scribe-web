@@ -8,8 +8,6 @@ import UserMenu from '@/components/header/UserMenu';
 import { EditProfile } from '@/layouts/profile/EditProfile';
 
 const Header: React.FC = () => {
-  const [isMainMenuOpen, setIsMainMenuOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -21,19 +19,8 @@ const Header: React.FC = () => {
     void navigate({ to: '/user-list' });
   };
 
-  const toggleMainMenu = () => {
-    setIsMainMenuOpen(!isMainMenuOpen);
-    setIsUserMenuOpen(false);
-  };
-
-  const toggleUserMenu = () => {
-    setIsUserMenuOpen(!isUserMenuOpen);
-    setIsMainMenuOpen(false);
-  };
-
   const handleEditProfile = () => {
     setIsEditProfileOpen(true);
-    setIsUserMenuOpen(false);
   };
 
   const closeEditProfile = () => {
@@ -46,22 +33,11 @@ const Header: React.FC = () => {
         <div className='my-4 flex w-full items-center justify-between'>
           <div className='flex items-center'>
             <div className='relative flex items-center pl-[18px]'>
-              <button aria-label='Main menu' className='cursor-pointer' onClick={toggleMainMenu}>
-                <img alt='Main Menu' src='/icons/main-menu.svg' />
-              </button>
-
-              <MainMenu
-                isOpen={isMainMenuOpen}
-                onClose={() => setIsMainMenuOpen(false)}
-                onDashboardClick={() => {
-                  onNavigateToDashboard();
-                  setIsMainMenuOpen(false);
-                }}
-                onUsersClick={() => {
-                  onNavigateToUsers();
-                  setIsMainMenuOpen(false);
-                }}
-              />
+              <MainMenu onDashboardClick={onNavigateToDashboard} onUsersClick={onNavigateToUsers}>
+                <button aria-label='Main menu' className='cursor-pointer'>
+                  <img alt='Main Menu' src='/icons/main-menu.svg' />
+                </button>
+              </MainMenu>
             </div>
             <div className='pl-[32px]'>
               <div
@@ -81,22 +57,14 @@ const Header: React.FC = () => {
           </div>
 
           <div className='relative pr-[18px]'>
-            <button
-              aria-label='User menu'
-              className='flex h-[40px] w-[40px] cursor-pointer items-center justify-center rounded-md bg-gray-100 p-1.5 transition-colors duration-150 hover:bg-gray-200'
-              onClick={toggleUserMenu}
-            >
-              <SquareUser className='text-gray-600' size={25} strokeWidth={2.5} />
-            </button>
-
-            <UserMenu
-              isOpen={isUserMenuOpen}
-              onClose={() => setIsUserMenuOpen(false)}
-              onEditProfile={handleEditProfile}
-              onLogout={() => {
-                setIsUserMenuOpen(false);
-              }}
-            />
+            <UserMenu onEditProfile={handleEditProfile}>
+              <button
+                aria-label='User menu'
+                className='flex h-[40px] w-[40px] cursor-pointer items-center justify-center rounded-md bg-gray-100 p-1.5 transition-colors duration-150 hover:bg-gray-200'
+              >
+                <SquareUser className='text-gray-600' size={25} strokeWidth={2.5} />
+              </button>
+            </UserMenu>
           </div>
         </div>
       </header>

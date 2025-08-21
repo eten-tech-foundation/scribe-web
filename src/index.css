@@ -95,25 +95,63 @@
 }
 
 :root {
-  --background: rgb(250 248 241);
-  --foreground: rgb(61 56 38);
-  --card: rgb(250 248 241);
-  --card-foreground: rgb(20 20 20);
-  --popover: rgb(255 255 255);
-  --popover-foreground: rgb(41 39 27);
-  --primary: rgb(0 126 167);
-  --primary-foreground: rgb(255 255 255);
-  --secondary: rgb(231 228 221);
-  --secondary-foreground: rgb(82 80 68);
-  --accent: rgb(231 228 221);
-  --accent-foreground: rgb(41 39 27);
-  --muted: rgb(237 232 217);
-  --muted-foreground: rgb(114 102 57);
-  --destructive: rgb(223 41 27);
-  --destructive-foreground: rgb(255 255 255);
-  --border: rgb(217 216 208);
-  --input: rgb(180 177 163);
-  --ring: rgb(27 126 222);
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+
+  --card: #f2f6f9;
+  --card-foreground: #1a1a1a;
+
+  --popover: #e9eff3; /* slightly darker than card */
+  --popover-foreground: #1a1a1a;
+
+  --primary: #007ea7;
+  --primary-foreground: #ffffff;
+
+  --secondary: #b64a27;
+  --secondary-foreground: #ffffff;
+
+  --muted: #e7edf1;
+  --muted-foreground: #4a4a4a;
+
+  --accent: #c9d9e5;
+  --accent-foreground: #1a1a1a;
+
+  --border: #ccd7df;
+  --input: #99aab5;
+  --ring: #007ea7;
+
+  --sidebar: #f8f9fb;
+  --sidebar-foreground: #1a1a1a;
+
+  --sidebar-primary: #007ea7;
+  --sidebar-primary-foreground: #ffffff;
+
+  --sidebar-accent: #e2eaf0;
+  --sidebar-accent-foreground: #1a1a1a;
+
+  --sidebar-border: #d5dee4;
+  --sidebar-ring: #007ea7;
+
+  --destructive: #df0c07;
+  --destructive-foreground: #ffffff;
+
+  --info: #006fbb;
+  --info-foreground: #ffffff;
+
+  --success: #11875d;
+  --success-foreground: #ffffff;
+
+  --warning: #e48f06;
+  --warning-foreground: #ffffff;
+
+  --error: #d64545;
+  --error-foreground: #ffffff;
+
+  --chart-1: #007ea7;
+  --chart-2: #b64a27;
+  --chart-3: #5c7080;
+  --chart-4: #394b59;
+  --chart-5: #8a9ba8;
 
   --font-sans:
     'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
@@ -134,62 +172,73 @@
   --shadow-offset-x: 0;
   --shadow-offset-y: 1px;
   --shadow-2xs: 0 1px 3px 0px rgb(0 0 0 / 0.05);
-  --shadow-xs: 0 1px 3px 0px rgb(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
   --shadow: 0 1px 3px 0px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 1px 3px 0px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 1px 3px 0px rgb(0 0 0 / 0.1), 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 1px 3px 0px rgb(0 0 0 / 0.1), 0 8px 10px -1px rgb(0 0 0 / 0.1);
   --shadow-2xl: 0 1px 3px 0px rgb(0 0 0 / 0.25);
 }
 
 .dark {
-  --background: rgb(38 38 38);
-  --foreground: rgb(195 193 186);
-  --card: rgb(38 38 38);
-  --card-foreground: rgb(250 248 241);
-  --popover: rgb(48 48 48);
-  --popover-foreground: rgb(228 228 228);
-  --primary: rgb(0 126 167);
-  --primary-foreground: rgb(255 255 255);
-  --secondary: rgb(250 248 241);
-  --secondary-foreground: rgb(48 48 48);
-  --accent: rgb(26 24 19);
-  --accent-foreground: rgb(247 245 238);
-  --muted: rgb(27 27 27);
-  --muted-foreground: rgb(183 181 166);
-  --destructive: rgb(223 41 27);
-  --destructive-foreground: rgb(255 255 255);
-  --border: rgb(62 62 56);
-  --input: rgb(81 80 74);
-  --ring: rgb(27 126 222);
+  --background: #181c20;
+  --foreground: #f0f2f4;
 
-  --font-sans:
-    'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-serif: 'Inter', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-  --font-mono:
-    'Inter', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
-  --letter-spacing: 0em;
-  --radius: 0.625rem;
-  --spacing: 0.25rem;
+  --card: #22272d;
+  --card-foreground: #f0f2f4;
 
-  --shadow-color: hsl(0 0% 0%);
-  --shadow-opacity: 0.1;
-  --shadow-blur: 3px;
-  --shadow-spread: 0px;
-  --shadow-offset-x: 0;
-  --shadow-offset-y: 1px;
-  --shadow-2xs: 0 1px 3px 0px rgb(0 0 0 / 0.05);
-  --shadow-xs: 0 1px 3px 0px rgb(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow: 0 1px 3px 0px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 1px 3px 0px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 1px 3px 0px rgb(0 0 0 / 0.1), 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 1px 3px 0px rgb(0 0 0 / 0.1), 0 8px 10px -1px rgb(0 0 0 / 0.1);
-  --shadow-2xl: 0 1px 3px 0px rgb(0 0 0 / 0.25);
+  --popover: #2a3138;
+  --popover-foreground: #f0f2f4;
+
+  --primary: #0091bd;
+  --primary-foreground: #ffffff;
+
+  --secondary: #e15d34;
+  --secondary-foreground: #ffffff;
+
+  --muted: #2c333a;
+  --muted-foreground: #aabac5;
+
+  --accent: #3a4855;
+  --accent-foreground: #f0f2f4;
+
+  --border: #3d4851;
+  --input: #5c6a75;
+  --ring: #0091bd;
+
+  --sidebar: #1a1f24;
+  --sidebar-foreground: #f0f2f4;
+
+  --sidebar-primary: #0091bd;
+  --sidebar-primary-foreground: #ffffff;
+
+  --sidebar-accent: #27313a;
+  --sidebar-accent-foreground: #f0f2f4;
+
+  --sidebar-border: #37424a;
+  --sidebar-ring: #0091bd;
+
+  --destructive: #ff4c4c;
+  --destructive-foreground: #ffffff;
+
+  --info: #58a6ff;
+  --info-foreground: #ffffff;
+
+  --success: #2ecc71;
+  --success-foreground: #ffffff;
+
+  --warning: #ffae42;
+  --warning-foreground: #1a1a1a;
+
+  --error: #ff5c5c;
+  --error-foreground: #ffffff;
+
+  --chart-1: #0091bd;
+  --chart-2: #e15d34;
+  --chart-3: #9db0c2;
+  --chart-4: #718593;
+  --chart-5: #a0b6c8;
 }
 
 @layer base {
