@@ -3,6 +3,7 @@ import { Router } from '@tanstack/react-router';
 import {
   appInsightsTestRoute,
   indexRoute,
+  projectsRoute,
   rootRoute,
   tailwindTestRoute,
   userListRoute,
@@ -13,6 +14,7 @@ const routeTree = rootRoute.addChildren([
   tailwindTestRoute,
   appInsightsTestRoute,
   userListRoute,
+  projectsRoute,
 ]);
 
 export const router = new Router({ routeTree });

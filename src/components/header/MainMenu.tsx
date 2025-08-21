@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useLocation } from '@tanstack/react-router';
-import { Home, Users } from 'lucide-react';
+import { Home, Kanban, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -13,9 +13,15 @@ interface MainMenuProps {
   children: React.ReactNode;
   onDashboardClick: () => void;
   onUsersClick: () => void;
+  onProjectsClick: () => void;
 }
 
-const MainMenu: React.FC<MainMenuProps> = ({ children, onDashboardClick, onUsersClick }) => {
+const MainMenu: React.FC<MainMenuProps> = ({
+  children,
+  onDashboardClick,
+  onUsersClick,
+  onProjectsClick,
+}) => {
   const { t } = useTranslation();
   const { userdetail } = useAppStore();
   const [open, setOpen] = React.useState(false);
@@ -23,6 +29,7 @@ const MainMenu: React.FC<MainMenuProps> = ({ children, onDashboardClick, onUsers
 
   const isDashboardActive = location.pathname === '/';
   const isUsersActive = location.pathname === '/user-list';
+  const isProjectsActive = location.pathname === '/projects';
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -43,13 +50,22 @@ const MainMenu: React.FC<MainMenuProps> = ({ children, onDashboardClick, onUsers
             onClosePopover={() => setOpen(false)}
           />
           {userdetail?.role === 1 && (
-            <MenuItem
-              icon={<Users size={18} />}
-              isActive={isUsersActive}
-              text={t('users')}
-              onClick={onUsersClick}
-              onClosePopover={() => setOpen(false)}
-            />
+            <>
+              <MenuItem
+                icon={<Kanban size={18} />}
+                isActive={isProjectsActive}
+                text={t('projects')}
+                onClick={onProjectsClick}
+                onClosePopover={() => setOpen(false)}
+              />
+              <MenuItem
+                icon={<Users size={18} />}
+                isActive={isUsersActive}
+                text={t('users')}
+                onClick={onUsersClick}
+                onClosePopover={() => setOpen(false)}
+              />
+            </>
           )}
         </div>
       </PopoverContent>
