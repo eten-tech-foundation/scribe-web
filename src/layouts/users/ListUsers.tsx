@@ -43,32 +43,34 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
         </Button>
       </div>
 
-      <div className='flex-1 overflow-hidden rounded-lg border border-[#D9D8D0] bg-white shadow'>
-        <div className='flex h-full flex-col'>
-          <div className='flex-1 overflow-y-auto'>
-            {loading ? (
-              <div className='flex items-center justify-center gap-2 py-8'>
-                <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
-                <span className='text-gray-500'>Loading...</span>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader className='border-b border-[#D9D8D0] bg-[#F6F4EE]'>
-                  <TableRow className='hover:bg-transparent'>
-                    <TableHead className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                      {t(`name`)}
-                    </TableHead>
-                    <TableHead className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                      {t(`role`)}
-                    </TableHead>
-                    <TableHead className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                      {t(`email`)}
-                    </TableHead>
-                    <TableHead className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                      {t(`status`)}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
+      <div className='flex flex-1 flex-col overflow-hidden rounded-lg border border-[#D9D8D0] bg-white shadow'>
+        {loading ? (
+          <div className='flex items-center justify-center gap-2 py-8'>
+            <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
+            <span className='text-gray-500'>Loading...</span>
+          </div>
+        ) : (
+          <div className='flex h-full flex-col overflow-hidden'>
+            <Table className='table-fixed'>
+              <TableHeader className='sticky top-0 z-10'>
+                <TableRow className='border-b border-[#D9D8D0] bg-[#F6F4EE]'>
+                  <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                    {t(`name`)}
+                  </TableHead>
+                  <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                    {t(`role`)}
+                  </TableHead>
+                  <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                    {t(`email`)}
+                  </TableHead>
+                  <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                    {t(`status`)}
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+            </Table>
+            <div className='flex-1 overflow-y-auto'>
+              <Table className='table-fixed'>
                 <TableBody className='divide-y divide-[#D9D8D0] bg-white'>
                   {sortedUsers.map(user => (
                     <TableRow
@@ -94,9 +96,9 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
                   ))}
                 </TableBody>
               </Table>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

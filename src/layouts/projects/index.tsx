@@ -12,33 +12,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
-// Define the Project type based on your requirements
-export interface Project {
-  id: string | number;
-  title: string;
-  sourceLanguage: string;
-  targetLanguage: string;
-  sourceBible: string;
-}
+import { type Project } from '@/lib/types';
 
 interface ProjectsPageProps {
   projects: Project[];
   loading?: boolean;
   onCreateProject: () => void;
-  onEditProject?: (project: Project) => void;
 }
 
 export const ProjectsPage: React.FC<ProjectsPageProps> = ({
   loading,
   projects,
   onCreateProject,
-  onEditProject,
 }) => {
   const { t } = useTranslation();
 
   const sortedProjects = useMemo(() => {
-    return [...projects].sort((a, b) => a.title.localeCompare(b.title));
+    return [...projects].sort((a, b) => a.name.localeCompare(b.name));
   }, [projects]);
 
   return (
@@ -52,61 +42,68 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
 
       <div className='flex-1 overflow-hidden rounded-lg border border-[#D9D8D0] bg-white shadow'>
         <div className='flex h-full flex-col'>
-          <div className='flex-1 overflow-y-auto'>
-            {loading ? (
-              <div className='flex items-center justify-center gap-2 py-8'>
-                <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
-                <span className='text-gray-500'>{t('loadingProjects')}</span>
-              </div>
-            ) : sortedProjects.length === 0 ? (
-              <div className='flex items-center justify-center py-8'>
-                <span className='text-gray-500'>{t('noProjectsFound')}</span>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader className='border-b border-[#D9D8D0] bg-[#F6F4EE]'>
-                  <TableRow className='hover:bg-transparent'>
-                    <TableHead className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                      {t('title')}
-                    </TableHead>
-                    <TableHead className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                      {t('sourceLanguage')}
-                    </TableHead>
-                    <TableHead className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                      {t('targetLanguage')}
-                    </TableHead>
-                    <TableHead className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                      {t('sourceBible')}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className='divide-y divide-[#D9D8D0] bg-white'>
-                  {sortedProjects.map(project => (
-                    <TableRow
-                      key={project.id}
-                      className={`border-b border-[#D9D8D0] transition-colors hover:bg-gray-50 ${
-                        onEditProject ? 'cursor-pointer' : ''
-                      }`}
-                      onClick={() => onEditProject?.(project)}
-                    >
-                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                        {project.title}
-                      </TableCell>
-                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                        {project.sourceLanguage}
-                      </TableCell>
-                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                        {project.targetLanguage}
-                      </TableCell>
-                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                        {project.sourceBible}
-                      </TableCell>
+          {loading ? (
+            <div className='flex items-center justify-center gap-2 py-8'>
+              <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
+              <span className='text-gray-500'>{t('loadingProjects')}</span>
+            </div>
+          ) : sortedProjects.length === 0 ? (
+            <div className='flex items-center justify-center py-8'>
+              <span className='text-gray-500'>{t('noProjectsFound')}</span>
+            </div>
+          ) : (
+            <>
+              {/* Fixed Header */}
+              <div className='flex-shrink-0 border-b border-[#D9D8D0] bg-[#F6F4EE]'>
+                <Table className='table-fixed'>
+                  <TableHeader>
+                    <TableRow className='hover:bg-transparent'>
+                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                        {t('name')}
+                      </TableHead>
+
+                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                        {t('sourceLanguage')}
+                      </TableHead>
+                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                        {t('targetLanguage')}
+                      </TableHead>
+                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                        {t('sourceBible')}
+                      </TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </div>
+                  </TableHeader>
+                </Table>
+              </div>
+
+              {/* Scrollable Body */}
+              <div className='flex-1 overflow-y-auto'>
+                <Table>
+                  <TableBody className='divide-y divide-[#D9D8D0] bg-white'>
+                    {sortedProjects.map(project => (
+                      <TableRow
+                        key={project.id}
+                        className='border-b border-[#D9D8D0] transition-colors hover:bg-gray-50'
+                      >
+                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
+                          {project.name}
+                        </TableCell>
+                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
+                          {project.sourceLanguageName}
+                        </TableCell>
+                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
+                          {project.targetLanguageName}
+                        </TableCell>
+                        <TableCell className='text-popover-foreground w-1/4 truncate px-6 py-4 text-sm'>
+                          {project.sourceName}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
