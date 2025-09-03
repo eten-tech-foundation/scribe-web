@@ -19,6 +19,10 @@ const Header: React.FC = () => {
     void navigate({ to: '/user-list' });
   };
 
+  const onNavigateToProjects = () => {
+    void navigate({ to: '/projects' });
+  };
+
   const handleEditProfile = () => {
     setIsEditProfileOpen(true);
   };
@@ -33,7 +37,11 @@ const Header: React.FC = () => {
         <div className='my-4 flex w-full items-center justify-between'>
           <div className='flex items-center'>
             <div className='relative flex items-center pl-[18px]'>
-              <MainMenu onDashboardClick={onNavigateToDashboard} onUsersClick={onNavigateToUsers}>
+              <MainMenu
+                onDashboardClick={onNavigateToDashboard}
+                onProjectsClick={onNavigateToProjects}
+                onUsersClick={onNavigateToUsers}
+              >
                 <button aria-label='Main menu' className='cursor-pointer'>
                   <img alt='Main Menu' src='/icons/main-menu.svg' />
                 </button>

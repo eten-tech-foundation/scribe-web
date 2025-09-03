@@ -16,5 +16,16 @@
   "cancel": "Cancel",
   "addUser": "Add User",
   "verified": "Verified",
-  "invited": "Invited"
+  "invited": "Invited",
+  "projects": "Projects",
+  "createProject": "Create Project",
+  "title": "Title",
+  "sourceLanguage": "Source Language",
+  "targetLanguage": "Target Language",
+  "sourceBible": "Source Bible",
+  "noProjectsFound": "No projects found",
+  "loadingProjects": "Loading projects...",
+  "loadingUsers": "Loading users...",
+  "projectName": "Project Name",
+  "books": "Book(s)"
 }
