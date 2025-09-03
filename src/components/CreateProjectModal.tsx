@@ -127,7 +127,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       };
 
       await onSave(projectData);
-      // Don't close modal here - let parent component handle success/error
     } catch (error) {
       Logger.logException(error instanceof Error ? error : new Error(String(error)), {
         source: 'create project submit',
