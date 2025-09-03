@@ -8,8 +8,6 @@ import UserMenu from '@/components/header/UserMenu';
 import { EditProfile } from '@/layouts/profile/EditProfile';
 
 const Header: React.FC = () => {
-  // const [isMainMenuOpen, setIsMainMenuOpen] = useState(false);
-  // const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -25,19 +23,8 @@ const Header: React.FC = () => {
     void navigate({ to: '/projects' });
   };
 
-  // const toggleMainMenu = () => {
-  //   setIsMainMenuOpen(!isMainMenuOpen);
-  //   setIsUserMenuOpen(false);
-  // };
-
-  // const toggleUserMenu = () => {
-  //   setIsUserMenuOpen(!isUserMenuOpen);
-  //   setIsMainMenuOpen(false);
-  // };
-
   const handleEditProfile = () => {
     setIsEditProfileOpen(true);
-    // setIsUserMenuOpen(false);
   };
 
   const closeEditProfile = () => {

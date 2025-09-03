@@ -28,16 +28,13 @@ export const ProjectsWrapper: React.FC = () => {
         metadata: {},
       };
 
-      // Creating new project
       await createProjectMutation.mutateAsync({
         projectData: newProjectData,
         email: userdetail ? userdetail.email : '',
       });
 
-      // Only close modal on success
       closeModal();
     } catch (error) {
-      // Set error state to show in modal
       setProjectError('Failed to create project');
       Logger.logException(error instanceof Error ? error : new Error(String(error)), {
         source: 'Failed to create project.',
