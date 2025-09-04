@@ -35,3 +35,11 @@ export interface CreateProject {
   sourceLanguage: number;
   targetLanguage: number;
 }
+export interface Chapter {
+  id: string | number;
+  book: string;
+  chapter: number;
+  assigned?: string; // Should be the full name
+  status: number; // number of verses translated
+  totalVerses?: number;
+}

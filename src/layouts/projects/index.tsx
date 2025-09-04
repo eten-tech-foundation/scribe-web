@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import { useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -26,10 +27,15 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
   onCreateProject,
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const sortedProjects = useMemo(() => {
     return [...projects].sort((a, b) => a.name.localeCompare(b.name));
   }, [projects]);
+
+  const handleRowClick = (projectId: number) => {
+    navigate({ to: '/projects/$projectId', params: { projectId: projectId.toString() } });
+  };
 
   return (
     <div className='flex h-full flex-col'>
@@ -83,7 +89,8 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                     {sortedProjects.map(project => (
                       <TableRow
                         key={project.id}
-                        className='border-b border-[#D9D8D0] transition-colors hover:bg-gray-50'
+                        className='cursor-pointer border-b border-[#D9D8D0] transition-colors hover:bg-gray-50'
+                        onClick={() => handleRowClick(project.id)}
                       >
                         <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
                           {project.name}
