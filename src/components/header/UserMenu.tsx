@@ -40,7 +40,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ children, onEditProfile }) => {
       <PopoverContent
         hideWhenDetached
         align='end'
-        className='w-56 border-gray-200 bg-[#E7E4DD] p-2'
+        className='w-56 border-gray-200 bg-[#E9EFF3] p-2'
         side='bottom'
         sideOffset={5}
       >

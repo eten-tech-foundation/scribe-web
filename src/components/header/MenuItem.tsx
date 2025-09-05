@@ -26,8 +26,8 @@ const MenuItem: React.FC<MenuItemProps> = ({
     <Button
       className={`h-10 w-full cursor-pointer justify-start px-4 py-2 transition-colors duration-150 ${
         isActive
-          ? 'bg-gray-50 text-gray-700 hover:text-gray-900'
-          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+          ? 'hover:bg-popover-hover border-white bg-white text-gray-700'
+          : 'hover:bg-popover-hover text-gray-700'
       }`}
       variant='ghost'
       onClick={handleClick}
