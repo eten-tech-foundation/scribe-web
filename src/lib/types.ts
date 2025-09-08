@@ -35,3 +35,32 @@ export interface CreateProject {
   sourceLanguage: number;
   targetLanguage: number;
 }
+
+export interface ProjectItem {
+  project_name: string;
+  project_unit_id: number;
+  book_id: number;
+  book: string;
+  chapter_number: number;
+  progress: string;
+  is_submitted: boolean;
+  submitted_time: string | null;
+}
+
+export interface WorkItem {
+  id: string;
+  project: string;
+  book: string;
+  chapter: string;
+  status: string;
+  completedVerses: number;
+  totalVerses: number;
+}
+
+export interface HistoryItem {
+  id: string;
+  project: string;
+  book: string;
+  chapter: number;
+  date: string;
+}

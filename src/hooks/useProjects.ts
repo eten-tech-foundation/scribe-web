@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { config } from '@/lib/config';
-import { type CreateProject, type Project } from '@/lib/types';
+import { type CreateProject, type Project, type ProjectItem } from '@/lib/types';
 
 const fetchProjects = async (email: string): Promise<Project[]> => {
   const res = await fetch(`${config.api.url}/projects`, {
@@ -60,5 +60,21 @@ export const useCreateProject = () => {
     onError: error => {
       console.error('Error creating project:', error);
     },
+  });
+};
+
+const fetchChapterAssignments = async (email: string): Promise<ProjectItem[]> => {
+  const response = await fetch(`${config.api.url}/chapter-assignments/user/${email}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch chapter assignments');
+  }
+  return (await response.json()) as ProjectItem[];
+};
+
+export const useChapterAssignments = (email: string) => {
+  return useQuery<ProjectItem[]>({
+    queryKey: ['chapter-assignments', email],
+    queryFn: () => fetchChapterAssignments(email),
+    enabled: !!email,
   });
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Loader2 } from 'lucide-react';
 
@@ -10,44 +10,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
-// Types
-interface ProjectItem {
-  project_name: string;
-  project_unit_id: number;
-  book_id: number;
-  book: string;
-  chapter_number: number;
-  progress: string;
-  is_submitted: boolean;
-  submitted_time: string | null;
-}
-
-interface WorkItem {
-  id: string;
-  project: string;
-  book: string;
-  chapter: string;
-  status: string;
-  completedVerses: number;
-  totalVerses: number;
-}
-
-interface HistoryItem {
-  id: string;
-  project: string;
-  book: string;
-  chapter: number;
-  date: string;
-}
-
-const fetchProjectData = async (email: string): Promise<ProjectItem[]> => {
-  const response = await fetch(`http://localhost:9999/chapter-assignments/user/${email}`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch project data');
-  }
-  return (await response.json()) as ProjectItem[];
-};
+import { useChapterAssignments } from '@/hooks/useProjects';
+import type { HistoryItem, WorkItem } from '@/lib/types';
+import { useAppStore } from '@/store/store';
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -58,27 +23,12 @@ const formatDate = (dateString: string) => {
 };
 
 export function UserHomePage() {
-  const [projectData, setProjectData] = useState<ProjectItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'my-work' | 'my-history'>('my-work');
+  const { userdetail } = useAppStore();
 
-  const userEmail = '';
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchProjectData(userEmail);
-        setProjectData(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    void loadData();
-  }, [userEmail]);
+  const { data: projectData = [], isLoading: loading } = useChapterAssignments(
+    userdetail?.email ?? ''
+  );
 
   const myWorkData: WorkItem[] = projectData
     .filter(item => !item.is_submitted)
