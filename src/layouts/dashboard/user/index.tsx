@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useChapterAssignments } from '@/hooks/useProjects';
-import type { HistoryItem, WorkItem } from '@/lib/types';
+import type { HistoryItem, User, WorkItem } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 const formatDate = (dateString: string) => {
@@ -26,22 +26,19 @@ export function UserHomePage() {
   const [activeTab, setActiveTab] = useState<'my-work' | 'my-history'>('my-work');
   const { userdetail } = useAppStore();
 
-  const { data: projectData = [], isLoading: loading } = useChapterAssignments(
-    userdetail?.email ?? ''
-  );
+  const { data: projectData = [], isLoading: loading } = useChapterAssignments(userdetail as User);
 
   const myWorkData: WorkItem[] = projectData
     .filter(item => !item.is_submitted)
     .map(item => {
-      const [completed, total] = item.progress.split(' of ').map(Number);
       return {
         id: `${item.project_unit_id}-${item.book_id}-${item.chapter_number}`,
         project: item.project_name,
         book: item.book,
         chapter: item.chapter_number.toString(),
-        status: item.progress,
-        completedVerses: completed,
-        totalVerses: total,
+        status: `${item.completed_verses} of ${item.total_verses}`,
+        completedVerses: item.completed_verses,
+        totalVerses: item.total_verses,
       };
     });
 
@@ -78,28 +75,26 @@ export function UserHomePage() {
         </h2>
 
         <div className='mb-6 flex-shrink-0'>
-          <div className='flex gap-8 border-b border-gray-200'>
-            <button
-              className={`border-b-2 px-1 pb-3 text-sm font-medium transition-colors ${
-                activeTab === 'my-work'
-                  ? 'border-gray-900 text-gray-900'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-              onClick={() => setActiveTab('my-work')}
-            >
-              My Work ({myWorkData.length})
-            </button>
-            <button
-              className={`border-b-2 px-1 pb-3 text-sm font-medium transition-colors ${
-                activeTab === 'my-history'
-                  ? 'border-gray-900 text-gray-900'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-              onClick={() => setActiveTab('my-history')}
-            >
-              My History ({historyData.length})
-            </button>
-          </div>
+          <button
+            className={`border-b-3 px-1 pb-3 text-sm font-medium transition-colors ${
+              activeTab === 'my-work'
+                ? 'border-primary text-gray-900'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+            onClick={() => setActiveTab('my-work')}
+          >
+            My Work ({myWorkData.length})
+          </button>
+          <button
+            className={`border-b-3 px-1 pb-3 text-sm font-medium transition-colors ${
+              activeTab === 'my-history'
+                ? 'border-primary text-gray-900'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+            onClick={() => setActiveTab('my-history')}
+          >
+            My History ({historyData.length})
+          </button>
         </div>
 
         <div className='flex flex-1 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white'>

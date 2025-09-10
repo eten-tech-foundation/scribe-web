@@ -1,23 +1,11 @@
 import { createRootRoute, createRoute } from '@tanstack/react-router';
 
 import { App } from '@/app';
+import { RoleBasedHomePage } from '@/components/RoleBasedHomePage';
 import { AppInsightsTestPage } from '@/layouts/app-insights-test';
-import { HomePage } from '@/layouts/dashboard/admin';
-import { UserHomePage } from '@/layouts/dashboard/user';
 import { ProjectsWrapper } from '@/layouts/projects/ProjectsWrapper';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 import { UsersWrapper } from '@/layouts/users/UsersWrapper';
-import { useAppStore } from '@/store/store';
-
-const RoleBasedHomePage = () => {
-  const { userdetail } = useAppStore();
-
-  if (userdetail?.role === 1) {
-    return <HomePage />;
-  }
-
-  return <UserHomePage />;
-};
 
 export const rootRoute = createRootRoute({
   component: App,

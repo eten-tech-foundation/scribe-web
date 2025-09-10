@@ -42,7 +42,8 @@ export interface ProjectItem {
   book_id: number;
   book: string;
   chapter_number: number;
-  progress: string;
+  total_verses: number;
+  completed_verses: number;
   is_submitted: boolean;
   submitted_time: string | null;
 }
