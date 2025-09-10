@@ -92,6 +92,9 @@
   --color-ring: var(--ring);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-hover: var(--hover);
+  --color-card-hover: var(--card-hover);
+  --color-popover-hover: var(--popover-hover);
 }
 
 :root {
@@ -100,10 +103,11 @@
 
   --card: #f2f6f9;
   --card-foreground: #1a1a1a;
+  --card-hover: #ecf0f3;
 
   --popover: #e9eff3; /* slightly darker than card */
   --popover-foreground: #1a1a1a;
-
+  --popover-hover: #e2e8ec;
   --primary: #007ea7;
   --primary-foreground: #ffffff;
 
@@ -115,6 +119,8 @@
 
   --accent: #c9d9e5;
   --accent-foreground: #1a1a1a;
+
+  --hover: #e7edf1;
 
   --border: #ccd7df;
   --input: #99aab5;
@@ -187,9 +193,11 @@
 
   --card: #22272d;
   --card-foreground: #f0f2f4;
+  --card-hover: #2a3138;
 
   --popover: #2a3138;
   --popover-foreground: #f0f2f4;
+  --popover-hover: 49 58 66;
 
   --primary: #0091bd;
   --primary-foreground: #ffffff;
@@ -202,6 +210,8 @@
 
   --accent: #3a4855;
   --accent-foreground: #f0f2f4;
+
+  --hover: #2c333a;
 
   --border: #3d4851;
   --input: #5c6a75;
