@@ -43,7 +43,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
         </Button>
       </div>
 
-      <div className='flex flex-1 flex-col overflow-hidden rounded-lg border border-[#D9D8D0] bg-white shadow'>
+      <div className='flex flex-1 flex-col overflow-hidden rounded-lg border shadow'>
         {loading ? (
           <div className='flex items-center justify-center gap-2 py-8'>
             <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
@@ -53,7 +53,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
           <div className='flex h-full flex-col overflow-hidden'>
             <Table className='table-fixed'>
               <TableHeader className='sticky top-0 z-10'>
-                <TableRow className='border-b border-[#D9D8D0] bg-[#F6F4EE]'>
+                <TableRow>
                   <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
                     {t(`name`)}
                   </TableHead>
@@ -71,11 +71,11 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
             </Table>
             <div className='flex-1 overflow-y-auto'>
               <Table className='table-fixed'>
-                <TableBody className='divide-y divide-[#D9D8D0] bg-white'>
+                <TableBody className=''>
                   {sortedUsers.map(user => (
                     <TableRow
                       key={user.id}
-                      className='cursor-pointer border-b border-[#D9D8D0] transition-colors hover:bg-gray-50'
+                      className='cursor-pointer transition-colors hover:bg-gray-50'
                       onClick={() => onEditUser(user)}
                     >
                       <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>

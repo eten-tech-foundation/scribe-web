@@ -43,3 +43,23 @@ export interface Chapter {
   status: number; // number of verses translated
   totalVerses?: number;
 }
+
+export interface ChapterAssignmentProgress {
+  book: string;
+  chapterNumber: number;
+  assignedUser: string;
+  projectUnitId: number;
+  assignmentId: number;
+  totalVerses: number;
+  completedVerses: number;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+  isSubmitted?: boolean;
+  submittedTime?: Date | null;
+}
+
+export interface Book {
+  bookId: number;
+  code: string;
+  engDisplayName: string;
+}

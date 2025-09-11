@@ -1,4 +1,3 @@
-import { useNavigate } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 
 interface ViewPageHeaderProps {
@@ -7,25 +6,17 @@ interface ViewPageHeaderProps {
 }
 
 export const ViewPageHeader: React.FC<ViewPageHeaderProps> = ({ title, onBack }) => {
-  const navigate = useNavigate();
-
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      navigate({ to: '/projects' });
-    }
-  };
-
   return (
-    <div className='mb-6 flex items-center gap-4'>
+    <div className='mb-4 flex items-center gap-3 sm:mb-6 sm:gap-4'>
       <ChevronLeft
-        className='cursor-pointer'
-        size={'30px'}
+        className='flex-shrink-0 cursor-pointer'
+        size={'24px'}
         strokeWidth={'2px'}
-        onClick={handleBack}
+        onClick={onBack}
       />
-      <h1 className='text-foreground text-4xl font-semibold'>{title}</h1>
+      <h1 className='text-foreground text-2xl font-semibold break-words sm:text-2xl lg:text-3xl'>
+        {title}
+      </h1>
     </div>
   );
 };

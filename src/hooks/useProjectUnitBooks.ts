@@ -1,12 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { config } from '@/lib/config';
-
-interface Book {
-  book_id: number;
-  code: string;
-  eng_display_name: string;
-}
+import { type Book } from '@/lib/types';
 
 const fetchProjectUnitBooks = async (projectUnitId: string, email: string): Promise<Book[]> => {
   const res = await fetch(`${config.api.url}/projects/${projectUnitId}/books`, {

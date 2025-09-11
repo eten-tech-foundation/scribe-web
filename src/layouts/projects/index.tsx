@@ -1,118 +1,115 @@
-import { useMemo } from 'react';
+import React, { useState } from 'react';
 
-import { useNavigate } from '@tanstack/react-router';
-import { Loader2 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useCreateProject, useProjects } from '@/hooks/useProjects';
+import { CreateProjectModal, type CreateProjectData } from '@/layouts/projects/CreateProjectModal';
+import { ProjectDetailPage } from '@/layouts/projects/ProjectDetailPage';
+import { ProjectsPage } from '@/layouts/projects/ProjectPage';
+import { Logger } from '@/lib/services/logger';
+import { type CreateProject } from '@/lib/types';
+import { useAppStore } from '@/store/store';
 
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { type Project } from '@/lib/types';
+export const ProjectsWrapper: React.FC = () => {
+  const { userdetail } = useAppStore();
+  const { data: projects = [], isLoading } = useProjects(userdetail ? userdetail.email : '');
+  const createProjectMutation = useCreateProject();
 
-interface ProjectsPageProps {
-  projects: Project[];
-  loading?: boolean;
-  onCreateProject: () => void;
-}
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [projectError, setProjectError] = useState<string | null>(null);
 
-export const ProjectsPage: React.FC<ProjectsPageProps> = ({
-  loading,
-  projects,
-  onCreateProject,
-}) => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectProjectTitle, setSelectProjectTitle] = useState<string>('');
+  const [selectedProjectSource, setSelectedProjectSource] = useState<string>('');
+  const [selectedProjectSourceLang, setSelectedProjectSourceLang] = useState<string>('');
+  const [selectedProjectTargetLang, setSelectedProjectTargetLang] = useState<string>('');
 
-  const sortedProjects = useMemo(() => {
-    return [...projects].sort((a, b) => a.name.localeCompare(b.name));
-  }, [projects]);
+  const [showProjectDetail, setShowProjectDetail] = useState(false);
+  const handleSaveProject = async (projectData: CreateProjectData) => {
+    try {
+      setProjectError(null);
+      const newProjectData: Omit<CreateProject, 'id' | 'createdAt' | 'updatedAt'> = {
+        name: projectData.title,
+        targetLanguage: projectData.targetLanguage,
+        sourceLanguage: projectData.sourceLanguage,
+        bible_id: projectData.sourceBible,
+        book_id: projectData.books,
+        organization: Number(userdetail?.organization),
+        createdBy: Number(userdetail?.id),
+        metadata: {},
+      };
 
-  const handleRowClick = (projectId: number) => {
-    navigate({ to: '/projects/$projectId', params: { projectId: projectId.toString() } });
+      await createProjectMutation.mutateAsync({
+        projectData: newProjectData,
+        email: userdetail ? userdetail.email : '',
+      });
+
+      closeModal();
+    } catch (error) {
+      setProjectError('Failed to create project');
+      Logger.logException(error instanceof Error ? error : new Error(String(error)), {
+        source: 'Failed to create project.',
+      });
+    }
   };
 
+  const openCreateModal = () => {
+    setIsModalOpen(true);
+    setProjectError(null);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setProjectError(null);
+  };
+
+  const handleProjectSelect = (
+    projectId: number,
+    title: string,
+    source: string,
+    sourceLang: string,
+    targetLang: string
+  ) => {
+    setSelectedProjectId(projectId.toString());
+    setSelectProjectTitle(title);
+    setSelectedProjectSource(source);
+    setSelectedProjectSourceLang(sourceLang);
+    setSelectedProjectTargetLang(targetLang);
+    setShowProjectDetail(true);
+  };
+
+  const handleBackToProjects = () => {
+    setShowProjectDetail(false);
+    setSelectedProjectId(null);
+  };
+
+  if (showProjectDetail) {
+    return (
+      <ProjectDetailPage
+        projectId={selectedProjectId ?? '0'}
+        projectSource={selectedProjectSource}
+        projectSourceLanguageName={selectedProjectSourceLang}
+        projectTargetLanguageName={selectedProjectTargetLang}
+        projectTitle={selectProjectTitle}
+        onBack={handleBackToProjects}
+      />
+    );
+  }
+
   return (
-    <div className='flex h-full flex-col'>
-      <div className='mb-6 flex-shrink-0'>
-        <h1 className='text-foreground mb-4 text-3xl font-semibold'>{t('projects')}</h1>
-        <Button className='bg-primary hover:bg-primary/90 text-white' onClick={onCreateProject}>
-          {t('createProject')}
-        </Button>
-      </div>
+    <>
+      <ProjectsPage
+        loading={isLoading}
+        projects={projects}
+        onCreateProject={openCreateModal}
+        onProjectSelect={handleProjectSelect}
+      />
 
-      <div className='flex-1 overflow-hidden rounded-lg border border-[#D9D8D0] bg-white shadow'>
-        <div className='flex h-full flex-col'>
-          {loading ? (
-            <div className='flex items-center justify-center gap-2 py-8'>
-              <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
-              <span className='text-gray-500'>{t('loadingProjects')}</span>
-            </div>
-          ) : sortedProjects.length === 0 ? (
-            <div className='flex items-center justify-center py-8'>
-              <span className='text-gray-500'>{t('noProjectsFound')}</span>
-            </div>
-          ) : (
-            <>
-              {/* Fixed Header */}
-              <div className='flex-shrink-0 border-b border-[#D9D8D0] bg-[#F6F4EE]'>
-                <Table className='table-fixed'>
-                  <TableHeader>
-                    <TableRow className='hover:bg-transparent'>
-                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                        {t('name')}
-                      </TableHead>
-
-                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                        {t('sourceLanguage')}
-                      </TableHead>
-                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                        {t('targetLanguage')}
-                      </TableHead>
-                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                        {t('sourceBible')}
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                </Table>
-              </div>
-
-              {/* Scrollable Body */}
-              <div className='flex-1 overflow-y-auto'>
-                <Table>
-                  <TableBody className='divide-y divide-[#D9D8D0] bg-white'>
-                    {sortedProjects.map(project => (
-                      <TableRow
-                        key={project.id}
-                        className='cursor-pointer border-b border-[#D9D8D0] transition-colors hover:bg-gray-50'
-                        onClick={() => handleRowClick(project.id)}
-                      >
-                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
-                          {project.name}
-                        </TableCell>
-                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
-                          {project.sourceLanguageName}
-                        </TableCell>
-                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
-                          {project.targetLanguageName}
-                        </TableCell>
-                        <TableCell className='text-popover-foreground w-1/4 truncate px-6 py-4 text-sm'>
-                          {project.sourceName}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+      <CreateProjectModal
+        error={projectError}
+        isLoading={createProjectMutation.isPending}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSave={handleSaveProject}
+      />
+    </>
   );
 };
