@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { useNavigate } from '@tanstack/react-router';
-import { SquareUser } from 'lucide-react';
+import { Menu, SquareUserRound } from 'lucide-react';
 
 import MainMenu from '@/components/header/MainMenu';
 import UserMenu from '@/components/header/UserMenu';
@@ -42,8 +42,11 @@ const Header: React.FC = () => {
                 onProjectsClick={onNavigateToProjects}
                 onUsersClick={onNavigateToUsers}
               >
-                <button aria-label='Main menu' className='cursor-pointer'>
-                  <img alt='Main Menu' src='/icons/main-menu.svg' />
+                <button
+                  aria-label='User menu'
+                  className='hover:bg-hover flex h-[40px] w-[40px] cursor-pointer items-center justify-center rounded-md bg-gray-100 p-1.5 transition-colors duration-150'
+                >
+                  <Menu className='text-gray-600' size={35} strokeWidth={2.5} />
                 </button>
               </MainMenu>
             </div>
@@ -59,7 +62,7 @@ const Header: React.FC = () => {
                   }
                 }}
               >
-                <img alt='Logo' src='/icons/scribe-logo.svg' />
+                <img alt='Logo' src='/icons/fluent-logo.svg' />
               </div>
             </div>
           </div>
@@ -68,9 +71,9 @@ const Header: React.FC = () => {
             <UserMenu onEditProfile={handleEditProfile}>
               <button
                 aria-label='User menu'
-                className='flex h-[40px] w-[40px] cursor-pointer items-center justify-center rounded-md bg-gray-100 p-1.5 transition-colors duration-150 hover:bg-gray-200'
+                className='hover:bg-hover flex h-[40px] w-[40px] cursor-pointer items-center justify-center rounded-md bg-gray-100 p-1.5 transition-colors duration-150'
               >
-                <SquareUser className='text-gray-600' size={25} strokeWidth={2.5} />
+                <SquareUserRound className='text-gray-600' size={35} strokeWidth={2.5} />
               </button>
             </UserMenu>
           </div>
