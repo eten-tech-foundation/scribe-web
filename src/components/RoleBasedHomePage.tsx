@@ -1,5 +1,5 @@
 import { HomePage } from '@/layouts/dashboard/admin';
-import { UserHomePage } from '@/layouts/dashboard/user';
+import { UserDashboard } from '@/layouts/dashboard/user';
 import { useAppStore } from '@/store/store';
 
 export const RoleBasedHomePage = () => {
@@ -9,5 +9,5 @@ export const RoleBasedHomePage = () => {
     return <HomePage />;
   }
 
-  return <UserHomePage />;
+  return <UserDashboard />;
 };

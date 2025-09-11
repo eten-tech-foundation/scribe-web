@@ -24,6 +24,7 @@ export interface Project {
   sourceLanguageName: string;
   targetLanguageName: string;
 }
+
 export interface CreateProject {
   id: number;
   name: string;
@@ -37,31 +38,16 @@ export interface CreateProject {
 }
 
 export interface ProjectItem {
-  project_name: string;
-  project_unit_id: number;
-  book_id: number;
+  projectName: string;
+  projectUnitId: number;
+  bibleId: number;
+  bibleName: string;
+  targetLanguage: string;
+  bookId: number;
   book: string;
-  chapter_number: number;
-  total_verses: number;
-  completed_verses: number;
-  is_submitted: boolean;
-  submitted_time: string | null;
-}
-
-export interface WorkItem {
-  id: string;
-  project: string;
-  book: string;
-  chapter: string;
-  status: string;
-  completedVerses: number;
+  chapterNumber: number;
   totalVerses: number;
-}
-
-export interface HistoryItem {
-  id: string;
-  project: string;
-  book: string;
-  chapter: number;
-  date: string;
+  completedVerses: number;
+  isSubmitted: boolean;
+  submittedTime: string | null;
 }
