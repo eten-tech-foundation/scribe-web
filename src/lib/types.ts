@@ -27,8 +27,8 @@ export interface Project {
 export interface CreateProject {
   id: number;
   name: string;
-  bible_id: number;
-  book_id: number[];
+  bibleId: number;
+  bookId: number[];
   organization: number;
   createdBy: number;
   metadata: Record<string, unknown>;
