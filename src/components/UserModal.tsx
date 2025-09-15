@@ -164,7 +164,7 @@ export const UserModal: React.FC<UserModalProps> = ({
               value={formData.username}
               onChange={e => updateFormData('username', e.target.value)}
             />
-            <p className='text-xs text-gray-500'>Visible to all Scribe users</p>
+            <p className='text-xs text-gray-500'>Visible to all Fluent users</p>
           </div>
 
           <div className='grid gap-3'>

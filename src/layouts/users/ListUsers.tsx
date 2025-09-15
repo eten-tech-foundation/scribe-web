@@ -49,11 +49,15 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
             <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
             <span className='text-gray-500'>Loading...</span>
           </div>
+        ) : sortedUsers.length === 0 ? (
+          <div className='flex items-center justify-center py-8'>
+            <span className='text-gray-500'>No Users Found</span>
+          </div>
         ) : (
           <div className='flex h-full flex-col overflow-hidden'>
             <Table className='table-fixed'>
               <TableHeader className='sticky top-0 z-10'>
-                <TableRow className='border-b border-[#D9D8D0] bg-[#F6F4EE]'>
+                <TableRow className='bg-[#F6F4EE]'>
                   <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
                     {t(`name`)}
                   </TableHead>

@@ -54,14 +54,13 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
           ) : (
             <>
               {/* Fixed Header */}
-              <div className='flex-shrink-0 border-b border-[#D9D8D0] bg-[#F6F4EE]'>
+              <div className='flex-shrink-0 border-[#D9D8D0]'>
                 <Table className='table-fixed'>
                   <TableHeader>
                     <TableRow className='hover:bg-transparent'>
                       <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
                         {t('name')}
                       </TableHead>
-
                       <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
                         {t('sourceLanguage')}
                       </TableHead>
