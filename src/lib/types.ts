@@ -48,6 +48,5 @@ export interface ProjectItem {
   chapterNumber: number;
   totalVerses: number;
   completedVerses: number;
-  isSubmitted: boolean;
   submittedTime: string | null;
 }

@@ -33,7 +33,7 @@ export function UserHomePage() {
   const { data: projectData = [], isLoading: loading } = useChapterAssignments(userdetail as User);
 
   const myWorkData: ProjectItem[] = projectData
-    .filter(item => !item.isSubmitted)
+    .filter(item => item.completedVerses < item.totalVerses && item.submittedTime === null)
     .sort((a, b) => {
       const aHasCompleted = a.completedVerses > 0;
       const bHasCompleted = b.completedVerses > 0;
@@ -47,7 +47,7 @@ export function UserHomePage() {
     });
 
   const historyData: ProjectItem[] = projectData
-    .filter(item => item.isSubmitted && item.submittedTime)
+    .filter(item => item.submittedTime !== null && item.submittedTime.trim() !== '')
     .sort((a, b) => {
       const dateA = a.submittedTime ? new Date(a.submittedTime).getTime() : 0;
       const dateB = b.submittedTime ? new Date(b.submittedTime).getTime() : 0;
@@ -88,17 +88,17 @@ export function UserHomePage() {
         </button>
       </div>
 
-      <div className='flex flex-1 flex-col overflow-hidden rounded-lg border border-[#D9D8D0] bg-white shadow'>
+      <div className='bg-card flex flex-1 flex-col overflow-hidden rounded-lg border shadow'>
         {loading ? (
           <div className='flex items-center justify-center gap-2 py-12'>
-            <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
-            <span className='text-gray-500'>Loading...</span>
+            <Loader2 className='text-muted-foreground h-5 w-5 animate-spin' />
+            <span className='text-muted-foreground'>Loading...</span>
           </div>
         ) : (
           <div className='flex h-full flex-col overflow-hidden'>
             <Table className='table-fixed'>
               <TableHeader className='sticky top-0 z-10'>
-                <TableRow className='border-b border-[#D9D8D0] bg-[#F6F4EE]'>
+                <TableRow className='bg-accent'>
                   <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
                     Project
                   </TableHead>
@@ -109,15 +109,15 @@ export function UserHomePage() {
                     Chapter
                   </TableHead>
                   <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                    {activeTab === 'my-work' ? 'Status' : 'Date'}
+                    {activeTab === 'my-work' ? 'Status' : 'Submitted Date'}
                   </TableHead>
                 </TableRow>
               </TableHeader>
             </Table>
 
-            <div className='flex-1 overflow-y-auto'>
+            <div className='scrollbar-thin flex-1 overflow-y-auto'>
               <Table className='table-fixed'>
-                <TableBody className='divide-y divide-[#D9D8D0] bg-white'>
+                <TableBody className='divide-border divide-y bg-white'>
                   {activeTab === 'my-work' &&
                     (myWorkData.length === 0 ? (
                       <TableRow>
@@ -129,7 +129,7 @@ export function UserHomePage() {
                       myWorkData.map(item => (
                         <TableRow
                           key={`${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`}
-                          className='cursor-pointer border-b border-[#D9D8D0] transition-colors hover:bg-gray-50'
+                          className='cursor-pointer transition-colors hover:bg-gray-50'
                           onClick={() => handleRowClick(item)}
                         >
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
@@ -152,14 +152,14 @@ export function UserHomePage() {
                     (historyData.length === 0 ? (
                       <TableRow>
                         <TableCell className='p-8 text-center text-gray-500' colSpan={4}>
-                          No history available
+                          No completed work found
                         </TableCell>
                       </TableRow>
                     ) : (
                       historyData.map(item => (
                         <TableRow
                           key={`${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`}
-                          className='cursor-pointer border-b border-[#D9D8D0] transition-colors hover:bg-gray-50'
+                          className='cursor-pointer transition-colors hover:bg-gray-50'
                           onClick={() => handleRowClick(item)}
                         >
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>

@@ -40,7 +40,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
         </Button>
       </div>
 
-      <div className='flex-1 overflow-hidden rounded-lg border border-[#D9D8D0] bg-white shadow'>
+      <div className='flex-1 overflow-hidden rounded-lg border bg-white shadow'>
         <div className='flex h-full flex-col'>
           {loading ? (
             <div className='flex items-center justify-center gap-2 py-8'>
@@ -54,10 +54,10 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
           ) : (
             <>
               {/* Fixed Header */}
-              <div className='flex-shrink-0 border-[#D9D8D0]'>
+              <div className='flex-shrink-0'>
                 <Table className='table-fixed'>
                   <TableHeader>
-                    <TableRow className='hover:bg-transparent'>
+                    <TableRow className='bg-accent hover:bg-transparent'>
                       <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
                         {t('name')}
                       </TableHead>
@@ -76,14 +76,11 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
               </div>
 
               {/* Scrollable Body */}
-              <div className='flex-1 overflow-y-auto'>
+              <div className='scrollbar-thin flex-1 overflow-y-auto'>
                 <Table>
-                  <TableBody className='divide-y divide-[#D9D8D0] bg-white'>
+                  <TableBody className='divide-border divide-y bg-white'>
                     {sortedProjects.map(project => (
-                      <TableRow
-                        key={project.id}
-                        className='border-b border-[#D9D8D0] transition-colors hover:bg-gray-50'
-                      >
+                      <TableRow key={project.id} className='transition-colors hover:bg-gray-50'>
                         <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
                           {project.name}
                         </TableCell>

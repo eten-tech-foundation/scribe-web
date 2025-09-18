@@ -64,7 +64,7 @@ export const useCreateProject = () => {
 };
 
 const fetchChapterAssignments = async (user: User): Promise<ProjectItem[]> => {
-  const response = await fetch(`${config.api.url}/chapter-assignments/user/${user.id}`, {
+  const response = await fetch(`${config.api.url}/users/${user.id}/chapter-assignments/`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
