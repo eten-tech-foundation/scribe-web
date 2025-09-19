@@ -24,6 +24,7 @@ export interface Project {
   sourceLanguageName: string;
   targetLanguageName: string;
 }
+
 export interface CreateProject {
   id: number;
   name: string;
@@ -34,4 +35,18 @@ export interface CreateProject {
   metadata: Record<string, unknown>;
   sourceLanguage: number;
   targetLanguage: number;
+}
+
+export interface ProjectItem {
+  projectName: string;
+  projectUnitId: number;
+  bibleId: number;
+  bibleName: string;
+  targetLanguage: string;
+  bookId: number;
+  book: string;
+  chapterNumber: number;
+  totalVerses: number;
+  completedVerses: number;
+  submittedTime: string | null;
 }

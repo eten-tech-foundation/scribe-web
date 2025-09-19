@@ -43,17 +43,21 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
         </Button>
       </div>
 
-      <div className='flex flex-1 flex-col overflow-hidden rounded-lg border border-[#D9D8D0] bg-white shadow'>
+      <div className='flex flex-1 flex-col overflow-hidden rounded-lg border bg-white shadow'>
         {loading ? (
           <div className='flex items-center justify-center gap-2 py-8'>
             <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
             <span className='text-gray-500'>Loading...</span>
           </div>
+        ) : sortedUsers.length === 0 ? (
+          <div className='flex items-center justify-center py-8'>
+            <span className='text-gray-500'>No Users Found</span>
+          </div>
         ) : (
           <div className='flex h-full flex-col overflow-hidden'>
             <Table className='table-fixed'>
               <TableHeader className='sticky top-0 z-10'>
-                <TableRow className='border-b border-[#D9D8D0] bg-[#F6F4EE]'>
+                <TableRow className='bg-accent'>
                   <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
                     {t(`name`)}
                   </TableHead>
@@ -69,22 +73,28 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
                 </TableRow>
               </TableHeader>
             </Table>
-            <div className='flex-1 overflow-y-auto'>
+            <div className='scrollbar-thin flex-1 overflow-y-auto'>
               <Table className='table-fixed'>
-                <TableBody className='divide-y divide-[#D9D8D0] bg-white'>
+                <TableBody className='divide-border divide-y bg-white'>
                   {sortedUsers.map(user => (
                     <TableRow
                       key={user.id}
-                      className='cursor-pointer border-b border-[#D9D8D0] transition-colors hover:bg-gray-50'
+                      className='cursor-pointer transition-colors hover:bg-gray-50'
                       onClick={() => onEditUser(user)}
                     >
-                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                      <TableCell
+                        className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
+                        title={user.username}
+                      >
                         {user.username}
                       </TableCell>
                       <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
                         {getRoleLabel(user.role)}
                       </TableCell>
-                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                      <TableCell
+                        className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
+                        title={user.email}
+                      >
                         {user.email}
                       </TableCell>
                       <TableCell className='px-6 py-4 whitespace-nowrap'>
