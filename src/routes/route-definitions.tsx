@@ -3,7 +3,7 @@ import { createRootRoute, createRoute } from '@tanstack/react-router';
 import { App } from '@/app';
 import { RoleBasedHomePage } from '@/components/RoleBasedHomePage';
 import { AppInsightsTestPage } from '@/layouts/app-insights-test';
-import { ProjectsWrapper } from '@/layouts/projects/ProjectsWrapper';
+import { ProjectsWrapper } from '@/layouts/projects';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 import { UsersWrapper } from '@/layouts/users/UsersWrapper';
 
