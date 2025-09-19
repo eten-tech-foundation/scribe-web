@@ -35,15 +35,15 @@ export interface AssignChaptersResponse {
 const assignChaptersToUser = async (
   payload: AssignChapterPayload & { email: string }
 ): Promise<AssignChaptersResponse> => {
-  const { email, ...requestPayload } = payload;
+  const { email, userId, chapterAssignmentId } = payload;
 
-  const response = await fetch(`${config.api.url}/projects/chapter-assignments/assign`, {
+  const response = await fetch(`${config.api.url}/users/${userId}/chapter-assignments`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
       'x-user-email': email,
     },
-    body: JSON.stringify(requestPayload),
+    body: JSON.stringify({ chapterAssignmentIds: chapterAssignmentId }),
   });
 
   if (!response.ok) {
@@ -67,26 +67,22 @@ export const useAssignChapters = (projectId: string, email: string, assignedUser
   return useMutation({
     mutationFn: assignChaptersToUser,
     onMutate: async variables => {
-      // Cancel any outgoing refetches
       await queryClient.cancelQueries({
         queryKey: ['chapterAssignments', projectId, email],
       });
 
-      // Snapshot the previous value
       const previousAssignments = queryClient.getQueryData<ChapterAssignmentProgress[]>([
         'chapterAssignments',
         projectId,
         email,
       ]);
 
-      // Optimistically update the cache
       if (previousAssignments && assignedUserName) {
         const updatedAssignments = previousAssignments.map(assignment => {
           if (variables.chapterAssignmentId.includes(assignment.assignmentId)) {
             return {
               ...assignment,
               assigned_user: assignedUserName,
-              // Keep the original verse counts during assignment
               total_verses: assignment.totalVerses,
               completed_verses: assignment.completedVerses,
             };

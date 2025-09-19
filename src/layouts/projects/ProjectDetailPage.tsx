@@ -35,14 +35,12 @@ import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 interface ProjectDetailPageProps {
-  // project: Project | undefined;
   projectId?: string;
   projectTitle: string;
   projectSourceLanguageName: string;
   projectTargetLanguageName: string;
   projectSource: string;
-  // loading?: boolean;
-  onBack?: () => void; // New optional prop for back navigation
+  onBack?: () => void;
 }
 
 export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
@@ -51,7 +49,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   projectSourceLanguageName,
   projectTargetLanguageName,
   projectSource,
-  // loading,
   onBack,
 }) => {
   const { userdetail } = useAppStore();
@@ -62,10 +59,11 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const [selectedAssignments, setSelectedAssignments] = useState<number[]>([]);
 
   // Fetch chapter assignments
-  const { data: chapterAssignments, isLoading: assignmentsLoading } = useChapterAssignments(
-    projectId ? projectId.toString() : '0',
-    userdetail?.email ?? ''
-  );
+  const {
+    data: chapterAssignments,
+    isLoading: assignmentsLoading,
+    isFetching: assignmentsFetching,
+  } = useChapterAssignments(projectId ? projectId.toString() : '0', userdetail?.email ?? '');
 
   // Fetch books
   const { data: books, isLoading: booksLoading } = useProjectUnitBooks(
@@ -76,14 +74,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   // Fetch users
   const { data: users, isLoading: usersLoading } = useUsers(userdetail?.email ?? '');
 
-  // Get selected user's name for optimistic updates
   const getSelectedUserFullName = () => {
     if (!selectedUser || !users) return '';
     const user = users.find((u: User) => u.id.toString() === selectedUser);
     return user ? `${user.firstName} ${user.lastName}` : '';
   };
 
-  // Use the assignment hook with optimistic updates
   const assignChapterMutation = useAssignChapters(
     projectId ? projectId.toString() : '0',
     userdetail?.email ?? '',
@@ -99,7 +95,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
     if (!selectedBookData) return chapterAssignments;
 
     return chapterAssignments.filter(
-      assignment => assignment.book === selectedBookData.engDisplayName
+      assignment => assignment.bookNameEng === selectedBookData.engDisplayName
     );
   }, [chapterAssignments, selectedBook, books]);
 
@@ -121,14 +117,11 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           userId: parseInt(selectedUser),
           email: userdetail.email,
         });
-
-        // Reset state after successful assignment
         setSelectedUser('');
         setSelectedAssignments([]);
         setIsDialogOpen(false);
       } catch (error) {
         console.error('Error assigning chapters:', error);
-        // You might want to show an error toast/notification here
       }
     }
   };
@@ -149,15 +142,19 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
   const headerTitle = `${projectTargetLanguageName} - ${projectTitle}`;
 
+  const isLoadingData = assignmentsLoading || assignChapterMutation.isPending;
+
+  const isRefreshing = assignmentsFetching && !assignmentsLoading;
+
   return (
-    <div className='flex h-full min-w-[768px] flex-col'>
+    <div className='flex h-full min-w-[750px] flex-col'>
       {/* Header with Back Button */}
       <ViewPageHeader title={headerTitle} onBack={onBack} />
 
-      <div className='flex flex-1 gap-6 overflow-hidden'>
-        {/* Project Details Card - 1/3 width */}
+      <div className='flex flex-1 overflow-hidden md:gap-4 lg:gap-6'>
+        {/* Project Details Card - Exactly 1/3 width */}
         <div className='w-1/3 flex-shrink-0'>
-          <Card className='h-fit min-w-[260px]'>
+          <Card className='h-fit'>
             <CardContent className='space-y-4 py-4'>
               <div className='grid grid-cols-2 gap-2'>
                 <label className='text-base font-bold'>Name</label>
@@ -178,10 +175,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           </Card>
         </div>
 
-        {/* Table Section - 2/3 width */}
-        <div className='flex h-full flex-col'>
+        {/* Table Section - Exactly 2/3 width */}
+        <div className='flex w-2/3 flex-grow flex-col overflow-hidden'>
           {/* Book Selection Section */}
-          <div className='flex-shrink-0 flex-col pb-4'>
+          <div className='flex-shrink-0 pb-4'>
             <div className='flex items-center gap-3'>
               <Select value={selectedBook} onValueChange={setSelectedBook}>
                 <SelectTrigger className='my-0.5 w-[200px] lg:w-[250px]'>
@@ -199,29 +196,33 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
               <Button
                 className='flex items-center gap-2'
-                disabled={
-                  selectedAssignments.length === 0 ||
-                  booksLoading ||
-                  assignChapterMutation.isPending
-                }
+                disabled={selectedAssignments.length === 0 || booksLoading || isLoadingData}
                 size='sm'
                 onClick={handleAddBook}
               >
-                {assignChapterMutation.isPending && (
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                )}
+                {isLoadingData && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                 Assign
               </Button>
+
+              {isRefreshing && (
+                <div className='flex items-center gap-2 text-sm text-gray-500'>
+                  <Loader2 className='h-3 w-3 animate-spin' />
+                  <span>Updating...</span>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className='flex flex-col overflow-auto rounded-lg border border-2 border-[#D9D8D0]'>
-            {/* Table Header */}
+          {/* Table Container with proper 2/3 width containment */}
+          <div className='flex flex-1 flex-col overflow-hidden rounded-lg border'>
+            {/* Fixed Table Header */}
             <div className='bg-card flex-shrink-0 rounded-t-lg'>
               <Table className='table-fixed'>
                 <TableHeader>
                   <TableRow className='hover:bg-transparent'>
-                    <TableHead className='w-1 px-6 py-4'></TableHead>
+                    <TableHead className='w-12 px-6 py-3'>
+                      <></>
+                    </TableHead>
                     <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
                       Book
                     </TableHead>
@@ -239,7 +240,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               </Table>
             </div>
 
-            {/* Scrollable Body */}
+            {/* Scrollable Body contained within 2/3 width */}
             <div className='relative flex-1 overflow-y-auto'>
               {assignmentsLoading ? (
                 <div className='flex items-center justify-center gap-2 py-8'>
@@ -269,32 +270,49 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                   )}
 
                   <Table>
-                    <TableBody className='divide-y divide-[#D9D8D0] bg-white'>
+                    <TableBody className='divide-border divide-y'>
                       {filteredAssignments.map(assignment => (
                         <TableRow
                           key={assignment.assignmentId}
-                          className='align-center cursor-pointer border-b border-[#D9D8D0] transition-colors hover:bg-gray-50'
+                          className={`align-center cursor-pointer border-b border-[#D9D8D0] transition-colors hover:bg-gray-50 ${
+                            isRefreshing ? 'opacity-90' : ''
+                          }`}
                         >
-                          <TableCell className='w-1 px-6 py-4'>
+                          <TableCell className='w-12 px-6 py-4'>
                             <Checkbox
                               checked={selectedAssignments.includes(assignment.assignmentId)}
-                              disabled={assignChapterMutation.isPending}
+                              disabled={isLoadingData}
                               onCheckedChange={checked =>
                                 handleCheckboxChange(assignment.assignmentId, !!checked)
                               }
                             />
                           </TableCell>
-                          <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base whitespace-nowrap'>
-                            {assignment.book}
+                          <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
+                            <div className='truncate' title={assignment.bookNameEng}>
+                              {assignment.bookNameEng}
+                            </div>
                           </TableCell>
                           <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base whitespace-nowrap'>
                             {assignment.chapterNumber}
                           </TableCell>
-                          <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base whitespace-nowrap'>
-                            {assignment.assignedUser}
+                          <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
+                            <div
+                              className='truncate'
+                              title={`${assignment.assignedUser.firstName} ${assignment.assignedUser.lastName}`}
+                            >
+                              {assignment.assignedUser.firstName} {assignment.assignedUser.lastName}
+                            </div>
                           </TableCell>
-                          <TableCell className='text-popover-foreground w-1/4 truncate px-6 py-4 text-base'>
-                            {formatProgress(assignment.completedVerses, assignment.totalVerses)}
+                          <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
+                            <div
+                              className='truncate'
+                              title={formatProgress(
+                                assignment.completedVerses,
+                                assignment.totalVerses
+                              )}
+                            >
+                              {formatProgress(assignment.completedVerses, assignment.totalVerses)}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}

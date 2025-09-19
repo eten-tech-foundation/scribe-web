@@ -39,15 +39,15 @@ export interface Chapter {
   id: string | number;
   book: string;
   chapter: number;
-  assigned?: string; // Should be the full name
-  status: number; // number of verses translated
+  assigned?: string;
+  status: number;
   totalVerses?: number;
 }
 
 export interface ChapterAssignmentProgress {
-  book: string;
+  bookNameEng: string;
   chapterNumber: number;
-  assignedUser: string;
+  assignedUser: User;
   projectUnitId: number;
   assignmentId: number;
   totalVerses: number;
@@ -62,4 +62,18 @@ export interface Book {
   bookId: number;
   code: string;
   engDisplayName: string;
+}
+
+export interface ProjectItem {
+  projectName: string;
+  projectUnitId: number;
+  bibleId: number;
+  bibleName: string;
+  targetLanguage: string;
+  bookId: number;
+  book: string;
+  chapterNumber: number;
+  totalVerses: number;
+  completedVerses: number;
+  submittedTime: string | null;
 }

@@ -24,7 +24,7 @@ interface ProjectsPageProps {
     projectSourceLanguageName: string,
     projectTargetLanguageName: string,
     projectSource: string
-  ) => void; // New prop for handling project selection
+  ) => void;
 }
 
 export const ProjectsPage: React.FC<ProjectsPageProps> = ({
@@ -78,7 +78,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
           ) : (
             <>
               {/* Fixed Header */}
-              <div className='border-border flex-shrink-0 border-b'>
+              <div className='flex-shrink-0'>
                 <Table className='table-fixed'>
                   <TableHeader>
                     <TableRow className='hover:bg-transparent'>
@@ -118,7 +118,10 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                           )
                         }
                       >
-                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
+                        <TableCell
+                          className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'
+                          title={project.name}
+                        >
                           {project.name}
                         </TableCell>
                         <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
@@ -127,7 +130,10 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                         <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
                           {project.targetLanguageName}
                         </TableCell>
-                        <TableCell className='text-popover-foreground w-1/4 truncate px-6 py-4 text-sm'>
+                        <TableCell
+                          className='text-popover-foreground w-1/4 truncate px-6 py-4 text-sm'
+                          title={project.sourceName}
+                        >
                           {project.sourceName}
                         </TableCell>
                       </TableRow>
