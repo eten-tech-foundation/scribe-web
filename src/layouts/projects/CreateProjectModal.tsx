@@ -174,7 +174,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           <div className='space-y-6 py-6'>
             {/* Project Title */}
             <div className='space-y-2'>
-              <Label htmlFor='title'>{t('projectTitle')} </Label>
+              <Label className='gap-1' htmlFor='title'>
+                <span style={{ color: 'red' }}>*</span>
+                {t('projectTitle')}{' '}
+              </Label>
               <Input
                 id='title'
                 maxLength={100}
@@ -184,7 +187,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             </div>
 
             <div className='space-y-2'>
-              <Label>{t('sourceLanguage')}</Label>
+              <Label className='gap-1'>
+                <span style={{ color: 'red' }}>*</span>
+                {t('sourceLanguage')}
+              </Label>
               <Select
                 disabled={languagesLoading}
                 value={formData.sourceLanguage?.toString() ?? ''}
@@ -208,31 +214,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             </div>
 
             <div className='space-y-2'>
-              <Label>{t('targetLanguage')} </Label>
-              <Select
-                disabled={languagesLoading}
-                value={formData.targetLanguage?.toString() ?? ''}
-                onValueChange={value => updateFormData('targetLanguage', parseInt(value))}
-              >
-                <SelectTrigger className='w-full bg-white'>
-                  <SelectValue
-                    placeholder={
-                      languagesLoading ? 'Loading languages...' : 'Select Target Language'
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {languages?.map(language => (
-                    <SelectItem key={language.id} value={language.id.toString()}>
-                      {language.langName} ({language.langCodeIso6393})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className='space-y-2'>
-              <Label>{t('sourceBible')} </Label>
+              <Label className='gap-1'>
+                <span style={{ color: 'red' }}>*</span>
+                {t('sourceBible')}{' '}
+              </Label>
               <Select
                 disabled={!formData.sourceLanguage || sourceBiblesLoading}
                 value={formData.sourceBible?.toString() ?? ''}
@@ -260,7 +245,37 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             </div>
 
             <div className='space-y-2'>
-              <Label>{t('books')} </Label>
+              <Label className='gap-1'>
+                <span style={{ color: 'red' }}>*</span>
+                {t('targetLanguage')}{' '}
+              </Label>
+              <Select
+                disabled={languagesLoading}
+                value={formData.targetLanguage?.toString() ?? ''}
+                onValueChange={value => updateFormData('targetLanguage', parseInt(value))}
+              >
+                <SelectTrigger className='w-full bg-white'>
+                  <SelectValue
+                    placeholder={
+                      languagesLoading ? 'Loading languages...' : 'Select Target Language'
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {languages?.map(language => (
+                    <SelectItem key={language.id} value={language.id.toString()}>
+                      {language.langName} ({language.langCodeIso6393})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className='space-y-2'>
+              <Label className='gap-1'>
+                <span style={{ color: 'red' }}>*</span>
+                {t('books')}
+              </Label>
               {booksLoading && formData.sourceBible ? (
                 <div className='flex items-center gap-2 rounded-md border p-3'>
                   <Loader2 className='h-4 w-4 animate-spin' />
