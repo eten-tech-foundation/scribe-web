@@ -1,12 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 
-import {
-  Tooltip,
-  TooltipArrow,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@radix-ui/react-tooltip';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -26,46 +19,6 @@ interface ProjectsPageProps {
   loading?: boolean;
   onCreateProject: () => void;
 }
-
-const EllipsisTooltip: React.FC<{ text: string }> = ({ text }) => {
-  const textRef = useRef<HTMLParagraphElement>(null);
-  const [isTruncated, setIsTruncated] = useState(false);
-
-  useEffect(() => {
-    const el = textRef.current;
-    if (!el) return;
-    const checkTruncate = () => {
-      setIsTruncated(el.scrollWidth > el.clientWidth);
-    };
-    checkTruncate();
-    window.addEventListener('resize', checkTruncate);
-    return () => window.removeEventListener('resize', checkTruncate);
-  }, [text]);
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div ref={textRef} className='max-w-[300px] truncate'>
-            {text}
-          </div>
-        </TooltipTrigger>
-        {isTruncated && (
-          <TooltipContent
-            align='start'
-            alignOffset={12}
-            className='text-foreground z-50 rounded-md border-[#CCD7DF] bg-[#E9EFF3] px-3 py-2 text-sm shadow-md'
-            side='bottom'
-            sideOffset={5}
-          >
-            {text}
-            <TooltipArrow />
-          </TooltipContent>
-        )}
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
 
 export const ProjectsPage: React.FC<ProjectsPageProps> = ({
   loading,
@@ -128,8 +81,11 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                   <TableBody className='divide-border divide-y bg-white'>
                     {sortedProjects.map(project => (
                       <TableRow key={project.id} className='transition-colors hover:bg-gray-50'>
-                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
-                          <EllipsisTooltip text={project.name} />
+                        <TableCell
+                          className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'
+                          title={project.name}
+                        >
+                          {project.name}
                         </TableCell>
                         <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
                           {project.sourceLanguageName}
@@ -137,8 +93,11 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                         <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
                           {project.targetLanguageName}
                         </TableCell>
-                        <TableCell className='text-popover-foreground w-1/4 truncate px-6 py-4 text-sm'>
-                          <EllipsisTooltip text={project.sourceName} />
+                        <TableCell
+                          className='text-popover-foreground w-1/4 truncate px-6 py-4 text-sm'
+                          title={project.sourceName}
+                        >
+                          {project.sourceName}
                         </TableCell>
                       </TableRow>
                     ))}

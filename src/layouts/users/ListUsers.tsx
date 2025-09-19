@@ -82,13 +82,19 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
                       className='cursor-pointer transition-colors hover:bg-gray-50'
                       onClick={() => onEditUser(user)}
                     >
-                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                      <TableCell
+                        className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
+                        title={user.username}
+                      >
                         {user.username}
                       </TableCell>
                       <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
                         {getRoleLabel(user.role)}
                       </TableCell>
-                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                      <TableCell
+                        className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
+                        title={user.email}
+                      >
                         {user.email}
                       </TableCell>
                       <TableCell className='px-6 py-4 whitespace-nowrap'>
