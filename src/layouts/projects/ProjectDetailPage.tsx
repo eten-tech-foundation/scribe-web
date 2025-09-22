@@ -295,8 +295,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                             <div className='flex items-center gap-2'>
                               {isUpdatingThisAssignment ? (
                                 <>
-                                  Updating...
-                                  <Loader2 className='h-4 w-4 animate-spin text-blue-600' />
+                                  <span className='text-gray-500'>Loading...</span>
+                                  <Loader2 className='h-4 w-4 animate-spin text-gray-500' />
                                 </>
                               ) : (
                                 <div
