@@ -57,6 +57,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [selectedAssignments, setSelectedAssignments] = useState<number[]>([]);
+  const [isRefreshingAfterAssignment, setIsRefreshingAfterAssignment] = useState(false);
+  const [updatingAssignmentIds, setUpdatingAssignmentIds] = useState<number[]>([]);
 
   // Fetch chapter assignments
   const {
@@ -86,7 +88,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
     getSelectedUserFullName()
   );
 
-  // Filter assignments based on selected book
   const filteredAssignments = useMemo(() => {
     if (!chapterAssignments) return [];
     if (!selectedBook || selectedBook === 'all') return chapterAssignments;
@@ -112,16 +113,22 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const handleAssignUser = async () => {
     if (selectedUser && selectedAssignments.length > 0 && userdetail?.email) {
       try {
+        setUpdatingAssignmentIds(selectedAssignments);
         await assignChapterMutation.mutateAsync({
           chapterAssignmentId: selectedAssignments,
           userId: parseInt(selectedUser),
           email: userdetail.email,
         });
+
+        setIsRefreshingAfterAssignment(true);
+
         setSelectedUser('');
         setSelectedAssignments([]);
         setIsDialogOpen(false);
       } catch (error) {
         console.error('Error assigning chapters:', error);
+        setUpdatingAssignmentIds([]);
+        setIsRefreshingAfterAssignment(false);
       }
     }
   };
@@ -144,7 +151,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
   const isLoadingData = assignmentsLoading || assignChapterMutation.isPending;
 
-  const isRefreshing = assignmentsFetching && !assignmentsLoading;
+  const isRefreshing = isRefreshingAfterAssignment && assignmentsFetching && !assignmentsLoading;
+
+  if (isRefreshingAfterAssignment && !assignmentsFetching) {
+    setIsRefreshingAfterAssignment(false);
+    setUpdatingAssignmentIds([]);
+  }
 
   return (
     <div className='flex h-full min-w-[750px] flex-col'>
@@ -200,16 +212,11 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 size='sm'
                 onClick={handleAddBook}
               >
-                {isLoadingData && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                {assignChapterMutation.isPending && (
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                )}
                 Assign
               </Button>
-
-              {isRefreshing && (
-                <div className='flex items-center gap-2 text-sm text-gray-500'>
-                  <Loader2 className='h-3 w-3 animate-spin' />
-                  <span>Updating...</span>
-                </div>
-              )}
             </div>
           </div>
 
@@ -256,27 +263,16 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                   </span>
                 </div>
               ) : (
-                <>
-                  {/* Loading overlay for assignment operations */}
-                  {assignChapterMutation.isPending && (
-                    <div className='absolute inset-0 z-10 flex items-center justify-center bg-white/80'>
-                      <div className='flex items-center gap-3 rounded-lg border bg-white px-6 py-4 shadow-lg'>
-                        <Loader2 className='h-6 w-6 animate-spin text-blue-600' />
-                        <span className='text-base font-medium text-gray-700'>
-                          Assigning chapters...
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                <Table>
+                  <TableBody className='divide-border divide-y'>
+                    {filteredAssignments.map(assignment => {
+                      const isUpdatingThisAssignment =
+                        isRefreshing && updatingAssignmentIds.includes(assignment.assignmentId);
 
-                  <Table>
-                    <TableBody className='divide-border divide-y'>
-                      {filteredAssignments.map(assignment => (
+                      return (
                         <TableRow
                           key={assignment.assignmentId}
-                          className={`align-center cursor-pointer border-b border-[#D9D8D0] transition-colors hover:bg-gray-50 ${
-                            isRefreshing ? 'opacity-90' : ''
-                          }`}
+                          className='align-center cursor-pointer border-b border-[#D9D8D0] transition-colors hover:bg-gray-50'
                         >
                           <TableCell className='w-12 px-6 py-4'>
                             <Checkbox
@@ -296,11 +292,21 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                             {assignment.chapterNumber}
                           </TableCell>
                           <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
-                            <div
-                              className='truncate'
-                              title={`${assignment.assignedUser.firstName} ${assignment.assignedUser.lastName}`}
-                            >
-                              {assignment.assignedUser.firstName} {assignment.assignedUser.lastName}
+                            <div className='flex items-center gap-2'>
+                              {isUpdatingThisAssignment ? (
+                                <>
+                                  Updating...
+                                  <Loader2 className='h-4 w-4 animate-spin text-blue-600' />
+                                </>
+                              ) : (
+                                <div
+                                  className='truncate'
+                                  title={`${assignment.assignedUser?.firstName} ${assignment.assignedUser?.lastName}`}
+                                >
+                                  {assignment.assignedUser?.firstName}{' '}
+                                  {assignment.assignedUser?.lastName}
+                                </div>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
@@ -315,10 +321,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                             </div>
                           </TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
               )}
             </div>
           </div>

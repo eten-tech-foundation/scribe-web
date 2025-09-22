@@ -47,7 +47,7 @@ export interface Chapter {
 export interface ChapterAssignmentProgress {
   bookNameEng: string;
   chapterNumber: number;
-  assignedUser: User;
+  assignedUser: User | null;
   projectUnitId: number;
   assignmentId: number;
   totalVerses: number;
