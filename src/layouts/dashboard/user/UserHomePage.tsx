@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 
 import {
@@ -29,7 +30,7 @@ const getStatusText = (item: ProjectItem) => {
 export function UserHomePage() {
   const [activeTab, setActiveTab] = useState<'my-work' | 'my-history'>('my-work');
   const { userdetail } = useAppStore();
-
+  const navigate = useNavigate();
   const { data: projectData = [], isLoading: loading } = useChapterAssignments(userdetail as User);
 
   const myWorkData: ProjectItem[] = projectData
@@ -54,9 +55,15 @@ export function UserHomePage() {
       return dateB - dateA;
     });
 
-  const handleRowClick = (item: ProjectItem) => {
-    // eslint-disable-next-line no-console
-    console.log('Selected item:', item);
+  const handleRowClick = async (item: ProjectItem) => {
+    await navigate({
+      to: '/translation/$bookId/$chapterNumber',
+      params: {
+        bookId: item.bookId.toString(),
+        chapterNumber: item.chapterNumber.toString(),
+      },
+      state: { projectItem: item },
+    });
   };
 
   return (

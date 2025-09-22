@@ -50,3 +50,10 @@ export interface ProjectItem {
   completedVerses: number;
   submittedTime: string | null;
 }
+
+export interface VerseData {
+  projectUnitId: number;
+  content: string;
+  bibleTextId: number;
+  assignedUserId: number;
+}
