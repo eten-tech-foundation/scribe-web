@@ -182,17 +182,13 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const handleSubmit = async () => {
     if (isTranslationComplete) {
-      const currentVerse = verses.find(v => v.verseNumber === activeVerseId);
-      if (currentVerse) {
-        await saveVerseImmediately(activeVerseId, currentVerse.content);
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
+        const currentVerse = verses.find(v => v.verseNumber === activeVerseId);
+        if (currentVerse) {
+          await saveVerseImmediately(activeVerseId, currentVerse.content);
+        }
       }
-
-      // Save all other verses that might have pending changes (will be trimmed)
-      const savePromises = verses.map(verse =>
-        saveVerseImmediately(verse.verseNumber, verse.content)
-      );
-
-      await Promise.all(savePromises);
 
       await submitChapterMutation.mutateAsync({
         chapterAssignmentId: projectItem.chapterAssignmentId,
