@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { ChevronRight } from 'lucide-react';
 
@@ -14,7 +14,6 @@ interface TargetPanelProps {
   totalSourceVerses: number;
   updateVerse: (id: number, text: string) => void;
   moveToNextVerse: () => void;
-  saveVerse: (id: number, text: string) => void;
   scrollRef: React.RefObject<HTMLDivElement>;
   onScroll: (scrollTop: number) => void;
 }
@@ -29,22 +28,20 @@ export const TargetPanel: React.FC<TargetPanelProps> = ({
   updateVerse,
   moveToNextVerse,
   scrollRef,
-  saveVerse,
   onScroll,
 }) => {
   const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({});
   const verseRefs = useRef<Record<number, HTMLDivElement | null>>({});
-  const [translatedText, setTranslatedText] = useState('');
 
   const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
     textarea.style.height = 'auto';
     textarea.style.height = Math.max(48, textarea.scrollHeight) + 'px';
   };
 
-  const handleVerseClick = (verseId: number) => {
+  const handleVerseClick = async (verseId: number) => {
     const verse = verses.find(v => v.verseNumber === verseId);
     if (verse) {
-      setActiveVerseId(verseId);
+      await setActiveVerseId(verseId);
       setTimeout(() => {
         const textarea = textareaRefs.current[verseId];
         if (textarea) {
@@ -63,12 +60,15 @@ export const TargetPanel: React.FC<TargetPanelProps> = ({
 
   const handleTextChange = (verseId: number, text: string) => {
     updateVerse(verseId, text);
-    setTranslatedText(text);
 
     const textarea = textareaRefs.current[verseId];
     if (textarea) {
       autoResizeTextarea(textarea);
     }
+  };
+
+  const handleFocus = async (verseId: number) => {
+    await setActiveVerseId(verseId);
   };
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -139,9 +139,7 @@ export const TargetPanel: React.FC<TargetPanelProps> = ({
                       style={{ minHeight: 'auto', height: 'auto' }}
                       value={TargetVerse.content}
                       onChange={e => handleTextChange(verseId, e.target.value)}
-                      onFocus={() => {
-                        setActiveVerseId(verseId);
-                      }}
+                      onFocus={() => handleFocus(verseId)}
                       onKeyDown={e => handleKeyDown(e)}
                     />
                   </div>
@@ -161,10 +159,7 @@ export const TargetPanel: React.FC<TargetPanelProps> = ({
               }`}
               disabled={!verses.find(v => v.verseNumber === activeVerseId)?.content.trim()}
               title='Enter'
-              onClick={() => {
-                moveToNextVerse();
-                saveVerse(activeVerseId, translatedText);
-              }}
+              onClick={() => moveToNextVerse()}
             >
               Next Verse
               <ChevronRight className='h-4 w-4' />

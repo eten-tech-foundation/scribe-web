@@ -45,6 +45,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const [autoSaveError, setAutoSaveError] = useState(false);
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [retryTimeout, setRetryTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [previousActiveVerseId, setPreviousActiveVerseId] = useState<number | null>(null);
 
   const sourceScrollRef = useRef<HTMLDivElement>(null);
   const targetScrollRef = useRef<HTMLDivElement>(null);
@@ -65,10 +66,12 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         return;
       }
 
+      const trimmedText = text.trim();
+
       await addVerseMutation.mutateAsync({
         verseData: {
           projectUnitId: projectItem.projectUnitId,
-          content: text,
+          content: trimmedText,
           bibleTextId: sourceVerse.id,
           assignedUserId: userdetail.id,
         },
@@ -76,6 +79,22 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       });
     },
     [addVerseMutation, projectItem.projectUnitId, sourceVerses, userdetail]
+  );
+
+  const saveVerseImmediately = useCallback(
+    async (verseId: number, text: string) => {
+      setIsAutoSaving(true);
+      setAutoSaveError(false);
+
+      try {
+        await saveVerse(verseId, text);
+        setIsAutoSaving(false);
+      } catch {
+        setIsAutoSaving(false);
+        setAutoSaveError(true);
+      }
+    },
+    [saveVerse]
   );
 
   const autoSave = useCallback(
@@ -113,9 +132,24 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     setSaveTimeout(timeout);
   };
 
-  const moveToNextVerse = () => {
+  const handleActiveVerseChange = async (newVerseId: number) => {
+    if (previousActiveVerseId !== null && previousActiveVerseId !== newVerseId) {
+      const previousVerse = verses.find(v => v.verseNumber === previousActiveVerseId);
+      if (previousVerse) {
+        if (saveTimeout) clearTimeout(saveTimeout);
+        await saveVerseImmediately(previousActiveVerseId, previousVerse.content);
+      }
+    }
+
+    setPreviousActiveVerseId(activeVerseId);
+    setActiveVerseId(newVerseId);
+  };
+
+  const moveToNextVerse = async () => {
     const currentVerse = verses.find(v => v.verseNumber === activeVerseId);
     if (!currentVerse || currentVerse.content.trim() === '') return;
+
+    await saveVerseImmediately(activeVerseId, currentVerse.content);
 
     const nextVerseId = activeVerseId + 1;
 
@@ -125,6 +159,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       if (!nextVerseExists) {
         setVerses(prev => [...prev, { verseNumber: nextVerseId, content: '' }]);
       }
+
+      setPreviousActiveVerseId(activeVerseId);
       setActiveVerseId(nextVerseId);
     }
   };
@@ -146,6 +182,18 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const handleSubmit = async () => {
     if (isTranslationComplete) {
+      const currentVerse = verses.find(v => v.verseNumber === activeVerseId);
+      if (currentVerse) {
+        await saveVerseImmediately(activeVerseId, currentVerse.content);
+      }
+
+      // Save all other verses that might have pending changes (will be trimmed)
+      const savePromises = verses.map(verse =>
+        saveVerseImmediately(verse.verseNumber, verse.content)
+      );
+
+      await Promise.all(savePromises);
+
       await submitChapterMutation.mutateAsync({
         chapterAssignmentId: projectItem.chapterAssignmentId,
         email: userdetail.email,
@@ -206,9 +254,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
             <TargetPanel
               activeVerseId={activeVerseId}
               moveToNextVerse={moveToNextVerse}
-              saveVerse={saveVerse}
               scrollRef={targetScrollRef}
-              setActiveVerseId={setActiveVerseId}
+              setActiveVerseId={handleActiveVerseChange}
               setVerses={setVerses}
               targetLanguage={projectItem.targetLanguage}
               totalSourceVerses={totalSourceVerses}
@@ -230,11 +277,7 @@ const DraftingPage: React.FC = () => {
   });
 
   if (!loaderData || !userdetail) {
-    return (
-      // <div className='flex h-full w-full items-center justify-center'>
-      <Loader />
-      // </div>
-    );
+    return <Loader />;
   }
 
   return (
