@@ -142,7 +142,7 @@ export const UserModal: React.FC<UserModalProps> = ({
 
         <div className='grid gap-4'>
           <div className='grid gap-3'>
-            <Label htmlFor='email'>
+            <Label className='gap-1' htmlFor='email'>
               <span style={{ color: 'red' }}>*</span> {t('email')}
             </Label>
             <Input
@@ -155,7 +155,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           </div>
 
           <div className='grid gap-3'>
-            <Label htmlFor='username'>
+            <Label className='gap-1' htmlFor='username'>
               <span style={{ color: 'red' }}>*</span> {t('username')}
             </Label>
             <Input
@@ -188,7 +188,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           </div>
 
           <div className='disabled grid gap-3'>
-            <Label htmlFor='role'>
+            <Label className='gap-1' htmlFor='role'>
               <span style={{ color: 'red' }}>*</span> {t('role')}
             </Label>
             <Select
@@ -210,9 +210,6 @@ export const UserModal: React.FC<UserModalProps> = ({
         </div>
 
         <DialogFooter>
-          {/* <DialogClose asChild>
-            <Button variant='outline'>Cancel</Button>
-          </DialogClose> */}
           <Button
             className='bg-primary hover:bg-primary/90 text-white'
             disabled={isButtonDisabled}

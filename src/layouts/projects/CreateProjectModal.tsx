@@ -60,14 +60,12 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     books: [],
   });
 
-  // Fetch data using hooks
   const { data: languages, isLoading: languagesLoading, error: languagesError } = useLanguages();
   const { data: sourceBibles, isLoading: sourceBiblesLoading } = useBiblesByLanguage(
     formData.sourceLanguage
   );
   const { data: availableBooks, isLoading: booksLoading } = useBibleBooks(formData.sourceBible);
 
-  // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       setFormData({
@@ -80,7 +78,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     }
   }, [isOpen]);
 
-  // Reset source bible and books when source language changes
   useEffect(() => {
     if (formData.sourceLanguage) {
       setFormData(prev => ({
@@ -91,7 +88,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     }
   }, [formData.sourceLanguage]);
 
-  // Reset books when source bible changes
   useEffect(() => {
     if (formData.sourceBible) {
       setFormData(prev => ({
@@ -150,7 +146,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   const isButtonDisabled = isLoading || !isFormValid();
 
-  // Show error state
   if (languagesError) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -179,7 +174,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           <div className='space-y-6 py-6'>
             {/* Project Title */}
             <div className='space-y-2'>
-              <Label htmlFor='title'>{t('projectName')} </Label>
+              <Label className='gap-1' htmlFor='title'>
+                <span style={{ color: 'red' }}>*</span>
+                {t('projectTitle')}{' '}
+              </Label>
               <Input
                 id='title'
                 maxLength={100}
@@ -188,34 +186,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               />
             </div>
 
-            {/* Target Language */}
             <div className='space-y-2'>
-              <Label>{t('targetLanguage')} </Label>
-              <Select
-                disabled={languagesLoading}
-                value={formData.targetLanguage?.toString() ?? ''}
-                onValueChange={value => updateFormData('targetLanguage', parseInt(value))}
-              >
-                <SelectTrigger className='w-full bg-white'>
-                  <SelectValue
-                    placeholder={
-                      languagesLoading ? 'Loading languages...' : 'Select Target Language'
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {languages?.map(language => (
-                    <SelectItem key={language.id} value={language.id.toString()}>
-                      {language.langName} ({language.langCodeIso6393})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Source Language */}
-            <div className='space-y-2'>
-              <Label>{t('sourceLanguage')}</Label>
+              <Label className='gap-1'>
+                <span style={{ color: 'red' }}>*</span>
+                {t('sourceLanguage')}
+              </Label>
               <Select
                 disabled={languagesLoading}
                 value={formData.sourceLanguage?.toString() ?? ''}
@@ -238,9 +213,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               </Select>
             </div>
 
-            {/* Source Bible */}
             <div className='space-y-2'>
-              <Label>{t('sourceBible')} </Label>
+              <Label className='gap-1'>
+                <span style={{ color: 'red' }}>*</span>
+                {t('sourceBible')}{' '}
+              </Label>
               <Select
                 disabled={!formData.sourceLanguage || sourceBiblesLoading}
                 value={formData.sourceBible?.toString() ?? ''}
@@ -267,9 +244,38 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               </Select>
             </div>
 
-            {/* Books Selection */}
             <div className='space-y-2'>
-              <Label>{t('books')} </Label>
+              <Label className='gap-1'>
+                <span style={{ color: 'red' }}>*</span>
+                {t('targetLanguage')}{' '}
+              </Label>
+              <Select
+                disabled={languagesLoading}
+                value={formData.targetLanguage?.toString() ?? ''}
+                onValueChange={value => updateFormData('targetLanguage', parseInt(value))}
+              >
+                <SelectTrigger className='w-full bg-white'>
+                  <SelectValue
+                    placeholder={
+                      languagesLoading ? 'Loading languages...' : 'Select Target Language'
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {languages?.map(language => (
+                    <SelectItem key={language.id} value={language.id.toString()}>
+                      {language.langName} ({language.langCodeIso6393})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className='space-y-2'>
+              <Label className='gap-1'>
+                <span style={{ color: 'red' }}>*</span>
+                {t('books')}
+              </Label>
               {booksLoading && formData.sourceBible ? (
                 <div className='flex items-center gap-2 rounded-md border p-3'>
                   <Loader2 className='h-4 w-4 animate-spin' />
@@ -285,7 +291,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               )}
             </div>
 
-            {/* Action Buttons */}
             <div className='flex items-center justify-end pt-4'>
               {error && (
                 <div className='mr-4 flex w-full items-center justify-center gap-2'>
