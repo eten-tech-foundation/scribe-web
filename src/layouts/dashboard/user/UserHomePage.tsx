@@ -34,7 +34,7 @@ export function UserHomePage() {
   const { data: projectData = [], isLoading: loading } = useChapterAssignments(userdetail as User);
 
   const myWorkData: ProjectItem[] = projectData
-    .filter(item => item.completedVerses < item.totalVerses && item.submittedTime === null)
+    .filter(item => item.submittedTime === null)
     .sort((a, b) => {
       const aHasCompleted = a.completedVerses > 0;
       const bHasCompleted = b.completedVerses > 0;
@@ -166,8 +166,7 @@ export function UserHomePage() {
                       historyData.map(item => (
                         <TableRow
                           key={`${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`}
-                          className='cursor-pointer transition-colors hover:bg-gray-50'
-                          onClick={() => handleRowClick(item)}
+                          className='transition-colors hover:bg-gray-50'
                         >
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
                             {item.projectName}

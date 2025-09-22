@@ -38,6 +38,7 @@ export interface CreateProject {
 }
 
 export interface ProjectItem {
+  chapterAssignmentId: number;
   projectName: string;
   projectUnitId: number;
   bibleId: number;

@@ -50,7 +50,36 @@ export const useAddTranslatedVerse = () => {
       void queryClient.invalidateQueries({ queryKey: ['verse-text'] });
     },
     onError: error => {
-      console.error('Error creating project:', error);
+      console.error('Error creating verse:', error);
+    },
+  });
+};
+
+const submitChapter = async (chapterAssignmentId: number, email: string): Promise<ProjectItem> => {
+  const res = await fetch(`${config.api.url}/chapter-assignments/${chapterAssignmentId}/submit`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-user-email': email,
+    },
+    body: JSON.stringify(chapterAssignmentId),
+  });
+  if (!res.ok) throw new Error('Failed to submit chapter');
+  const data = (await res.json()) as ProjectItem;
+  return data;
+};
+
+export const useSubmitChapter = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ chapterAssignmentId, email }: { chapterAssignmentId: number; email: string }) =>
+      submitChapter(chapterAssignmentId, email),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['chapter-submit'] });
+    },
+    onError: error => {
+      console.error('Error submitting chapter:', error);
     },
   });
 };

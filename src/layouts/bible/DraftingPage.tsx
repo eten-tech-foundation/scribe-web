@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useMatch, useNavigate } from '@tanstack/react-router';
 import { Loader } from 'lucide-react';
 
-import { useAddTranslatedVerse } from '@/hooks/useBibleTarget';
+import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
 import { TargetPanel } from '@/layouts/bible/TargetPanel';
 import { type ProjectItem, type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
@@ -36,6 +36,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   userdetail,
 }) => {
   const addVerseMutation = useAddTranslatedVerse();
+  const submitChapterMutation = useSubmitChapter();
   const navigate = useNavigate();
 
   const [verses, setVerses] = useState<TargetVerse[]>(targetVerses);
@@ -51,7 +52,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
-  const progressPercentage = (projectItem.completedVerses / projectItem.totalVerses) * 100;
+  const countWithContent = verses.filter(v => v.content && v.content.trim() !== '').length;
+  const progressPercentage = (countWithContent / sourceVerses.length) * 100;
   const isTranslationComplete = versesWithText === totalSourceVerses;
 
   const saveVerse = useCallback(
@@ -142,10 +144,13 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     }, 50);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (isTranslationComplete) {
-      alert('Chapter submitted successfully! Redirecting to dashboard...');
-      void navigate({ to: '/' });
+      await submitChapterMutation.mutateAsync({
+        chapterAssignmentId: projectItem.chapterAssignmentId,
+        email: userdetail.email,
+      });
+      await navigate({ to: '/' });
     }
   };
 
@@ -226,9 +231,9 @@ const DraftingPage: React.FC = () => {
 
   if (!loaderData || !userdetail) {
     return (
-      <div className='flex h-full w-full items-center justify-center'>
-        <Loader className='h-10 w-10 animate-spin' />
-      </div>
+      // <div className='flex h-full w-full items-center justify-center'>
+      <Loader />
+      // </div>
     );
   }
 
