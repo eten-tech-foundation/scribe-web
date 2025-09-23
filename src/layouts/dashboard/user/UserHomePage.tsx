@@ -29,6 +29,7 @@ const getStatusText = (item: ProjectItem) => {
 
 export function UserHomePage() {
   const [activeTab, setActiveTab] = useState<'my-work' | 'my-history'>('my-work');
+  const [navigatingToProject, setNavigatingToProject] = useState<string | null>(null);
   const { userdetail } = useAppStore();
   const navigate = useNavigate();
   const { data: projectData = [], isLoading: loading } = useChapterAssignments(userdetail as User);
@@ -56,14 +57,21 @@ export function UserHomePage() {
     });
 
   const handleRowClick = async (item: ProjectItem) => {
-    await navigate({
-      to: '/translation/$bookId/$chapterNumber',
-      params: {
-        bookId: item.bookId.toString(),
-        chapterNumber: item.chapterNumber.toString(),
-      },
-      state: { projectItem: item },
-    });
+    const projectKey = `${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`;
+    setNavigatingToProject(projectKey);
+
+    try {
+      await navigate({
+        to: '/translation/$bookId/$chapterNumber',
+        params: {
+          bookId: item.bookId.toString(),
+          chapterNumber: item.chapterNumber.toString(),
+        },
+        state: { projectItem: item },
+      });
+    } finally {
+      setNavigatingToProject(null);
+    }
   };
 
   return (
@@ -133,26 +141,34 @@ export function UserHomePage() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      myWorkData.map(item => (
-                        <TableRow
-                          key={`${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`}
-                          className='cursor-pointer transition-colors hover:bg-gray-50'
-                          onClick={() => handleRowClick(item)}
-                        >
-                          <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                            {item.projectName}
-                          </TableCell>
-                          <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                            {item.book}
-                          </TableCell>
-                          <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                            {item.chapterNumber}
-                          </TableCell>
-                          <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                            {getStatusText(item)}
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      myWorkData.map(item => {
+                        const projectKey = `${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`;
+                        const isNavigating = navigatingToProject === projectKey;
+
+                        return (
+                          <TableRow
+                            key={projectKey}
+                            className='cursor-pointer transition-colors hover:bg-gray-50'
+                            onClick={() => handleRowClick(item)}
+                          >
+                            <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                              <div className='flex items-center gap-2'>
+                                {isNavigating && <Loader2 className='h-4 w-4 animate-spin' />}
+                                {item.projectName}
+                              </div>
+                            </TableCell>
+                            <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                              {item.book}
+                            </TableCell>
+                            <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                              {item.chapterNumber}
+                            </TableCell>
+                            <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                              {getStatusText(item)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     ))}
 
                   {activeTab === 'my-history' &&

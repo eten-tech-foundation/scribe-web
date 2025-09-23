@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useMatch, useNavigate } from '@tanstack/react-router';
 import { Loader } from 'lucide-react';
@@ -50,6 +50,32 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const sourceScrollRef = useRef<HTMLDivElement>(null);
   const targetScrollRef = useRef<HTMLDivElement>(null);
   const isScrollingSyncRef = useRef(false);
+
+  // Set initial active verse to the most recently edited verse or first empty verse
+  useEffect(() => {
+    if (targetVerses.length > 0) {
+      // Find the last verse with content, or the first empty verse
+      let lastEditedVerse = 1;
+
+      // Look for the last verse with content
+      for (let i = targetVerses.length - 1; i >= 0; i--) {
+        if (targetVerses[i].content.trim() !== '') {
+          lastEditedVerse = targetVerses[i].verseNumber;
+          break;
+        }
+      }
+
+      // If no verses have content, find first empty verse
+      if (lastEditedVerse === 1 && targetVerses[0]?.content.trim() === '') {
+        const firstEmpty = targetVerses.find(v => v.content.trim() === '');
+        if (firstEmpty) {
+          lastEditedVerse = firstEmpty.verseNumber;
+        }
+      }
+
+      setActiveVerseId(lastEditedVerse);
+    }
+  }, [targetVerses]);
 
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
@@ -145,11 +171,9 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     setActiveVerseId(newVerseId);
   };
 
-  const moveToNextVerse = async () => {
+  const moveToNextVerse = useCallback(async () => {
     const currentVerse = verses.find(v => v.verseNumber === activeVerseId);
     if (!currentVerse || currentVerse.content.trim() === '') return;
-
-    await saveVerseImmediately(activeVerseId, currentVerse.content);
 
     const nextVerseId = activeVerseId + 1;
 
@@ -162,8 +186,9 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
       setPreviousActiveVerseId(activeVerseId);
       setActiveVerseId(nextVerseId);
+      void saveVerseImmediately(activeVerseId, currentVerse.content);
     }
-  };
+  }, [activeVerseId, verses, totalSourceVerses, saveVerseImmediately]);
 
   const handleScroll = (source: 'source' | 'target', scrollTop: number) => {
     if (isScrollingSyncRef.current) return;
@@ -273,7 +298,11 @@ const DraftingPage: React.FC = () => {
   });
 
   if (!loaderData || !userdetail) {
-    return <Loader />;
+    return (
+      <div className='flex h-screen items-center justify-center'>
+        <Loader className='h-8 w-8 animate-spin' />
+      </div>
+    );
   }
 
   return (

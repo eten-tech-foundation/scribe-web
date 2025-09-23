@@ -1,5 +1,4 @@
 import { createRootRoute, createRoute } from '@tanstack/react-router';
-import { Loader2 } from 'lucide-react';
 
 import { App } from '@/app';
 import { RoleBasedHomePage } from '@/components/RoleBasedHomePage';
@@ -49,5 +48,4 @@ export const translationRoute = createRoute({
   path: '/translation/$bookId/$chapterNumber',
   loader: translationLoader,
   component: DraftingPage,
-  pendingComponent: Loader2,
 });
