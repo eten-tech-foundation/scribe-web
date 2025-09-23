@@ -67,8 +67,13 @@ export function UserHomePage() {
           bookId: item.bookId.toString(),
           chapterNumber: item.chapterNumber.toString(),
         },
+        search: {
+          t: Date.now().toString(),
+        },
         state: { projectItem: item },
       });
+    } catch (error) {
+      console.error('Navigation error:', error);
     } finally {
       setNavigatingToProject(null);
     }
@@ -153,7 +158,9 @@ export function UserHomePage() {
                           >
                             <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
                               <div className='flex items-center gap-2'>
-                                {isNavigating && <Loader2 className='h-4 w-4 animate-spin' />}
+                                {isNavigating && (
+                                  <Loader2 className='h-4 w-4 animate-spin text-[var(--primary)]' />
+                                )}
                                 {item.projectName}
                               </div>
                             </TableCell>

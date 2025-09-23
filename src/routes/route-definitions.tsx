@@ -46,6 +46,13 @@ export const projectsRoute = createRoute({
 export const translationRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/translation/$bookId/$chapterNumber',
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      t: (search.t as string) || undefined,
+    };
+  },
   loader: translationLoader,
   component: DraftingPage,
+  gcTime: 0,
+  staleTime: 0,
 });

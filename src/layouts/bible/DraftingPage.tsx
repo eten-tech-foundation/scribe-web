@@ -261,7 +261,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
           </div>
           <div className='flex items-center gap-4'>
             <div className='flex items-center gap-2'>
-              {isAutoSaving && <Loader className='h-4 w-4 animate-spin text-gray-500' />}
+              {isAutoSaving && <Loader className='h-4 w-4 animate-spin text-[var(--primary)]' />}
               {autoSaveError && <span className='text-sm text-red-500'>Auto-save failed</span>}
             </div>
             <div className='bg-input w-96 rounded-lg border'>

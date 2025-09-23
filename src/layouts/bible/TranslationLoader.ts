@@ -39,6 +39,9 @@ export const translationLoader = async ({ location }: LoaderFnContext) => {
     throw new Error('User details are missing.');
   }
 
+  const search = location.search as { t?: string };
+  const cacheParam = search.t ?? Date.now().toString();
+
   const [sourceVerseData, targetVerseData] = await Promise.all([
     fetchBibleText(projectItem.bibleId, projectItem.bookId, projectItem.chapterNumber),
     fetchTargetText(
@@ -60,5 +63,6 @@ export const translationLoader = async ({ location }: LoaderFnContext) => {
     projectItem,
     sourceVerses,
     targetVerses,
+    loadedAt: cacheParam,
   };
 };
