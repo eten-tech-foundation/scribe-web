@@ -1,4 +1,5 @@
 import type React from 'react';
+import { useEffect, useRef } from 'react';
 
 import type { Source } from './DraftingPage';
 
@@ -17,9 +18,25 @@ export const SourcePanel: React.FC<SourcePanelProps> = ({
   scrollRef,
   onScroll,
 }) => {
+  const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({});
+
+  const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.max(20, textarea.scrollHeight) + 'px';
+  };
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     onScroll(e.currentTarget.scrollTop);
   };
+
+  useEffect(() => {
+    verses.forEach(verse => {
+      const textarea = textareaRefs.current[verse.verseNumber];
+      if (textarea) {
+        autoResizeTextarea(textarea);
+      }
+    });
+  }, [verses]);
 
   return (
     <div className='flex h-full flex-col'>
@@ -50,8 +67,13 @@ export const SourcePanel: React.FC<SourcePanelProps> = ({
                   <span className='text-lg font-medium text-gray-700'>{verse.verseNumber}</span>
                 </div>
                 <div className='flex-1'>
-                  <div className='bg-card rounded-lg border p-4 shadow-sm transition-all'>
-                    <div className='text-sm leading-relaxed text-gray-800'>{verse.text}</div>
+                  <div className='bg-card rounded-lg border px-4 shadow-sm transition-all'>
+                    <textarea
+                      ref={el => (textareaRefs.current[verse.verseNumber] = el)}
+                      readOnly
+                      className='h-auto min-h-[20px] w-full resize-none content-center overflow-hidden border-none bg-transparent text-sm leading-relaxed leading-snug text-gray-800 outline-none'
+                      value={verse.text}
+                    />
                   </div>
                 </div>
               </div>

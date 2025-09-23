@@ -46,36 +46,50 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [retryTimeout, setRetryTimeout] = useState<NodeJS.Timeout | null>(null);
   const [previousActiveVerseId, setPreviousActiveVerseId] = useState<number | null>(null);
+  const [originalVerseContent, setOriginalVerseContent] = useState<Record<number, string>>({});
 
   const sourceScrollRef = useRef<HTMLDivElement>(null);
   const targetScrollRef = useRef<HTMLDivElement>(null);
   const isScrollingSyncRef = useRef(false);
 
-  // Set initial active verse to the most recently edited verse or first empty verse
+  // Set initial active verse based on completion status
   useEffect(() => {
     if (targetVerses.length > 0) {
-      // Find the last verse with content, or the first empty verse
-      let lastEditedVerse = 1;
+      const originalContent: Record<number, string> = {};
+      targetVerses.forEach(verse => {
+        originalContent[verse.verseNumber] = verse.content;
+      });
+      setOriginalVerseContent(originalContent);
 
-      // Look for the last verse with content
-      for (let i = targetVerses.length - 1; i >= 0; i--) {
-        if (targetVerses[i].content.trim() !== '') {
-          lastEditedVerse = targetVerses[i].verseNumber;
-          break;
+      const allVersesCompleted = sourceVerses.every(sourceVerse => {
+        const targetVerse = targetVerses.find(tv => tv.verseNumber === sourceVerse.verseNumber);
+        return targetVerse && targetVerse.content.trim() !== '';
+      });
+
+      if (allVersesCompleted) {
+        setActiveVerseId(1);
+      } else {
+        // Find the most recently edited verse (last verse with content)
+        let mostRecentlyEditedVerse = 1;
+
+        for (let i = targetVerses.length - 1; i >= 0; i--) {
+          if (targetVerses[i].content.trim() !== '') {
+            mostRecentlyEditedVerse = targetVerses[i].verseNumber;
+            break;
+          }
         }
-      }
 
-      // If no verses have content, find first empty verse
-      if (lastEditedVerse === 1 && targetVerses[0]?.content.trim() === '') {
-        const firstEmpty = targetVerses.find(v => v.content.trim() === '');
-        if (firstEmpty) {
-          lastEditedVerse = firstEmpty.verseNumber;
+        // If no verses have content, find first empty verse
+        if (mostRecentlyEditedVerse === 1 && targetVerses[0]?.content.trim() === '') {
+          const firstEmpty = targetVerses.find(v => v.content.trim() === '');
+          if (firstEmpty) {
+            mostRecentlyEditedVerse = firstEmpty.verseNumber;
+          }
         }
+        setActiveVerseId(mostRecentlyEditedVerse);
       }
-
-      setActiveVerseId(lastEditedVerse);
     }
-  }, [targetVerses]);
+  }, [targetVerses, sourceVerses]);
 
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
@@ -109,29 +123,41 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const saveVerseImmediately = useCallback(
     async (verseId: number, text: string) => {
+      const originalContent = originalVerseContent[verseId] || '';
+      if (text === originalContent) {
+        return;
+      }
+
       setIsAutoSaving(true);
       setAutoSaveError(false);
 
       try {
         await saveVerse(verseId, text);
+        setOriginalVerseContent(prev => ({ ...prev, [verseId]: text }));
         setIsAutoSaving(false);
       } catch {
         setIsAutoSaving(false);
         setAutoSaveError(true);
       }
     },
-    [saveVerse]
+    [saveVerse, originalVerseContent]
   );
 
   const autoSave = useCallback(
     async (verseId: number, text: string) => {
+      const originalContent = originalVerseContent[verseId] || '';
+      if (text === originalContent) {
+        return;
+      }
+
       setIsAutoSaving(true);
       setAutoSaveError(false);
 
       try {
         await new Promise(resolve => setTimeout(resolve, 1000));
-        setIsAutoSaving(false);
         await saveVerse(verseId, text);
+        setOriginalVerseContent(prev => ({ ...prev, [verseId]: text }));
+        setIsAutoSaving(false);
       } catch {
         setIsAutoSaving(false);
         setAutoSaveError(true);
@@ -141,7 +167,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         setRetryTimeout(retry);
       }
     },
-    [saveVerse]
+    [saveVerse, originalVerseContent]
   );
 
   const updateTargetVerse = (id: number, text: string) => {
@@ -182,6 +208,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
       if (!nextVerseExists) {
         setVerses(prev => [...prev, { verseNumber: nextVerseId, content: '' }]);
+        setOriginalVerseContent(prev => ({ ...prev, [nextVerseId]: '' }));
       }
 
       setPreviousActiveVerseId(activeVerseId);

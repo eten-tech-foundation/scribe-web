@@ -8,12 +8,15 @@ export const fetchBibleText = async (
   bookId: number,
   chapterNumber: number
 ): Promise<ProjectItem[]> => {
-  const res = await fetch(`${config.api.url}/bibles/texts/${bibleId}/${bookId}/${chapterNumber}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  const res = await fetch(
+    `${config.api.url}/bibles/${bibleId}/books/${bookId}/chapters/${chapterNumber}/texts`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
 
   if (!res.ok) throw new Error('Failed to fetch bible books');
 

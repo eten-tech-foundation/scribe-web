@@ -10,7 +10,7 @@ export const fetchTargetText = async (
   email: string
 ): Promise<ProjectItem[]> => {
   const res = await fetch(
-    `${config.api.url}/projects/translated-verses/${projectUnitId}/${bookId}/${chapterNumber}`,
+    `${config.api.url}/projects/${projectUnitId}/translated-verses?bookId=${bookId}&chapterNumber=${chapterNumber}`,
     {
       method: 'GET',
       headers: {

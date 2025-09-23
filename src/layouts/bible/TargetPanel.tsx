@@ -35,7 +35,7 @@ export const TargetPanel: React.FC<TargetPanelProps> = ({
 
   const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
     textarea.style.height = 'auto';
-    textarea.style.height = Math.max(48, textarea.scrollHeight) + 'px';
+    textarea.style.height = Math.max(20, textarea.scrollHeight) + 'px';
   };
 
   const handleVerseClick = async (verseId: number) => {
@@ -126,22 +126,23 @@ export const TargetPanel: React.FC<TargetPanelProps> = ({
                 className='transition-all'
               >
                 {TargetVerse && (
-                  <div
-                    className={`min-h-[80px] cursor-pointer rounded-lg border p-4 shadow-sm transition-all ${
-                      isActive ? 'bg-background' : 'bg-card'
-                    }`}
-                    onClick={() => handleVerseClick(verseId)}
-                  >
-                    <textarea
-                      ref={el => (textareaRefs.current[verseId] = el)}
-                      className='w-full resize-none overflow-hidden border-none bg-transparent text-sm leading-relaxed text-gray-800 outline-none'
-                      placeholder='Enter translation...'
-                      style={{ minHeight: 'auto', height: 'auto' }}
-                      value={TargetVerse.content}
-                      onChange={e => handleTextChange(verseId, e.target.value)}
-                      onFocus={() => handleFocus(verseId)}
-                      onKeyDown={e => handleKeyDown(e)}
-                    />
+                  <div className={`flex transition-all ${isActive ? 'opacity-100' : 'opacity-70'}`}>
+                    <div className='flex-1'>
+                      <div
+                        className={`${isActive ? 'bg-background' : 'bg-card'} cursor-pointer rounded-lg border px-4 shadow-sm transition-all`}
+                        onClick={() => handleVerseClick(verseId)}
+                      >
+                        <textarea
+                          ref={el => (textareaRefs.current[verseId] = el)}
+                          className='h-auto min-h-[20px] w-full resize-none content-center overflow-hidden border-none bg-transparent text-sm leading-relaxed leading-snug text-gray-800 outline-none'
+                          placeholder='Enter translation...'
+                          value={TargetVerse.content}
+                          onChange={e => handleTextChange(verseId, e.target.value)}
+                          onFocus={() => handleFocus(verseId)}
+                          onKeyDown={e => handleKeyDown(e)}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
