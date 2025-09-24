@@ -5,7 +5,7 @@ import { RoleBasedHomePage } from '@/components/RoleBasedHomePage';
 import { AppInsightsTestPage } from '@/layouts/app-insights-test';
 import DraftingPage from '@/layouts/bible/DraftingPage';
 import { translationLoader } from '@/layouts/bible/TranslationLoader';
-import { ProjectsWrapper } from '@/layouts/projects/ProjectsWrapper';
+import { ProjectsWrapper } from '@/layouts/projects';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 import { UsersWrapper } from '@/layouts/users/UsersWrapper';
 

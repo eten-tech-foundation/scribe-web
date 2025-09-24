@@ -54,7 +54,6 @@ export const useCreateProject = () => {
       email: string;
     }) => createProject(projectData, email),
     onSuccess: () => {
-      // Invalidate and refetch projects list
       void queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
     onError: error => {

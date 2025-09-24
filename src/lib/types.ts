@@ -24,17 +24,44 @@ export interface Project {
   sourceLanguageName: string;
   targetLanguageName: string;
 }
-
 export interface CreateProject {
   id: number;
   name: string;
-  bible_id: number;
-  book_id: number[];
+  bibleId: number;
+  bookId: number[];
   organization: number;
   createdBy: number;
   metadata: Record<string, unknown>;
   sourceLanguage: number;
   targetLanguage: number;
+}
+export interface Chapter {
+  id: string | number;
+  book: string;
+  chapter: number;
+  assigned?: string;
+  status: number;
+  totalVerses?: number;
+}
+
+export interface ChapterAssignmentProgress {
+  bookNameEng: string;
+  chapterNumber: number;
+  assignedUser: User | null;
+  projectUnitId: number;
+  assignmentId: number;
+  totalVerses: number;
+  completedVerses: number;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+  isSubmitted?: boolean;
+  submittedTime?: Date | null;
+}
+
+export interface Book {
+  bookId: number;
+  code: string;
+  engDisplayName: string;
 }
 
 export interface ProjectItem {
