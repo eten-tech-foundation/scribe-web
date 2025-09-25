@@ -4,6 +4,7 @@ import { useMatch, useNavigate } from '@tanstack/react-router';
 import { Loader } from 'lucide-react';
 
 import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
+import { useBibleTextDebounce } from '@/hooks/useBibleTextDebounce';
 import { TargetPanel } from '@/layouts/bible/TargetPanel';
 import { type ProjectItem, type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
@@ -41,25 +42,43 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const [verses, setVerses] = useState<TargetVerse[]>(targetVerses);
   const [activeVerseId, setActiveVerseId] = useState(1);
-  const [isAutoSaving, setIsAutoSaving] = useState(false);
-  const [autoSaveError, setAutoSaveError] = useState(false);
-  const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [retryTimeout, setRetryTimeout] = useState<NodeJS.Timeout | null>(null);
   const [previousActiveVerseId, setPreviousActiveVerseId] = useState<number | null>(null);
-  const [originalVerseContent, setOriginalVerseContent] = useState<Record<number, string>>({});
 
   const sourceScrollRef = useRef<HTMLDivElement>(null);
   const targetScrollRef = useRef<HTMLDivElement>(null);
   const isScrollingSyncRef = useRef(false);
 
-  // Set initial active verse based on completion status
+  const saveVerse = useCallback(
+    async (verse: number, text: string) => {
+      const sourceVerse = sourceVerses.find((v: Source) => v.verseNumber === verse);
+      const trimmedText = text.trim();
+
+      await addVerseMutation.mutateAsync({
+        verseData: {
+          projectUnitId: projectItem.projectUnitId,
+          content: trimmedText,
+          bibleTextId: (sourceVerse as Source).id,
+          assignedUserId: userdetail.id,
+        },
+        email: userdetail.email,
+      });
+    },
+    [addVerseMutation, projectItem.projectUnitId, sourceVerses, userdetail]
+  );
+
+  const { debouncedSave, saveImmediately, getSaveStatus, setInitialContent } = useBibleTextDebounce(
+    {
+      onSave: saveVerse,
+      debounceMs: 2000,
+      retryDelayMs: 10000,
+    }
+  );
+
   useEffect(() => {
     if (targetVerses.length > 0) {
-      const originalContent: Record<number, string> = {};
       targetVerses.forEach(verse => {
-        originalContent[verse.verseNumber] = verse.content;
+        setInitialContent(verse.verseNumber, verse.content);
       });
-      setOriginalVerseContent(originalContent);
 
       const allVersesCompleted = sourceVerses.every(sourceVerse => {
         const targetVerse = targetVerses.find(tv => tv.verseNumber === sourceVerse.verseNumber);
@@ -89,7 +108,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         setActiveVerseId(mostRecentlyEditedVerse);
       }
     }
-  }, [targetVerses, sourceVerses]);
+  }, [targetVerses, sourceVerses, setInitialContent]);
 
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
@@ -97,99 +116,31 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const progressPercentage = (countWithContent / sourceVerses.length) * 100;
   const isTranslationComplete = versesWithText === totalSourceVerses;
 
-  const saveVerse = useCallback(
-    async (verse: number, text: string) => {
-      const sourceVerse = sourceVerses.find((v: Source) => v.verseNumber === verse);
+  const isAnythingSaving = verses.some(v => {
+    const status = getSaveStatus(v.verseNumber);
+    return status.showLoader;
+  });
 
-      if (!sourceVerse) {
-        console.error(`Source verse ${verse} not found.`);
-        return;
-      }
-
-      const trimmedText = text.trim();
-
-      await addVerseMutation.mutateAsync({
-        verseData: {
-          projectUnitId: projectItem.projectUnitId,
-          content: trimmedText,
-          bibleTextId: sourceVerse.id,
-          assignedUserId: userdetail.id,
-        },
-        email: userdetail.email,
-      });
-    },
-    [addVerseMutation, projectItem.projectUnitId, sourceVerses, userdetail]
-  );
-
-  const saveVerseImmediately = useCallback(
-    async (verseId: number, text: string) => {
-      const originalContent = originalVerseContent[verseId] || '';
-      if (text === originalContent) {
-        return;
-      }
-
-      setIsAutoSaving(true);
-      setAutoSaveError(false);
-
-      try {
-        await saveVerse(verseId, text);
-        setOriginalVerseContent(prev => ({ ...prev, [verseId]: text }));
-        setIsAutoSaving(false);
-      } catch {
-        setIsAutoSaving(false);
-        setAutoSaveError(true);
-      }
-    },
-    [saveVerse, originalVerseContent]
-  );
-
-  const autoSave = useCallback(
-    async (verseId: number, text: string) => {
-      const originalContent = originalVerseContent[verseId] || '';
-      if (text === originalContent) {
-        return;
-      }
-
-      setIsAutoSaving(true);
-      setAutoSaveError(false);
-
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        await saveVerse(verseId, text);
-        setOriginalVerseContent(prev => ({ ...prev, [verseId]: text }));
-        setIsAutoSaving(false);
-      } catch {
-        setIsAutoSaving(false);
-        setAutoSaveError(true);
-        const retry = setTimeout(() => {
-          void autoSave(verseId, text);
-        }, 10000);
-        setRetryTimeout(retry);
-      }
-    },
-    [saveVerse, originalVerseContent]
-  );
+  const hasAnyError = verses.some(v => {
+    const status = getSaveStatus(v.verseNumber);
+    return status.hasRetryScheduled;
+  });
 
   const updateTargetVerse = (id: number, text: string) => {
-    if (saveTimeout) clearTimeout(saveTimeout);
-    if (retryTimeout) clearTimeout(retryTimeout);
-
     setVerses(currentVerses =>
       currentVerses.map(verse => (verse.verseNumber === id ? { ...verse, content: text } : verse))
     );
-
-    const timeout = setTimeout(() => {
-      void autoSave(id, text);
-    }, 2000);
-    setSaveTimeout(timeout);
+    debouncedSave(id, text);
   };
 
   const handleActiveVerseChange = async (newVerseId: number) => {
     if (previousActiveVerseId !== null && previousActiveVerseId !== newVerseId) {
       const previousVerse = verses.find(v => v.verseNumber === previousActiveVerseId);
       if (previousVerse) {
-        if (saveTimeout) clearTimeout(saveTimeout);
-        await saveVerseImmediately(previousActiveVerseId, previousVerse.content);
+        const status = getSaveStatus(previousActiveVerseId);
+        if (status.hasUnsavedChanges) {
+          await saveImmediately(previousActiveVerseId, previousVerse.content);
+        }
       }
     }
 
@@ -208,14 +159,18 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
       if (!nextVerseExists) {
         setVerses(prev => [...prev, { verseNumber: nextVerseId, content: '' }]);
-        setOriginalVerseContent(prev => ({ ...prev, [nextVerseId]: '' }));
+        setInitialContent(nextVerseId, '');
       }
 
       setPreviousActiveVerseId(activeVerseId);
       setActiveVerseId(nextVerseId);
-      void saveVerseImmediately(activeVerseId, currentVerse.content);
+
+      const status = getSaveStatus(activeVerseId);
+      if (status.hasUnsavedChanges) {
+        await saveImmediately(activeVerseId, currentVerse.content);
+      }
     }
-  }, [activeVerseId, verses, totalSourceVerses, saveVerseImmediately]);
+  }, [activeVerseId, verses, totalSourceVerses, saveImmediately, setInitialContent, getSaveStatus]);
 
   const handleScroll = (source: 'source' | 'target', scrollTop: number) => {
     if (isScrollingSyncRef.current) return;
@@ -234,13 +189,14 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const handleSubmit = async () => {
     if (isTranslationComplete) {
-      if (saveTimeout) {
-        clearTimeout(saveTimeout);
-        const currentVerse = verses.find(v => v.verseNumber === activeVerseId);
-        if (currentVerse) {
-          await saveVerseImmediately(activeVerseId, currentVerse.content);
-        }
-      }
+      const savePromises = verses
+        .filter(verse => {
+          const status = getSaveStatus(verse.verseNumber);
+          return status.hasUnsavedChanges;
+        })
+        .map(verse => saveImmediately(verse.verseNumber, verse.content));
+
+      await Promise.all(savePromises);
 
       await submitChapterMutation.mutateAsync({
         chapterAssignmentId: projectItem.chapterAssignmentId,
@@ -261,8 +217,10 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
           </div>
           <div className='flex items-center gap-4'>
             <div className='flex items-center gap-2'>
-              {isAutoSaving && <Loader className='h-4 w-4 animate-spin text-[var(--primary)]' />}
-              {autoSaveError && <span className='text-sm text-red-500'>Auto-save failed</span>}
+              {isAnythingSaving && (
+                <Loader className='h-4 w-4 animate-spin text-[var(--primary)]' />
+              )}
+              {hasAnyError && <span className='text-sm text-red-500'>Auto-save failed</span>}
             </div>
             <div className='bg-input w-96 rounded-lg border'>
               <div className='h-2 overflow-hidden rounded-full'>
