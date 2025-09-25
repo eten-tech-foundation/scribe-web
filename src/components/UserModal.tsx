@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { Loader2 } from 'lucide-react';
+import { Loader2, TriangleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
@@ -31,6 +31,7 @@ interface UserModalProps {
   onClose: () => void;
   user?: User | null;
   onSave: (user: User | Omit<User, 'id'>) => Promise<void>;
+  error?: string | null;
   mode: 'create' | 'edit';
   isLoading?: boolean;
   disableRoleSelection?: boolean;
@@ -53,6 +54,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   user,
   onSave,
   mode,
+  error = null,
   isLoading = false,
   disableRoleSelection = false,
 }) => {
@@ -67,7 +69,6 @@ export const UserModal: React.FC<UserModalProps> = ({
     status: 'invited',
   });
 
-  // Reset form when modal opens or user changes
   useEffect(() => {
     if (isOpen) {
       if (mode === 'edit' && user) {
@@ -132,7 +133,6 @@ export const UserModal: React.FC<UserModalProps> = ({
   const modalTitle = mode === 'create' ? t('addUser') : t('editProfile');
   const submitText = mode === 'create' ? t('addUser') : t('saveUser');
   const isButtonDisabled = isLoading || !isFormValid();
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className='sm:max-w-[500px]' onInteractOutside={e => e.preventDefault()}>
@@ -210,6 +210,12 @@ export const UserModal: React.FC<UserModalProps> = ({
         </div>
 
         <DialogFooter>
+          {error && (
+            <div className='mr-4 flex w-full items-center justify-center gap-2'>
+              <TriangleAlert className='h-4 w-4 text-red-500' />
+              <p className='text-sm font-medium text-red-600'>{error}</p>
+            </div>
+          )}
           <Button
             className='bg-primary hover:bg-primary/90 text-white'
             disabled={isButtonDisabled}

@@ -54,7 +54,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
             <span className='text-gray-500'>No Users Found</span>
           </div>
         ) : (
-          <div className='flex h-full flex-col overflow-hidden'>
+          <div className='flex h-full flex-col overflow-y-auto'>
             <Table className='table-fixed'>
               <TableHeader className='sticky top-0 z-10'>
                 <TableRow className='bg-accent'>
@@ -72,41 +72,41 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
                   </TableHead>
                 </TableRow>
               </TableHeader>
-            </Table>
+              {/* </Table>
             <div className='scrollbar-thin flex-1 overflow-y-auto'>
-              <Table className='table-fixed'>
-                <TableBody className='divide-border divide-y bg-white'>
-                  {sortedUsers.map(user => (
-                    <TableRow
-                      key={user.id}
-                      className='cursor-pointer transition-colors hover:bg-gray-50'
-                      onClick={() => onEditUser(user)}
+              <Table className='table-fixed'> */}
+              <TableBody className='divide-border divide-y bg-white'>
+                {sortedUsers.map(user => (
+                  <TableRow
+                    key={user.id}
+                    className='cursor-pointer transition-colors hover:bg-gray-50'
+                    onClick={() => onEditUser(user)}
+                  >
+                    <TableCell
+                      className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
+                      title={user.username}
                     >
-                      <TableCell
-                        className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
-                        title={user.username}
-                      >
-                        {user.username}
-                      </TableCell>
-                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                        {getRoleLabel(user.role)}
-                      </TableCell>
-                      <TableCell
-                        className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
-                        title={user.email}
-                      >
-                        {user.email}
-                      </TableCell>
-                      <TableCell className='px-6 py-4 whitespace-nowrap'>
-                        <Badge variant={getStatusVariant(user.status as 'invited' | 'verified')}>
-                          {user.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                      {user.username}
+                    </TableCell>
+                    <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                      {getRoleLabel(user.role)}
+                    </TableCell>
+                    <TableCell
+                      className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
+                      title={user.email}
+                    >
+                      {user.email}
+                    </TableCell>
+                    <TableCell className='px-6 py-4 whitespace-nowrap'>
+                      <Badge variant={getStatusVariant(user.status as 'invited' | 'verified')}>
+                        {user.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {/* </div> */}
           </div>
         )}
       </div>

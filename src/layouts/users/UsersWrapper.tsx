@@ -15,8 +15,10 @@ export const UsersWrapper: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userError, setUserError] = useState<string | null>(null);
 
   const handleSaveUser = async (userData: User | Omit<User, 'id'>) => {
+    setUserError(null);
     try {
       if (modalMode === 'create') {
         userData.organization = userdetail?.organization ?? 0;
@@ -36,6 +38,7 @@ export const UsersWrapper: React.FC = () => {
       }
       closeModal();
     } catch (error) {
+      setUserError(error instanceof Error ? error.message : 'An unknown error occurred');
       Logger.logException(error instanceof Error ? error : new Error(String(error)), {
         source: modalMode === 'create' ? 'Failed to create user.' : 'Failed to update user.',
       });
@@ -57,6 +60,7 @@ export const UsersWrapper: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedUser(null);
+    setUserError(null);
   };
 
   return (
@@ -69,6 +73,7 @@ export const UsersWrapper: React.FC = () => {
       />
 
       <UserModal
+        error={userError}
         isLoading={createUserMutation.isPending || updateUserMutation.isPending}
         isOpen={isModalOpen}
         mode={modalMode}

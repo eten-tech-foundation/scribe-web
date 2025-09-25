@@ -222,32 +222,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
           {/* Table Container with proper 2/3 width containment */}
           <div className='flex flex-1 flex-col overflow-hidden rounded-lg border'>
-            {/* Fixed Table Header */}
-            <div className='bg-card flex-shrink-0 rounded-t-lg'>
-              <Table className='table-fixed'>
-                <TableHeader>
-                  <TableRow className='hover:bg-transparent'>
-                    <TableHead className='w-12 px-6 py-3'>
-                      <></>
-                    </TableHead>
-                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
-                      Book
-                    </TableHead>
-                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
-                      Chapter
-                    </TableHead>
-                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
-                      Assigned
-                    </TableHead>
-                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
-                      Progress
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-              </Table>
-            </div>
-
-            {/* Scrollable Body contained within 2/3 width */}
             <div className='relative flex-1 overflow-y-auto'>
               {assignmentsLoading ? (
                 <div className='flex items-center justify-center gap-2 py-8'>
@@ -264,6 +238,25 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 </div>
               ) : (
                 <Table>
+                  <TableHeader className='sticky top-0 z-10'>
+                    <TableRow className='hover:bg-transparent'>
+                      <TableHead className='w-12 px-6 py-3'>
+                        <></>
+                      </TableHead>
+                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
+                        Book
+                      </TableHead>
+                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
+                        Chapter
+                      </TableHead>
+                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
+                        Assigned
+                      </TableHead>
+                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
+                        Progress
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
                   <TableBody className='divide-border divide-y'>
                     {filteredAssignments.map(assignment => {
                       const isUpdatingThisAssignment =
@@ -272,7 +265,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                       return (
                         <TableRow
                           key={assignment.assignmentId}
-                          className='align-center cursor-pointer border-b border-[#D9D8D0] transition-colors hover:bg-gray-50'
+                          className='align-center cursor-pointer border-b transition-colors hover:bg-gray-50'
                         >
                           <TableCell className='w-12 px-6 py-4'>
                             <Checkbox
@@ -301,10 +294,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                               ) : (
                                 <div
                                   className='truncate'
-                                  title={`${assignment.assignedUser?.firstName} ${assignment.assignedUser?.lastName}`}
+                                  title={`${assignment.assignedUser?.displayName}`}
                                 >
-                                  {assignment.assignedUser?.firstName}{' '}
-                                  {assignment.assignedUser?.lastName}
+                                  {assignment.assignedUser?.displayName}{' '}
                                 </div>
                               )}
                             </div>
@@ -342,11 +334,13 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               <SelectValue placeholder={usersLoading ? 'Loading users...' : 'Select a User'} />
             </SelectTrigger>
             <SelectContent>
-              {users?.map((user: User) => (
-                <SelectItem key={user.id} value={user.id.toString()}>
-                  {user.firstName} {user.lastName}
-                </SelectItem>
-              ))}
+              {users
+                ?.filter((user: User) => user.role === 2)
+                .map((user: User) => (
+                  <SelectItem key={user.id} value={user.id.toString()}>
+                    {user.username}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
 

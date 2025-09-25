@@ -78,9 +78,9 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
           ) : (
             <>
               {/* Fixed Header */}
-              <div className='flex-shrink-0'>
+              <div className='flex-1 overflow-y-auto'>
                 <Table className='table-fixed'>
-                  <TableHeader>
+                  <TableHeader className='sticky top-0 z-10'>
                     <TableRow className='hover:bg-transparent'>
                       <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
                         {t('title')}
@@ -97,12 +97,10 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                       </TableHead>
                     </TableRow>
                   </TableHeader>
-                </Table>
-              </div>
 
-              {/* Scrollable Body */}
-              <div className='flex-1 overflow-y-auto'>
-                <Table>
+                  {/* Scrollable Body */}
+                  {/* <div className='flex-1 overflow-y-auto'>
+                <Table> */}
                   <TableBody className='divide-border divide-y'>
                     {sortedProjects.map(project => (
                       <TableRow
