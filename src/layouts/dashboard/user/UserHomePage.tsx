@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 
 import {
@@ -28,12 +29,13 @@ const getStatusText = (item: ProjectItem) => {
 
 export function UserHomePage() {
   const [activeTab, setActiveTab] = useState<'my-work' | 'my-history'>('my-work');
+  const [navigatingToProject, setNavigatingToProject] = useState<string | null>(null);
   const { userdetail } = useAppStore();
-
+  const navigate = useNavigate();
   const { data: projectData = [], isLoading: loading } = useChapterAssignments(userdetail as User);
 
   const myWorkData: ProjectItem[] = projectData
-    .filter(item => item.completedVerses < item.totalVerses && item.submittedTime === null)
+    .filter(item => item.submittedTime === null)
     .sort((a, b) => {
       const aHasCompleted = a.completedVerses > 0;
       const bHasCompleted = b.completedVerses > 0;
@@ -54,9 +56,27 @@ export function UserHomePage() {
       return dateB - dateA;
     });
 
-  const handleRowClick = (item: ProjectItem) => {
-    // eslint-disable-next-line no-console
-    console.log('Selected item:', item);
+  const handleRowClick = async (item: ProjectItem) => {
+    const projectKey = `${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`;
+    setNavigatingToProject(projectKey);
+
+    try {
+      await navigate({
+        to: '/translation/$bookId/$chapterNumber',
+        params: {
+          bookId: item.bookId.toString(),
+          chapterNumber: item.chapterNumber.toString(),
+        },
+        search: {
+          t: Date.now().toString(),
+        },
+        state: { projectItem: item },
+      });
+    } catch (error) {
+      console.error('Navigation error:', error);
+    } finally {
+      setNavigatingToProject(null);
+    }
   };
 
   return (
@@ -95,7 +115,7 @@ export function UserHomePage() {
             <span className='text-muted-foreground'>Loading...</span>
           </div>
         ) : (
-          <div className='flex h-full flex-col overflow-hidden'>
+          <div className='flex h-full flex-col overflow-y-auto'>
             <Table className='table-fixed'>
               <TableHeader className='sticky top-0 z-10'>
                 <TableRow className='bg-accent'>
@@ -113,27 +133,35 @@ export function UserHomePage() {
                   </TableHead>
                 </TableRow>
               </TableHeader>
-            </Table>
+              <TableBody className='divide-border divide-y bg-white'>
+                {activeTab === 'my-work' &&
+                  (myWorkData.length === 0 ? (
+                    <TableRow>
+                      <TableCell className='p-8 text-center text-gray-500' colSpan={4}>
+                        No work assigned
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    myWorkData.map(item => {
+                      const projectKey = `${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`;
+                      const isNavigating = navigatingToProject === projectKey;
 
-            <div className='scrollbar-thin flex-1 overflow-y-auto'>
-              <Table className='table-fixed'>
-                <TableBody className='divide-border divide-y bg-white'>
-                  {activeTab === 'my-work' &&
-                    (myWorkData.length === 0 ? (
-                      <TableRow>
-                        <TableCell className='p-8 text-center text-gray-500' colSpan={4}>
-                          No work assigned
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      myWorkData.map(item => (
+                      return (
                         <TableRow
-                          key={`${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`}
+                          key={projectKey}
                           className='cursor-pointer transition-colors hover:bg-gray-50'
                           onClick={() => handleRowClick(item)}
                         >
-                          <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                            {item.projectName}
+                          <TableCell
+                            className='text-popover-foreground px-6 py-4 text-sm'
+                            title={item.projectName}
+                          >
+                            <div className='flex min-w-0 items-center gap-2'>
+                              {isNavigating && (
+                                <Loader2 className='h-4 w-4 flex-shrink-0 animate-spin text-[var(--primary)]' />
+                              )}
+                              <span className='truncate'>{item.projectName}</span>
+                            </div>
                           </TableCell>
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
                             {item.book}
@@ -145,41 +173,43 @@ export function UserHomePage() {
                             {getStatusText(item)}
                           </TableCell>
                         </TableRow>
-                      ))
-                    ))}
+                      );
+                    })
+                  ))}
 
-                  {activeTab === 'my-history' &&
-                    (historyData.length === 0 ? (
-                      <TableRow>
-                        <TableCell className='p-8 text-center text-gray-500' colSpan={4}>
-                          No completed work found
+                {activeTab === 'my-history' &&
+                  (historyData.length === 0 ? (
+                    <TableRow>
+                      <TableCell className='p-8 text-center text-gray-500' colSpan={4}>
+                        No completed work found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    historyData.map(item => (
+                      <TableRow
+                        key={`${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`}
+                        className='transition-colors hover:bg-gray-50'
+                      >
+                        <TableCell
+                          className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
+                          title={item.projectName}
+                        >
+                          {item.projectName}
+                        </TableCell>
+                        <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                          {item.book}
+                        </TableCell>
+                        <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                          {item.chapterNumber}
+                        </TableCell>
+                        <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                          {item.submittedTime ? formatDate(item.submittedTime) : 'N/A'}
                         </TableCell>
                       </TableRow>
-                    ) : (
-                      historyData.map(item => (
-                        <TableRow
-                          key={`${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`}
-                          className='cursor-pointer transition-colors hover:bg-gray-50'
-                          onClick={() => handleRowClick(item)}
-                        >
-                          <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                            {item.projectName}
-                          </TableCell>
-                          <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                            {item.book}
-                          </TableCell>
-                          <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                            {item.chapterNumber}
-                          </TableCell>
-                          <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                            {item.submittedTime ? formatDate(item.submittedTime) : 'N/A'}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ))}
-                </TableBody>
-              </Table>
-            </div>
+                    ))
+                  ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
