@@ -3,6 +3,8 @@ import { createRootRoute, createRoute } from '@tanstack/react-router';
 import { App } from '@/app';
 import { RoleBasedHomePage } from '@/components/RoleBasedHomePage';
 import { AppInsightsTestPage } from '@/layouts/app-insights-test';
+import DraftingPage from '@/layouts/bible/DraftingPage';
+import { translationLoader } from '@/layouts/bible/TranslationLoader';
 import { ProjectsWrapper } from '@/layouts/projects';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 import { UsersWrapper } from '@/layouts/users/UsersWrapper';
@@ -34,8 +36,23 @@ export const userListRoute = createRoute({
   path: '/user-list',
   component: UsersWrapper,
 });
+
 export const projectsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/projects',
   component: ProjectsWrapper,
+});
+
+export const translationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/translation/$bookId/$chapterNumber',
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      t: (search.t as string) || undefined,
+    };
+  },
+  loader: translationLoader,
+  component: DraftingPage,
+  gcTime: 0,
+  staleTime: 0,
 });

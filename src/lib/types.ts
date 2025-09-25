@@ -65,6 +65,7 @@ export interface Book {
 }
 
 export interface ProjectItem {
+  chapterAssignmentId: number;
   projectName: string;
   projectUnitId: number;
   bibleId: number;
@@ -76,4 +77,11 @@ export interface ProjectItem {
   totalVerses: number;
   completedVerses: number;
   submittedTime: string | null;
+}
+
+export interface VerseData {
+  projectUnitId: number;
+  content: string;
+  bibleTextId: number;
+  assignedUserId: number;
 }
