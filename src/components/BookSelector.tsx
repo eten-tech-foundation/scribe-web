@@ -106,14 +106,20 @@ export function BibleBookMultiSelectPopover({
 
         <PopoverContent
           align='start'
-          className='text-popover-foreground rounded-md border bg-white p-0 shadow-md'
+          className='text-popover-foreground pointer-events-auto rounded-md border bg-white p-0 shadow-md'
           side='top'
           style={{
             width: wrapperWidth ? `${Math.round(wrapperWidth)}px` : undefined,
             boxSizing: 'border-box',
           }}
+          onCloseAutoFocus={e => e.preventDefault()}
+          onOpenAutoFocus={e => e.preventDefault()}
         >
-          <div className='max-h-82 overflow-y-auto py-1 [scrollbar-gutter:stable]'>
+          <div
+            className='max-h-82 overflow-y-auto py-1'
+            onTouchMove={e => e.stopPropagation()}
+            onWheel={e => e.stopPropagation()}
+          >
             {books.length === 0 ? (
               <div className='px-3 py-2 text-sm text-gray-500'>No books available</div>
             ) : (
