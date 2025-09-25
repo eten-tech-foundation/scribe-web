@@ -221,22 +221,22 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           </div>
 
           {/* Table Container with proper 2/3 width containment */}
-          <div className='flex flex-1 flex-col overflow-hidden rounded-lg border'>
-            <div className='relative flex-1 overflow-y-auto'>
-              {assignmentsLoading ? (
-                <div className='flex items-center justify-center gap-2 py-8'>
-                  <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
-                  <span className='text-gray-500'>Loading assignments...</span>
-                </div>
-              ) : filteredAssignments.length === 0 ? (
-                <div className='flex items-center justify-center py-8'>
-                  <span className='text-gray-500'>
-                    {selectedBook && selectedBook !== 'all'
-                      ? 'No assignments found for selected book'
-                      : 'No assignments found'}
-                  </span>
-                </div>
-              ) : (
+          <div className='flex h-full flex-col overflow-hidden rounded-lg border'>
+            {assignmentsLoading ? (
+              <div className='flex items-center justify-center gap-2 py-8'>
+                <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
+                <span className='text-gray-500'>Loading assignments...</span>
+              </div>
+            ) : filteredAssignments.length === 0 ? (
+              <div className='flex items-center justify-center py-8'>
+                <span className='text-gray-500'>
+                  {selectedBook && selectedBook !== 'all'
+                    ? 'No assignments found for selected book'
+                    : 'No assignments found'}
+                </span>
+              </div>
+            ) : (
+              <div className='relative flex h-full overflow-y-auto'>
                 <Table>
                   <TableHeader className='sticky top-0 z-10'>
                     <TableRow className='hover:bg-transparent'>
@@ -317,8 +317,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                     })}
                   </TableBody>
                 </Table>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

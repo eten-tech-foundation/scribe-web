@@ -72,9 +72,6 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
                   </TableHead>
                 </TableRow>
               </TableHeader>
-              {/* </Table>
-            <div className='scrollbar-thin flex-1 overflow-y-auto'>
-              <Table className='table-fixed'> */}
               <TableBody className='divide-border divide-y bg-white'>
                 {sortedUsers.map(user => (
                   <TableRow
@@ -106,7 +103,6 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
                 ))}
               </TableBody>
             </Table>
-            {/* </div> */}
           </div>
         )}
       </div>
