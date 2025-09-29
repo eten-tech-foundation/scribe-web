@@ -28,11 +28,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useAssignChapters, useChapterAssignments } from '@/hooks/useChapterAssignment';
+import { useExportUsfm } from '@/hooks/useExportUsfm';
 import { useProjectUnitBooks } from '@/hooks/useProjectUnitBooks';
 import { useUsers } from '@/hooks/useUsers';
 import { ViewPageHeader } from '@/layouts/projects/ViewPageHeader';
 import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
+
+import { ExportProjectDialog } from './ExportProjectDialog'; // Adjust path as needed
 
 interface ProjectDetailPageProps {
   projectId?: string;
@@ -59,6 +62,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const [selectedAssignments, setSelectedAssignments] = useState<number[]>([]);
   const [isRefreshingAfterAssignment, setIsRefreshingAfterAssignment] = useState(false);
   const [updatingAssignmentIds, setUpdatingAssignmentIds] = useState<number[]>([]);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
   // Fetch chapter assignments
   const {
@@ -66,6 +70,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
     isLoading: assignmentsLoading,
     isFetching: assignmentsFetching,
   } = useChapterAssignments(projectId ? projectId.toString() : '0', userdetail?.email ?? '');
+
+  const projectUnitId = useMemo(() => {
+    return chapterAssignments?.[0]?.projectUnitId ?? null;
+  }, [chapterAssignments]);
 
   // Fetch books
   const { data: books, isLoading: booksLoading } = useProjectUnitBooks(
@@ -99,6 +107,64 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       assignment => assignment.bookNameEng === selectedBookData.engDisplayName
     );
   }, [chapterAssignments, selectedBook, books]);
+
+  // Transform books data for export dialog
+  const exportBooks = useMemo(() => {
+    if (!books || !chapterAssignments) return [];
+
+    return books.map(book => {
+      // Calculate completed chapters for this book
+      const bookAssignments = chapterAssignments.filter(
+        assignment => assignment.bookNameEng === book.engDisplayName
+      );
+
+      const completedChapters = bookAssignments.filter(
+        assignment => assignment.completedVerses === assignment.totalVerses
+      ).length;
+
+      return {
+        bookId: book.bookId,
+        engDisplayName: book.engDisplayName,
+        code: book.code,
+        completedChapters,
+        totalChapters: bookAssignments.length || 0,
+      };
+    });
+  }, [books, chapterAssignments]);
+  const exportUsfm = useExportUsfm();
+
+  const handleExport = async (selectedBookIds: number[]) => {
+    if (!projectUnitId) return;
+
+    try {
+      const zipBlob = await exportUsfm.mutateAsync({
+        projectUnitId,
+        bookIds: selectedBookIds,
+      });
+
+      // Create download link
+      const url = window.URL.createObjectURL(zipBlob);
+      const link = document.createElement('a');
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+
+      const timestamp = `${year}-${month}-${day}-${hours}-${minutes}`;
+      const filename = `${timestamp} ${projectTitle}.zip`;
+
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove(); // Cleanup
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+    }
+  };
 
   const formatProgress = (completedVerses: number, totalVerses: number) => {
     return `${completedVerses} of ${totalVerses}`;
@@ -160,8 +226,22 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
   return (
     <div className='flex h-full min-w-[750px] flex-col'>
-      {/* Header with Back Button */}
-      <ViewPageHeader title={headerTitle} onBack={onBack} />
+      {/* Header with Back Button and Export Button */}
+      <ViewPageHeader
+        rightContent={
+          <Button
+            className='border-primary text-primary flex items-center gap-2 border-2'
+            disabled={booksLoading || !books || books.length === 0}
+            size='sm'
+            variant={'outline'}
+            onClick={() => setIsExportDialogOpen(true)}
+          >
+            Export Project
+          </Button>
+        }
+        title={headerTitle}
+        onBack={onBack}
+      />
 
       <div className='flex flex-1 overflow-hidden md:gap-4 lg:gap-6'>
         {/* Project Details Card - Exactly 1/3 width */}
@@ -361,6 +441,16 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Export Project Dialog */}
+      <ExportProjectDialog
+        books={exportBooks}
+        isLoading={booksLoading}
+        isOpen={isExportDialogOpen}
+        projectName={projectTitle}
+        onClose={() => setIsExportDialogOpen(false)}
+        onExport={handleExport}
+      />
     </div>
   );
 };
