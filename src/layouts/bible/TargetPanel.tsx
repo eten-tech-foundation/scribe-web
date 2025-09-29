@@ -3,6 +3,8 @@ import { useEffect, useRef } from 'react';
 
 import { ChevronRight } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
+
 import type { TargetVerse } from './DraftingPage';
 
 interface TargetPanelProps {
@@ -103,13 +105,13 @@ export const TargetPanel: React.FC<TargetPanelProps> = ({
 
   return (
     <div className='flex h-full flex-col'>
-      <div className='bg-background sticky top-0 z-10 px-6 py-4'>
+      <div className='bg-background sticky top-0 z-10 py-4'>
         <h3 className='text-xl font-bold text-gray-800'>{targetLanguage}</h3>
       </div>
 
       <div
         ref={scrollRef}
-        className='bg-card flex-1 overflow-auto rounded-md border border-gray-200 p-2'
+        className='bg-muted h-full overflow-auto rounded-md border border-gray-200 p-2'
         style={{ scrollbarWidth: 'thin' }}
         onScroll={handleScroll}
       >
@@ -126,15 +128,17 @@ export const TargetPanel: React.FC<TargetPanelProps> = ({
                 className='transition-all'
               >
                 {TargetVerse && (
-                  <div className={`flex transition-all ${isActive ? 'opacity-100' : 'opacity-70'}`}>
+                  <div
+                    className={`flex items-start transition-all ${isActive ? 'opacity-100' : 'opacity-90'}`}
+                  >
                     <div className='flex-1'>
                       <div
-                        className={`${isActive ? 'bg-background' : 'bg-card'} cursor-pointer rounded-lg border px-4 shadow-sm transition-all`}
+                        className={`${isActive ? 'bg-background' : 'bg-card'} cursor-pointer rounded-lg border px-4 py-1 shadow-sm transition-all`}
                         onClick={() => handleVerseClick(verseId)}
                       >
                         <textarea
                           ref={el => (textareaRefs.current[verseId] = el)}
-                          className='h-auto min-h-[20px] w-full resize-none content-center overflow-hidden border-none bg-transparent text-sm leading-relaxed leading-snug text-gray-800 outline-none'
+                          className='h-auto min-h-[20px] w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-relaxed leading-snug text-gray-800 outline-none'
                           placeholder='Enter translation...'
                           value={TargetVerse.content}
                           onChange={e => handleTextChange(verseId, e.target.value)}
@@ -151,11 +155,11 @@ export const TargetPanel: React.FC<TargetPanelProps> = ({
         </div>
 
         {verses.length < totalSourceVerses && (
-          <div className='sticky bottom-6 flex justify-end pb-6'>
-            <button
-              className={`flex items-center gap-2 rounded px-6 py-2 font-medium shadow-lg transition-all ${
+          <div className='mb-12 flex justify-end pb-6'>
+            <Button
+              className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
                 verses.find(v => v.verseNumber === activeVerseId)?.content.trim()
-                  ? 'cursor-pointer bg-cyan-600 text-white hover:bg-cyan-700'
+                  ? 'hover:bg-primary-hover cursor-pointer text-white'
                   : 'cursor-not-allowed bg-gray-300 text-gray-500'
               }`}
               disabled={!verses.find(v => v.verseNumber === activeVerseId)?.content.trim()}
@@ -164,7 +168,7 @@ export const TargetPanel: React.FC<TargetPanelProps> = ({
             >
               Next Verse
               <ChevronRight className='h-4 w-4' />
-            </button>
+            </Button>
           </div>
         )}
       </div>

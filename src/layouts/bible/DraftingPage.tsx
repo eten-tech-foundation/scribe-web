@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMatch, useNavigate } from '@tanstack/react-router';
 import { Loader } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
 import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
 import { useBibleTextDebounce } from '@/hooks/useBibleTextDebounce';
 import { TargetPanel } from '@/layouts/bible/TargetPanel';
@@ -222,25 +223,25 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
               )}
               {hasAnyError && <span className='text-sm text-red-500'>Auto-save failed</span>}
             </div>
-            <div className='bg-input w-96 rounded-lg border'>
+            <div className='bg-input rounded-lg border md:w-50 lg:w-76 xl:w-105'>
               <div className='h-2 overflow-hidden rounded-full'>
                 <div
-                  className='h-full rounded-full bg-cyan-600 transition-all duration-300'
+                  className='bg-primary h-full rounded-full transition-all duration-300'
                   style={{ width: `${progressPercentage}%` }}
                 ></div>
               </div>
             </div>
-            <button
-              className={`rounded px-6 py-2 font-medium transition-all ${
+            <Button
+              className={`px-6 py-2 font-medium transition-all ${
                 isTranslationComplete
-                  ? 'cursor-pointer bg-cyan-600 text-white hover:bg-cyan-700'
+                  ? 'bg-primary hover:bg-primary-hover cursor-pointer text-white'
                   : 'cursor-not-allowed bg-gray-300 text-gray-500'
               }`}
               disabled={!isTranslationComplete}
               onClick={handleSubmit}
             >
               Submit
-            </button>
+            </Button>
           </div>
         </div>
       </div>
