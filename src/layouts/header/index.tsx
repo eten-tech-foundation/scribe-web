@@ -62,7 +62,7 @@ const Header: React.FC = () => {
                   }
                 }}
               >
-                <img alt='Logo' className='h-13 w-auto' src='/icons/fluent-logo1.svg' />
+                <img alt='Logo' className='h-13 w-auto' src='/icons/fluent-logo.svg' />
               </div>
             </div>
           </div>
