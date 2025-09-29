@@ -49,9 +49,9 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
     onProjectSelect(
       projectId,
       projectTitle,
-      projectSource,
       projectSourceLanguageName,
-      projectTargetLanguageName
+      projectTargetLanguageName,
+      projectSource
     );
   };
 

@@ -173,12 +173,11 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 <p className='max-w-full text-base font-medium break-all text-gray-600'>
                   {projectTitle}
                 </p>
+                <label className='text-base font-bold'>Target Language</label>
+                <p className='text-base font-medium text-gray-600'>{projectTargetLanguageName}</p>
 
                 <label className='text-base font-bold'>Source Language</label>
                 <p className='text-base font-medium text-gray-600'>{projectSourceLanguageName}</p>
-
-                <label className='text-base font-bold'>Target Language</label>
-                <p className='text-base font-medium text-gray-600'>{projectTargetLanguageName}</p>
 
                 <label className='text-base font-bold'>Source Bible</label>
                 <p className='text-base font-medium text-gray-600'>{projectSource}</p>
