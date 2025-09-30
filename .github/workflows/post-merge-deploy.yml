@@ -3,7 +3,7 @@ name: Post-merge Deploy
 
 on:
   push:
-    branches: [main,fix/routes]
+    branches: [main]
   workflow_dispatch:
     inputs:
       environment:
