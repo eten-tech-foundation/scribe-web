@@ -189,7 +189,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         {/* Table Section - Exactly 2/3 width */}
         <div className='flex w-2/3 flex-grow flex-col overflow-hidden'>
           {/* Book Selection Section */}
-          <div className='flex-shrink-0 pb-4'>
+          <div className='flex-shrink-0 pb-4 pl-[3px]'>
             <div className='flex items-center gap-3'>
               <Select value={selectedBook} onValueChange={setSelectedBook}>
                 <SelectTrigger className='my-0.5 w-[200px] lg:w-[250px]'>
@@ -199,7 +199,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                   <SelectItem value='all'>Books</SelectItem>
                   {books?.map(book => (
                     <SelectItem key={book.bookId} value={book.bookId.toString()}>
-                      {book.engDisplayName} ({book.code})
+                      {book.engDisplayName}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -235,7 +235,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 </span>
               </div>
             ) : (
-              <div className='relative flex h-full overflow-y-auto'>
+              <div className='relative flex h-full flex-col overflow-y-auto'>
                 <Table>
                   <TableHeader className='sticky top-0 z-10'>
                     <TableRow className='hover:bg-transparent'>

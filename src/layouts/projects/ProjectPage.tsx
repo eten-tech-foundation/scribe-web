@@ -76,7 +76,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
               <span className='text-gray-500'>{t('noProjectsFound')}</span>
             </div>
           ) : (
-            <div className='flex h-full overflow-y-auto'>
+            <div className='flex h-full flex-col overflow-y-auto'>
               <Table className='table-fixed'>
                 <TableHeader className='sticky top-0 z-10'>
                   <TableRow className='hover:bg-transparent'>
