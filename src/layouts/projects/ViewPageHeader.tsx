@@ -14,7 +14,10 @@ export const ViewPageHeader: React.FC<ViewPageHeaderProps> = ({ title, onBack })
         strokeWidth={'2px'}
         onClick={onBack}
       />
-      <h1 className='text-foreground text-2xl font-semibold break-words sm:text-2xl lg:text-3xl'>
+      <h1
+        className='text-foreground max-w-[80%] truncate text-2xl font-semibold sm:text-2xl lg:text-3xl'
+        title={title}
+      >
         {title}
       </h1>
     </div>
