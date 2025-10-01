@@ -19,6 +19,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = ({
   onScroll,
 }) => {
   const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({});
+  const verseRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
     textarea.style.height = 'auto';
@@ -28,6 +29,24 @@ export const SourcePanel: React.FC<SourcePanelProps> = ({
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     onScroll(e.currentTarget.scrollTop);
   };
+
+  useEffect(() => {
+    const activeVerseElement = verseRefs.current[activeVerseId];
+    if (activeVerseElement && scrollRef.current) {
+      const container = scrollRef.current;
+      const verseTop = activeVerseElement.offsetTop;
+      const verseHeight = activeVerseElement.offsetHeight;
+      const containerHeight = container.clientHeight;
+      const currentScroll = container.scrollTop;
+
+      if (verseTop < currentScroll || verseTop + verseHeight > currentScroll + containerHeight) {
+        container.scrollTo({
+          top: verseTop - containerHeight / 2 + verseHeight / 2,
+          behavior: 'smooth',
+        });
+      }
+    }
+  }, [activeVerseId, scrollRef]);
 
   useEffect(() => {
     verses.forEach(verse => {
@@ -43,7 +62,6 @@ export const SourcePanel: React.FC<SourcePanelProps> = ({
       <div className='bg-background sticky top-0 z-10 ml-8 px-6 py-4'>
         <h3 className='text-xl font-bold text-gray-800'>{bibleName}</h3>
       </div>
-
       <div
         ref={scrollRef}
         className='scrollbar-hide flex-1 overflow-hidden px-6 pt-2'
@@ -57,10 +75,10 @@ export const SourcePanel: React.FC<SourcePanelProps> = ({
         <div className='space-y-4 pb-6'>
           {verses.map(verse => {
             const isActive = activeVerseId === verse.verseNumber;
-
             return (
               <div
                 key={verse.verseNumber}
+                ref={el => (verseRefs.current[verse.verseNumber] = el)}
                 className={`flex items-start transition-all ${isActive ? 'opacity-100' : 'opacity-70'}`}
               >
                 <div className='w-8 flex-shrink-0'>
