@@ -169,7 +169,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           <Card className='h-fit'>
             <CardContent className='space-y-4 py-4'>
               <div className='grid grid-cols-2 gap-2'>
-                <label className='text-base font-bold'>Name</label>
+                <label className='text-base font-bold'>Title</label>
                 <p className='max-w-full text-base font-medium break-all text-gray-600'>
                   {projectTitle}
                 </p>
