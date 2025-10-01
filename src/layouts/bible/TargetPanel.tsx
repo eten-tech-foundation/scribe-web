@@ -1,8 +1,6 @@
 import type React from 'react';
 import { useEffect, useRef } from 'react';
 
-import { ChevronRight } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
 
 import type { TargetVerse } from './DraftingPage';
@@ -78,12 +76,29 @@ export const TargetPanel: React.FC<TargetPanelProps> = ({
   };
 
   useEffect(() => {
+    const activeVerseElement = verseRefs.current[activeVerseId];
     const textarea = textareaRefs.current[activeVerseId];
+
+    if (activeVerseElement && scrollRef.current) {
+      const container = scrollRef.current;
+      const verseTop = activeVerseElement.offsetTop;
+      const verseHeight = activeVerseElement.offsetHeight;
+      const containerHeight = container.clientHeight;
+      const currentScroll = container.scrollTop;
+
+      if (verseTop < currentScroll || verseTop + verseHeight > currentScroll + containerHeight) {
+        container.scrollTo({
+          top: verseTop - containerHeight / 2 + verseHeight / 2,
+          behavior: 'smooth',
+        });
+      }
+    }
+
     if (textarea) {
       textarea.focus();
       autoResizeTextarea(textarea);
     }
-  }, [activeVerseId]);
+  }, [activeVerseId, scrollRef]);
 
   useEffect(() => {
     if (verses.length === 0) {
@@ -115,7 +130,7 @@ export const TargetPanel: React.FC<TargetPanelProps> = ({
         style={{ scrollbarWidth: 'thin' }}
         onScroll={handleScroll}
       >
-        <div className='space-y-4 pb-6'>
+        <div className={`space-y-4 ${verses.length < totalSourceVerses ? 'pb-48' : 'pb-6'}`}>
           {Array.from({ length: totalSourceVerses }, (_, index) => {
             const verseId = index + 1;
             const TargetVerse = verses.find(kv => kv.verseNumber === verseId);
@@ -152,25 +167,24 @@ export const TargetPanel: React.FC<TargetPanelProps> = ({
               </div>
             );
           })}
-        </div>
 
-        {verses.length < totalSourceVerses && (
-          <div className='mb-12 flex justify-end pb-6'>
-            <Button
-              className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
-                verses.find(v => v.verseNumber === activeVerseId)?.content.trim()
-                  ? 'hover:bg-primary-hover cursor-pointer text-white'
-                  : 'cursor-not-allowed bg-gray-300 text-gray-500'
-              }`}
-              disabled={!verses.find(v => v.verseNumber === activeVerseId)?.content.trim()}
-              title='Enter'
-              onClick={() => moveToNextVerse()}
-            >
-              Next Verse
-              <ChevronRight className='h-4 w-4' />
-            </Button>
-          </div>
-        )}
+          {verses.length < totalSourceVerses && (
+            <div className='flex justify-end'>
+              <Button
+                className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
+                  verses.find(v => v.verseNumber === activeVerseId)?.content.trim()
+                    ? 'hover:bg-primary-hover cursor-pointer text-white'
+                    : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                }`}
+                disabled={!verses.find(v => v.verseNumber === activeVerseId)?.content.trim()}
+                title='Enter'
+                onClick={() => moveToNextVerse()}
+              >
+                Next Verse
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
