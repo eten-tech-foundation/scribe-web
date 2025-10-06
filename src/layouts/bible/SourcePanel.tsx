@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import type { Source } from './DraftingPage';
 
@@ -9,6 +9,8 @@ interface SourcePanelProps {
   activeVerseId: number;
   scrollRef: React.RefObject<HTMLDivElement>;
   onScroll: (scrollTop: number) => void;
+  textareaHeights: Record<number, number>;
+  onHeightChange: (verseId: number, height: number) => void;
 }
 
 export const SourcePanel: React.FC<SourcePanelProps> = ({
@@ -17,14 +19,21 @@ export const SourcePanel: React.FC<SourcePanelProps> = ({
   activeVerseId,
   scrollRef,
   onScroll,
+  textareaHeights,
+  onHeightChange,
 }) => {
   const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({});
   const verseRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
-  const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.max(20, textarea.scrollHeight) + 'px';
-  };
+  const autoResizeTextarea = useCallback(
+    (textarea: HTMLTextAreaElement, verseId: number) => {
+      textarea.style.height = 'auto';
+      const newHeight = Math.max(20, textarea.scrollHeight);
+      textarea.style.height = newHeight + 'px';
+      onHeightChange(verseId, newHeight);
+    },
+    [onHeightChange]
+  );
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     onScroll(e.currentTarget.scrollTop);
@@ -38,7 +47,6 @@ export const SourcePanel: React.FC<SourcePanelProps> = ({
       const verseHeight = activeVerseElement.offsetHeight;
       const containerHeight = container.clientHeight;
       const currentScroll = container.scrollTop;
-
       if (verseTop < currentScroll || verseTop + verseHeight > currentScroll + containerHeight) {
         container.scrollTo({
           top: verseTop - containerHeight / 2 + verseHeight / 2,
@@ -52,10 +60,15 @@ export const SourcePanel: React.FC<SourcePanelProps> = ({
     verses.forEach(verse => {
       const textarea = textareaRefs.current[verse.verseNumber];
       if (textarea) {
-        autoResizeTextarea(textarea);
+        const syncHeight = textareaHeights[verse.verseNumber];
+        if (syncHeight) {
+          textarea.style.height = syncHeight + 'px';
+        } else {
+          autoResizeTextarea(textarea, verse.verseNumber);
+        }
       }
     });
-  }, [verses]);
+  }, [verses, textareaHeights, autoResizeTextarea]);
 
   return (
     <div className='flex h-full flex-col'>
@@ -90,6 +103,11 @@ export const SourcePanel: React.FC<SourcePanelProps> = ({
                       ref={el => (textareaRefs.current[verse.verseNumber] = el)}
                       readOnly
                       className='h-auto min-h-[20px] w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-relaxed leading-snug text-gray-800 outline-none'
+                      style={{
+                        height: textareaHeights[verse.verseNumber]
+                          ? `${textareaHeights[verse.verseNumber]}px`
+                          : 'auto',
+                      }}
                       value={verse.text}
                     />
                   </div>
