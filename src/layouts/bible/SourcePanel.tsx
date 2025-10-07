@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import type { Source } from './DraftingPage';
 
@@ -9,6 +9,8 @@ interface SourcePanelProps {
   activeVerseId: number;
   scrollRef: React.RefObject<HTMLDivElement>;
   onScroll: (scrollTop: number) => void;
+  textareaHeights: Record<number, number>;
+  onHeightChange: (verseId: number, height: number) => void;
 }
 
 export const SourcePanel: React.FC<SourcePanelProps> = ({
@@ -17,33 +19,62 @@ export const SourcePanel: React.FC<SourcePanelProps> = ({
   activeVerseId,
   scrollRef,
   onScroll,
+  textareaHeights,
+  onHeightChange,
 }) => {
   const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({});
+  const verseRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
-  const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.max(20, textarea.scrollHeight) + 'px';
-  };
+  const autoResizeTextarea = useCallback(
+    (textarea: HTMLTextAreaElement, verseId: number) => {
+      textarea.style.height = 'auto';
+      const newHeight = Math.max(20, textarea.scrollHeight);
+      textarea.style.height = newHeight + 'px';
+      onHeightChange(verseId, newHeight);
+    },
+    [onHeightChange]
+  );
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     onScroll(e.currentTarget.scrollTop);
   };
 
   useEffect(() => {
+    const activeVerseElement = verseRefs.current[activeVerseId];
+    if (activeVerseElement && scrollRef.current) {
+      const container = scrollRef.current;
+      const verseTop = activeVerseElement.offsetTop;
+      const verseHeight = activeVerseElement.offsetHeight;
+      const containerHeight = container.clientHeight;
+      const currentScroll = container.scrollTop;
+      if (verseTop < currentScroll || verseTop + verseHeight > currentScroll + containerHeight) {
+        container.scrollTo({
+          top: verseTop - containerHeight / 2 + verseHeight / 2,
+          behavior: 'smooth',
+        });
+      }
+    }
+  }, [activeVerseId, scrollRef]);
+
+  useEffect(() => {
     verses.forEach(verse => {
       const textarea = textareaRefs.current[verse.verseNumber];
       if (textarea) {
-        autoResizeTextarea(textarea);
+        const syncHeight = textareaHeights[verse.verseNumber];
+        if (syncHeight) {
+          textarea.style.height = syncHeight + 'px';
+        } else {
+          autoResizeTextarea(textarea, verse.verseNumber);
+        }
       }
     });
-  }, [verses]);
+  }, [verses, textareaHeights, autoResizeTextarea]);
 
   return (
     <div className='flex h-full flex-col'>
       <div className='bg-background sticky top-0 z-10 ml-8 px-6 py-4'>
         <h3 className='text-xl font-bold text-gray-800'>{bibleName}</h3>
       </div>
-
       <div
         ref={scrollRef}
         className='scrollbar-hide flex-1 overflow-hidden px-6 pt-2'
@@ -57,10 +88,10 @@ export const SourcePanel: React.FC<SourcePanelProps> = ({
         <div className='space-y-4 pb-6'>
           {verses.map(verse => {
             const isActive = activeVerseId === verse.verseNumber;
-
             return (
               <div
                 key={verse.verseNumber}
+                ref={el => (verseRefs.current[verse.verseNumber] = el)}
                 className={`flex items-start transition-all ${isActive ? 'opacity-100' : 'opacity-70'}`}
               >
                 <div className='w-8 flex-shrink-0'>
@@ -72,6 +103,11 @@ export const SourcePanel: React.FC<SourcePanelProps> = ({
                       ref={el => (textareaRefs.current[verse.verseNumber] = el)}
                       readOnly
                       className='h-auto min-h-[20px] w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-relaxed leading-snug text-gray-800 outline-none'
+                      style={{
+                        height: textareaHeights[verse.verseNumber]
+                          ? `${textareaHeights[verse.verseNumber]}px`
+                          : 'auto',
+                      }}
                       value={verse.text}
                     />
                   </div>
