@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { useMatch, useNavigate } from '@tanstack/react-router';
 import { Loader } from 'lucide-react';
@@ -6,11 +6,8 @@ import { Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
 import { useBibleTextDebounce } from '@/hooks/useBibleTextDebounce';
-import { TargetPanel } from '@/layouts/bible/TargetPanel';
 import { type ProjectItem, type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
-
-import { SourcePanel } from './SourcePanel';
 
 export interface Source {
   id: number;
@@ -46,9 +43,11 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const [previousActiveVerseId, setPreviousActiveVerseId] = useState<number | null>(null);
   const [textareaHeights, setTextareaHeights] = useState<Record<number, number>>({});
 
-  const sourceScrollRef = useRef<HTMLDivElement>(null);
   const targetScrollRef = useRef<HTMLDivElement>(null);
-  const isScrollingSyncRef = useRef(false);
+
+  const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({});
+  const verseRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const [buttonTop, setButtonTop] = useState<number>(0);
 
   const saveVerse = useCallback(
     async (verse: number, text: string) => {
@@ -119,9 +118,64 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
           }
         }
         setActiveVerseId(mostRecentlyEditedVerse);
+        if (mostRecentlyEditedVerse > 1) {
+          const verseDiv = verseRefs.current[mostRecentlyEditedVerse];
+          if (verseDiv) {
+            verseDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
       }
     }
   }, [targetVerses, sourceVerses, setInitialContent]);
+
+  useEffect(() => {
+    if (verses.length === 0) {
+      setVerses([
+        {
+          verseNumber: 1,
+          content: '',
+        },
+      ]);
+    } else {
+      verses.forEach(verse => {
+        const textarea = textareaRefs.current[verse.verseNumber];
+        if (textarea && verse.content) {
+          autoResizeTextarea(textarea);
+        }
+      });
+    }
+  }, [setVerses, verses]);
+
+  const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.max(20, textarea.scrollHeight) + 'px';
+  };
+
+  const updateButtonPosition = useCallback(() => {
+    const container = targetScrollRef.current;
+    const textarea = textareaRefs.current[activeVerseId];
+    if (!container || !textarea) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const textareaRect = textarea.getBoundingClientRect();
+    const top = container.scrollTop + (textareaRect.bottom - containerRect.top) + 20; // 20px gap
+    setButtonTop(top);
+  }, [activeVerseId]);
+
+  useLayoutEffect(() => {
+    // Focus and position updates after DOM mutations, before paint
+    const textarea = textareaRefs.current[activeVerseId];
+    if (textarea) {
+      textarea.focus();
+      const len = textarea.value.length;
+      try {
+        textarea.setSelectionRange(len, len);
+      } catch {}
+      autoResizeTextarea(textarea);
+    }
+    updateButtonPosition();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeVerseId, verses]);
 
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
@@ -144,6 +198,16 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       currentVerses.map(verse => (verse.verseNumber === id ? { ...verse, content: text } : verse))
     );
     debouncedSave(id, text);
+  };
+
+  const handleTextChange = (verseId: number, text: string) => {
+    updateTargetVerse(verseId, text);
+
+    const textarea = textareaRefs.current[verseId];
+    if (textarea) {
+      autoResizeTextarea(textarea);
+    }
+    updateButtonPosition();
   };
 
   const handleActiveVerseChange = async (newVerseId: number) => {
@@ -182,23 +246,9 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       if (status.hasUnsavedChanges) {
         await saveImmediately(activeVerseId, currentVerse.content);
       }
+      // useLayoutEffect will focus and reposition after state updates
     }
   }, [activeVerseId, verses, totalSourceVerses, saveImmediately, setInitialContent, getSaveStatus]);
-
-  const handleScroll = (source: 'source' | 'target', scrollTop: number) => {
-    if (isScrollingSyncRef.current) return;
-    isScrollingSyncRef.current = true;
-
-    if (source === 'source' && targetScrollRef.current) {
-      targetScrollRef.current.scrollTop = scrollTop;
-    } else if (source === 'target' && sourceScrollRef.current) {
-      sourceScrollRef.current.scrollTop = scrollTop;
-    }
-
-    setTimeout(() => {
-      isScrollingSyncRef.current = false;
-    }, 50);
-  };
 
   const handleSubmit = async () => {
     if (isTranslationComplete) {
@@ -216,6 +266,13 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         email: userdetail.email,
       });
       await navigate({ to: '/' });
+    }
+  };
+
+  const handleKeyDown = async (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      await moveToNextVerse();
     }
   };
 
@@ -258,34 +315,88 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         </div>
       </div>
 
-      <div className='flex-1 overflow-hidden'>
-        <div className='flex h-full'>
-          <div className='w-1/2'>
-            <SourcePanel
-              activeVerseId={activeVerseId}
-              bibleName={projectItem.bibleName}
-              scrollRef={sourceScrollRef}
-              textareaHeights={textareaHeights}
-              verses={sourceVerses}
-              onHeightChange={handleHeightChange}
-              onScroll={scrollTop => handleScroll('source', scrollTop)}
-            />
+      <div className='mx-auto max-w-5xl flex-1 overflow-hidden'>
+        <div className='grid h-full grid-cols-2' style={{ gridTemplateRows: '4rem 1fr' }}>
+          <div className='bg-background sticky top-0 z-10 ml-8 px-6 py-4'>
+            <h3 className='text-xl font-bold text-gray-800'>IRV Gujarati</h3>
           </div>
-          <div className='w-1/2'>
-            <TargetPanel
-              activeVerseId={activeVerseId}
-              moveToNextVerse={moveToNextVerse}
-              scrollRef={targetScrollRef}
-              setActiveVerseId={handleActiveVerseChange}
-              setVerses={setVerses}
-              targetLanguage={projectItem.targetLanguage}
-              textareaHeights={textareaHeights}
-              totalSourceVerses={totalSourceVerses}
-              updateVerse={updateTargetVerse}
-              verses={verses}
-              onHeightChange={handleHeightChange}
-              onScroll={scrollTop => handleScroll('target', scrollTop)}
-            />
+          <div className='bg-background sticky top-0 z-10 py-4'>
+            <h3 className='text-xl font-bold text-gray-800'>Gujarati</h3>
+          </div>
+
+          <div
+            ref={targetScrollRef}
+            className='relative col-span-2 flex h-full flex-col overflow-y-auto'
+            onScroll={() => updateButtonPosition()}
+          >
+            {sourceVerses.map(verse => {
+              const isActive = activeVerseId === verse.verseNumber;
+              const currentTargetVerse = verses.find(v => v.verseNumber === verse.verseNumber);
+              const hasContent = !!currentTargetVerse?.content.trim();
+              return (
+                <div
+                  key={verse.verseNumber}
+                  ref={el => (verseRefs.current[verse.verseNumber] = el)}
+                  className='grid grid-cols-2 gap-4 px-6 py-4'
+                >
+                  {/* source verse */}
+                  <div
+                    className='col-1 flex cursor-pointer items-start transition-all'
+                    onClick={() => handleActiveVerseChange(verse.verseNumber)}
+                  >
+                    <div className='w-8 flex-shrink-0'>
+                      <span className='text-lg font-medium text-gray-700'>{verse.verseNumber}</span>
+                    </div>
+                    <div className='flex-1'>
+                      <div
+                        className={`bg-card rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
+                      >
+                        <p className='min-h-12 content-center overflow-hidden text-base leading-relaxed leading-snug text-gray-800 outline-none'>
+                          {verse.text}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* target verse */}
+                  <div
+                    className={`col-2 flex transition-all ${isActive || hasContent ? '' : 'hidden'}`}
+                  >
+                    <div
+                      className={`flex-1 cursor-pointer rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
+                      onClick={() => handleActiveVerseChange(verse.verseNumber)}
+                    >
+                      <textarea
+                        ref={el => (textareaRefs.current[verse.verseNumber] = el)}
+                        className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-relaxed leading-snug text-gray-800 outline-none'
+                        placeholder='Enter translation...'
+                        value={currentTargetVerse?.content ?? ''}
+                        onChange={e => handleTextChange(verse.verseNumber, e.target.value)}
+                        onFocus={() => handleActiveVerseChange(verse.verseNumber)}
+                        onKeyDown={e => handleKeyDown(e)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {activeVerseId < totalSourceVerses && (
+              <div className='absolute right-4 z-10' style={{ top: buttonTop }}>
+                <Button
+                  className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
+                    verses.find(v => v.verseNumber === activeVerseId)?.content.trim()
+                      ? 'hover:bg-primary-hover cursor-pointer text-white'
+                      : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                  }`}
+                  disabled={!verses.find(v => v.verseNumber === activeVerseId)?.content.trim()}
+                  title='Enter'
+                  onClick={() => moveToNextVerse()}
+                >
+                  Next Verse
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
