@@ -51,6 +51,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   error = null,
 }) => {
   const { t } = useTranslation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -76,6 +77,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         books: [],
       });
     }
+    setIsSubmitting(false);
   }, [isOpen]);
 
   useEffect(() => {
@@ -109,11 +111,14 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   };
 
   const handleSubmit = async (): Promise<void> => {
+    if (isSubmitting) {
+      return;
+    }
     try {
       if (!formData.targetLanguage || !formData.sourceLanguage || !formData.sourceBible) {
         return;
       }
-
+      setIsSubmitting(true);
       const projectData: CreateProjectData = {
         title: formData.title,
         targetLanguage: formData.targetLanguage,
@@ -127,6 +132,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       Logger.logException(error instanceof Error ? error : new Error(String(error)), {
         source: 'create project submit',
       });
+      setIsSubmitting(false);
     }
   };
 
@@ -144,7 +150,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     }
   };
 
-  const isButtonDisabled = isLoading || !isFormValid();
+  const isButtonDisabled = isLoading || isSubmitting || !isFormValid();
 
   if (languagesError) {
     return (
@@ -172,7 +178,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             <DialogTitle>{t('createProject')}</DialogTitle>
           </DialogHeader>
           <div className='space-y-6 py-6'>
-            {/* Project Title */}
             <div className='space-y-2'>
               <Label className='gap-1' htmlFor='title'>
                 <span style={{ color: 'red' }}>*</span>
@@ -235,11 +240,17 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {sourceBibles?.map(bible => (
-                    <SelectItem key={bible.id} value={bible.id.toString()}>
-                      {bible.name} ({bible.abbreviation})
-                    </SelectItem>
-                  ))}
+                  {!sourceBibles || sourceBibles.length === 0 ? (
+                    <div className='p-1 text-center text-sm text-gray-500'>
+                      No bibles for this language
+                    </div>
+                  ) : (
+                    sourceBibles.map(bible => (
+                      <SelectItem key={bible.id} value={bible.id.toString()}>
+                        {bible.name} ({bible.abbreviation})
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
