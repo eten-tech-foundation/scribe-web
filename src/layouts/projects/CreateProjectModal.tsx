@@ -242,7 +242,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 <SelectContent>
                   {!sourceBibles || sourceBibles.length === 0 ? (
                     <div className='p-1 text-center text-sm text-gray-500'>
-                      No source Bible available
+                      No bibles for this language
                     </div>
                   ) : (
                     sourceBibles.map(bible => (
