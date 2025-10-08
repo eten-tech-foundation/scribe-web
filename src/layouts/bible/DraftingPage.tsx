@@ -41,7 +41,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const [verses, setVerses] = useState<TargetVerse[]>(targetVerses);
   const [activeVerseId, setActiveVerseId] = useState(1);
   const [previousActiveVerseId, setPreviousActiveVerseId] = useState<number | null>(null);
-  const [textareaHeights, setTextareaHeights] = useState<Record<number, number>>({});
 
   const targetScrollRef = useRef<HTMLDivElement>(null);
 
@@ -74,17 +73,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       retryDelayMs: 10000,
     }
   );
-
-  const handleHeightChange = (verseId: number, height: number) => {
-    setTextareaHeights(prev => {
-      const currentHeight = prev[verseId] || 0;
-      const newHeight = Math.max(currentHeight, height);
-      if (newHeight !== currentHeight) {
-        return { ...prev, [verseId]: newHeight };
-      }
-      return prev;
-    });
-  };
 
   useEffect(() => {
     if (targetVerses.length > 0) {
