@@ -35,7 +35,7 @@ import { ViewPageHeader } from '@/layouts/projects/ViewPageHeader';
 import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
-import { ExportProjectDialog } from './ExportProjectDialog'; // Adjust path as needed
+import { ExportProjectDialog } from './ExportProjectDialog';
 
 interface ProjectDetailPageProps {
   projectId?: string;
