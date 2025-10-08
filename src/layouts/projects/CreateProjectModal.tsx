@@ -76,14 +76,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         sourceBible: null,
         books: [],
       });
-      setIsSubmitting(false);
     }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setIsSubmitting(false);
-    }
+    setIsSubmitting(false);
   }, [isOpen]);
 
   useEffect(() => {
@@ -184,7 +178,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             <DialogTitle>{t('createProject')}</DialogTitle>
           </DialogHeader>
           <div className='space-y-6 py-6'>
-            {/* Project Title */}
             <div className='space-y-2'>
               <Label className='gap-1' htmlFor='title'>
                 <span style={{ color: 'red' }}>*</span>
