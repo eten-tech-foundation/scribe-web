@@ -64,7 +64,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const [updatingAssignmentIds, setUpdatingAssignmentIds] = useState<number[]>([]);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
-  // Fetch chapter assignments
   const {
     data: chapterAssignments,
     isLoading: assignmentsLoading,
@@ -75,13 +74,11 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
     return chapterAssignments?.[0]?.projectUnitId ?? null;
   }, [chapterAssignments]);
 
-  // Fetch books
   const { data: books, isLoading: booksLoading } = useProjectUnitBooks(
     projectId ? projectId.toString() : '0',
     userdetail?.email ?? ''
   );
 
-  // Fetch users
   const { data: users, isLoading: usersLoading } = useUsers(userdetail?.email ?? '');
 
   const getSelectedUserFullName = () => {
@@ -108,12 +105,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
     );
   }, [chapterAssignments, selectedBook, books]);
 
-  // Transform books data for export dialog
   const exportBooks = useMemo(() => {
     if (!books || !chapterAssignments) return [];
 
     return books.map(book => {
-      // Calculate completed chapters for this book
       const bookAssignments = chapterAssignments.filter(
         assignment => assignment.bookNameEng === book.engDisplayName
       );
@@ -142,7 +137,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         bookIds: selectedBookIds,
       });
 
-      // Create download link
       const url = window.URL.createObjectURL(zipBlob);
       const link = document.createElement('a');
       const now = new Date();
@@ -159,7 +153,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       link.download = filename;
       document.body.appendChild(link);
       link.click();
-      link.remove(); // Cleanup
+      link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Export failed:', error);
@@ -226,11 +220,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
   return (
     <div className='flex h-full min-w-[750px] flex-col'>
-      {/* Header with Back Button and Export Button */}
       <ViewPageHeader
         rightContent={
           <Button
-            className='border-primary text-primary flex items-center gap-2 border-2'
+            className='border-primary text-primary hover flex items-center gap-2 border-2'
             disabled={booksLoading || !books || books.length === 0}
             size='sm'
             variant={'outline'}
@@ -268,7 +261,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
         {/* Table Section - Exactly 2/3 width */}
         <div className='flex w-2/3 flex-grow flex-col overflow-hidden'>
-          {/* Book Selection Section */}
           <div className='flex-shrink-0 pb-4 pl-[3px]'>
             <div className='flex items-center gap-3'>
               <Select value={selectedBook} onValueChange={setSelectedBook}>
@@ -402,7 +394,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         </div>
       </div>
 
-      {/* User Assignment Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className='sm:max-w-md' onInteractOutside={e => e.preventDefault()}>
           <DialogHeader>
@@ -441,7 +432,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Export Project Dialog */}
       <ExportProjectDialog
         books={exportBooks}
         isLoading={booksLoading}

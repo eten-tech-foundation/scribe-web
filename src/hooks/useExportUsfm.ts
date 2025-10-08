@@ -10,7 +10,7 @@ interface ExportUsfmPayload {
 const exportUsfmRequest = async (payload: ExportUsfmPayload): Promise<Blob> => {
   const { projectUnitId, bookIds } = payload;
 
-  const response = await fetch(`${config.api.url}/project-units/${projectUnitId}/export/usfm`, {
+  const response = await fetch(`${config.api.url}/project-units/${projectUnitId}/usfm`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ bookIds }),
@@ -18,7 +18,7 @@ const exportUsfmRequest = async (payload: ExportUsfmPayload): Promise<Blob> => {
 
   if (!response.ok) throw new Error('Failed to export USFM');
 
-  return response.blob(); // ✅ Get ZIP as Blob
+  return response.blob();
 };
 
 export const useExportUsfm = () => {

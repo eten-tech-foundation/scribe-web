@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { Download, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -47,7 +47,6 @@ export const ExportProjectDialog: React.FC<ExportProjectDialogProps> = ({
   const [selectedBooks, setSelectedBooks] = useState<number[]>([]);
   const [isExporting, setIsExporting] = useState(false);
 
-  // Select all books by default when dialog opens
   useEffect(() => {
     if (isOpen && books.length > 0) {
       setSelectedBooks(books.map(book => book.bookId));
@@ -121,62 +120,64 @@ export const ExportProjectDialog: React.FC<ExportProjectDialogProps> = ({
             </div>
           ) : (
             <>
-              {/* Fixed Table Header */}
-
-              <div className='bg-background flex-1 overflow-y-auto rounded-b-lg border border-t-0'>
-                <Table>
-                  <TableHeader>
-                    <TableRow className='hover:bg-transparent'>
-                      <TableHead className='w-12 px-4 py-3'>
-                        <Checkbox
-                          checked={isAllSelected}
-                          className={
-                            isIndeterminate
-                              ? 'data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground [&>svg]:opacity-50'
-                              : ''
-                          }
-                          disabled={isExporting}
-                          onCheckedChange={handleSelectAll}
-                        />
-                      </TableHead>
-                      <TableHead className='px-4 py-3 text-left text-sm font-semibold'>
-                        Book Name
-                      </TableHead>
-                      <TableHead className='px-4 py-3 text-left text-sm font-semibold'>
-                        Completed Chapters
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {books.map(book => (
-                      <TableRow
-                        key={book.bookId}
-                        className='cursor-pointer hover:bg-gray-50'
-                        onClick={() => {
-                          if (!isExporting) {
-                            const isSelected = selectedBooks.includes(book.bookId);
-                            handleBookSelection(book.bookId, !isSelected);
-                          }
-                        }}
-                      >
-                        <TableCell className='w-12 px-4 py-3'>
+              <div className='bg-background flex-1 overflow-hidden rounded-lg border'>
+                <div className='h-full max-h-[50vh] overflow-y-auto'>
+                  <Table>
+                    <TableHeader className='sticky top-0 z-10'>
+                      <TableRow>
+                        <TableHead className='w-12 px-4 py-3'>
                           <Checkbox
-                            checked={selectedBooks.includes(book.bookId)}
+                            checked={isAllSelected}
+                            className={
+                              isIndeterminate
+                                ? 'data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground [&>svg]:opacity-50'
+                                : ''
+                            }
                             disabled={isExporting}
-                            onCheckedChange={checked => handleBookSelection(book.bookId, !!checked)}
-                            onClick={e => e.stopPropagation()}
+                            onCheckedChange={handleSelectAll}
                           />
-                        </TableCell>
-                        <TableCell className='px-4 py-3 text-sm'>
-                          <div className='font-medium'>{book.engDisplayName}</div>
-                        </TableCell>
-                        <TableCell className='px-4 py-3 text-sm'>
-                          {formatProgress(book.completedChapters, book.totalChapters)}
-                        </TableCell>
+                        </TableHead>
+                        <TableHead className='px-4 py-3 text-left text-sm font-semibold'>
+                          Book Name
+                        </TableHead>
+                        <TableHead className='px-4 py-3 text-left text-sm font-semibold'>
+                          Completed Chapters
+                        </TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {books.map(book => (
+                        <TableRow
+                          key={book.bookId}
+                          className='hover cursor-pointer'
+                          onClick={() => {
+                            if (!isExporting) {
+                              const isSelected = selectedBooks.includes(book.bookId);
+                              handleBookSelection(book.bookId, !isSelected);
+                            }
+                          }}
+                        >
+                          <TableCell className='w-12 px-4 py-3'>
+                            <Checkbox
+                              checked={selectedBooks.includes(book.bookId)}
+                              disabled={isExporting}
+                              onCheckedChange={checked =>
+                                handleBookSelection(book.bookId, !!checked)
+                              }
+                              onClick={e => e.stopPropagation()}
+                            />
+                          </TableCell>
+                          <TableCell className='px-4 py-3 text-sm'>
+                            <div className='font-medium'>{book.engDisplayName}</div>
+                          </TableCell>
+                          <TableCell className='px-4 py-3 text-sm'>
+                            {formatProgress(book.completedChapters, book.totalChapters)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             </>
           )}
@@ -194,10 +195,7 @@ export const ExportProjectDialog: React.FC<ExportProjectDialogProps> = ({
                 Exporting...
               </>
             ) : (
-              <>
-                <Download className='mr-2 h-4 w-4' />
-                Export ({selectedBooks.length})
-              </>
+              <>Export</>
             )}
           </Button>
         </DialogFooter>
