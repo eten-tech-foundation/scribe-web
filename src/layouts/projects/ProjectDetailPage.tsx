@@ -28,7 +28,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useAssignChapters, useChapterAssignments } from '@/hooks/useChapterAssignment';
-import { useExportUsfm } from '@/hooks/useExportUsfm';
 import { useProjectUnitBooks } from '@/hooks/useProjectUnitBooks';
 import { useUsers } from '@/hooks/useUsers';
 import { ViewPageHeader } from '@/layouts/projects/ViewPageHeader';
@@ -38,7 +37,7 @@ import { useAppStore } from '@/store/store';
 import { ExportProjectDialog } from './ExportProjectDialog';
 
 interface ProjectDetailPageProps {
-  projectId?: string;
+  projectId?: number | null;
   projectTitle: string;
   projectSourceLanguageName: string;
   projectTargetLanguageName: string;
@@ -126,39 +125,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       };
     });
   }, [books, chapterAssignments]);
-  const exportUsfm = useExportUsfm();
-
-  const handleExport = async (selectedBookIds: number[]) => {
-    if (!projectUnitId) return;
-
-    try {
-      const zipBlob = await exportUsfm.mutateAsync({
-        projectUnitId,
-        bookIds: selectedBookIds,
-      });
-
-      const url = window.URL.createObjectURL(zipBlob);
-      const link = document.createElement('a');
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-
-      const timestamp = `${year}-${month}-${day}-${hours}-${minutes}`;
-      const filename = `${timestamp} ${projectTitle}.zip`;
-
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Export failed:', error);
-    }
-  };
 
   const formatProgress = (completedVerses: number, totalVerses: number) => {
     return `${completedVerses} of ${totalVerses}`;
@@ -437,8 +403,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         isLoading={booksLoading}
         isOpen={isExportDialogOpen}
         projectName={projectTitle}
+        projectUnitId={projectUnitId}
         onClose={() => setIsExportDialogOpen(false)}
-        onExport={handleExport}
       />
     </div>
   );

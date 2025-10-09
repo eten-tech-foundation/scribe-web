@@ -16,7 +16,7 @@ export const ProjectsWrapper: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectError, setProjectError] = useState<string | null>(null);
 
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [selectProjectTitle, setSelectProjectTitle] = useState<string>('');
   const [selectedProjectSource, setSelectedProjectSource] = useState<string>('');
   const [selectedProjectSourceLang, setSelectedProjectSourceLang] = useState<string>('');
@@ -68,7 +68,7 @@ export const ProjectsWrapper: React.FC = () => {
     sourceLang: string,
     targetLang: string
   ) => {
-    setSelectedProjectId(projectId.toString());
+    setSelectedProjectId(projectId);
     setSelectProjectTitle(title);
     setSelectedProjectSource(source);
     setSelectedProjectSourceLang(sourceLang);
@@ -84,7 +84,7 @@ export const ProjectsWrapper: React.FC = () => {
   if (showProjectDetail) {
     return (
       <ProjectDetailPage
-        projectId={selectedProjectId ?? '0'}
+        projectId={selectedProjectId ?? null}
         projectSource={selectedProjectSource}
         projectSourceLanguageName={selectedProjectSourceLang}
         projectTargetLanguageName={selectedProjectTargetLang}
