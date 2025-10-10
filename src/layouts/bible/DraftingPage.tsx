@@ -41,6 +41,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const [verses, setVerses] = useState<TargetVerse[]>(targetVerses);
   const [activeVerseId, setActiveVerseId] = useState(1);
   const [previousActiveVerseId, setPreviousActiveVerseId] = useState<number | null>(null);
+  const [revealedVerses, setRevealedVerses] = useState<Set<number>>(new Set());
 
   const targetScrollRef = useRef<HTMLDivElement>(null);
 
@@ -88,26 +89,31 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       if (allVersesCompleted) {
         setActiveVerseId(1);
       } else {
-        // Find the most recently edited verse (last verse with content)
-        let mostRecentlyEditedVerse = 1;
+        // Find the first empty verse
+        const firstEmptyVerse = targetVerses.find(v => v.content.trim() === '') ?? targetVerses[0];
+        const mostRecentlyEditedVerseNumber = firstEmptyVerse.verseNumber;
 
-        for (let i = targetVerses.length - 1; i >= 0; i--) {
-          if (targetVerses[i].content.trim() !== '') {
-            mostRecentlyEditedVerse = targetVerses[i].verseNumber;
-            break;
+        const lastVerseWithContent = (() => {
+          for (let i = targetVerses.length - 1; i >= 0; i--) {
+            if (targetVerses[i].content.trim() !== '') return targetVerses[i];
           }
-        }
+          return targetVerses[0];
+        })();
 
-        // If no verses have content, find first empty verse
-        if (mostRecentlyEditedVerse === 1 && targetVerses[0]?.content.trim() === '') {
-          const firstEmpty = targetVerses.find(v => v.content.trim() === '');
-          if (firstEmpty) {
-            mostRecentlyEditedVerse = firstEmpty.verseNumber;
-          }
-        }
-        setActiveVerseId(mostRecentlyEditedVerse);
-        if (mostRecentlyEditedVerse > 1) {
-          const verseDiv = verseRefs.current[mostRecentlyEditedVerse];
+        setActiveVerseId(mostRecentlyEditedVerseNumber);
+
+        // Initialize revealed verses with those that have content and the initial active verse
+        const initiallyRevealed = new Set<number>();
+        targetVerses.forEach(v => {
+          if (v.verseNumber <= lastVerseWithContent.verseNumber)
+            initiallyRevealed.add(v.verseNumber);
+        });
+        initiallyRevealed.add(mostRecentlyEditedVerseNumber);
+        setRevealedVerses(initiallyRevealed);
+
+        // Scroll the active verse into view
+        if (mostRecentlyEditedVerseNumber > 1) {
+          const verseDiv = verseRefs.current[mostRecentlyEditedVerseNumber];
           if (verseDiv) {
             verseDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
@@ -115,6 +121,24 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       }
     }
   }, [targetVerses, sourceVerses, setInitialContent]);
+
+  // Whenever active verse changes, mark it as revealed
+  useEffect(() => {
+    setRevealedVerses(prev => {
+      if (prev.has(activeVerseId)) return prev;
+      const next = new Set(prev);
+      next.add(activeVerseId);
+      return next;
+    });
+  }, [activeVerseId]);
+
+  // Ensure revealed textareas are properly sized on reveal (including on page load)
+  useEffect(() => {
+    revealedVerses.forEach(verseNumber => {
+      const textarea = textareaRefs.current[verseNumber];
+      if (textarea) autoResizeTextarea(textarea);
+    });
+  }, [revealedVerses]);
 
   useEffect(() => {
     if (verses.length === 0) {
@@ -149,6 +173,19 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     const top = container.scrollTop + (textareaRect.bottom - containerRect.top) + 20; // 20px gap
     setButtonTop(top);
   }, [activeVerseId]);
+
+  const scrollVerseToTop = useCallback((verseNumber: number) => {
+    const container = targetScrollRef.current;
+    const row = verseRefs.current[verseNumber];
+    if (!container || !row) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+
+    // Compute new scrollTop so that the row's top aligns with the container's top
+    const newScrollTop = container.scrollTop + (rowRect.top - containerRect.top);
+    container.scrollTo({ top: newScrollTop, behavior: 'smooth' });
+  }, []);
 
   useLayoutEffect(() => {
     // Focus and position updates after DOM mutations, before paint
@@ -211,6 +248,10 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
     setPreviousActiveVerseId(activeVerseId);
     setActiveVerseId(newVerseId);
+    // useLayoutEffect will focus and reposition Next button after state updates
+    // Also scroll so the previous verse aligns to the top (or verse 1)
+    const prevId = Math.max(1, newVerseId - 1);
+    requestAnimationFrame(() => scrollVerseToTop(prevId));
   };
 
   const moveToNextVerse = useCallback(async () => {
@@ -234,9 +275,19 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       if (status.hasUnsavedChanges) {
         await saveImmediately(activeVerseId, currentVerse.content);
       }
-      // useLayoutEffect will focus and reposition after state updates
+      // Scroll so the previous verse aligns to the top of the container (or verse 1)
+      const prevId = Math.max(1, nextVerseId - 1);
+      requestAnimationFrame(() => scrollVerseToTop(prevId));
     }
-  }, [activeVerseId, verses, totalSourceVerses, saveImmediately, setInitialContent, getSaveStatus]);
+  }, [
+    activeVerseId,
+    verses,
+    totalSourceVerses,
+    saveImmediately,
+    setInitialContent,
+    getSaveStatus,
+    scrollVerseToTop,
+  ]);
 
   const handleSubmit = async () => {
     if (isTranslationComplete) {
@@ -320,7 +371,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
             {sourceVerses.map(verse => {
               const isActive = activeVerseId === verse.verseNumber;
               const currentTargetVerse = verses.find(v => v.verseNumber === verse.verseNumber);
-              const hasContent = !!currentTargetVerse?.content.trim();
               return (
                 <div
                   key={verse.verseNumber}
@@ -345,7 +395,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
                   {/* target verse */}
                   <div
-                    className={`col-2 flex transition-all ${activeVerseId >= verse.verseNumber || hasContent ? '' : 'hidden'}`}
+                    className={`col-2 flex transition-all ${isActive || revealedVerses.has(verse.verseNumber) ? '' : 'hidden'}`}
                   >
                     <div
                       className={`flex-1 cursor-pointer rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
@@ -353,8 +403,13 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                     >
                       <textarea
                         ref={el => (textareaRefs.current[verse.verseNumber] = el)}
+                        aria-label={`Translation for verse ${verse.verseNumber}`}
+                        autoCapitalize='sentences'
+                        autoCorrect='on'
                         className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-relaxed leading-snug text-gray-800 outline-none'
+                        id={`verse-${verse.verseNumber}`}
                         placeholder='Enter translation...'
+                        spellCheck={true}
                         value={currentTargetVerse?.content ?? ''}
                         onChange={e => handleTextChange(verse.verseNumber, e.target.value)}
                         onFocus={() => handleActiveVerseChange(verse.verseNumber)}
@@ -375,7 +430,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                       : 'cursor-not-allowed bg-gray-300 text-gray-500'
                   }`}
                   disabled={!verses.find(v => v.verseNumber === activeVerseId)?.content.trim()}
-                  title='Enter'
+                  title='Next Verse (Enter)'
                   onClick={() => moveToNextVerse()}
                 >
                   Next Verse
