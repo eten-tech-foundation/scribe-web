@@ -328,10 +328,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                   className='grid grid-cols-2 gap-4 px-6 py-4'
                 >
                   {/* source verse */}
-                  <div
-                    className='col-1 flex cursor-pointer items-start transition-all'
-                    onClick={() => handleActiveVerseChange(verse.verseNumber)}
-                  >
+                  <div className='col-1 flex items-start transition-all'>
                     <div className='w-8 flex-shrink-0'>
                       <span className='text-lg font-medium text-gray-700'>{verse.verseNumber}</span>
                     </div>
@@ -348,7 +345,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
                   {/* target verse */}
                   <div
-                    className={`col-2 flex transition-all ${isActive || hasContent ? '' : 'hidden'}`}
+                    className={`col-2 flex transition-all ${activeVerseId >= verse.verseNumber || hasContent ? '' : 'hidden'}`}
                   >
                     <div
                       className={`flex-1 cursor-pointer rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
