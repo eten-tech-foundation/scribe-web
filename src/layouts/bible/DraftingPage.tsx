@@ -86,30 +86,15 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         return targetVerse && targetVerse.content.trim() !== '';
       });
 
+      let mostRecentlyEditedVerseNumber = 1;
+
       if (allVersesCompleted) {
-        setActiveVerseId(1);
+        setActiveVerseId(mostRecentlyEditedVerseNumber);
       } else {
         // Find the first empty verse
         const firstEmptyVerse = targetVerses.find(v => v.content.trim() === '') ?? targetVerses[0];
-        const mostRecentlyEditedVerseNumber = firstEmptyVerse.verseNumber;
-
-        const lastVerseWithContent = (() => {
-          for (let i = targetVerses.length - 1; i >= 0; i--) {
-            if (targetVerses[i].content.trim() !== '') return targetVerses[i];
-          }
-          return targetVerses[0];
-        })();
-
+        mostRecentlyEditedVerseNumber = firstEmptyVerse.verseNumber;
         setActiveVerseId(mostRecentlyEditedVerseNumber);
-
-        // Initialize revealed verses with those that have content and the initial active verse
-        const initiallyRevealed = new Set<number>();
-        targetVerses.forEach(v => {
-          if (v.verseNumber <= lastVerseWithContent.verseNumber)
-            initiallyRevealed.add(v.verseNumber);
-        });
-        initiallyRevealed.add(mostRecentlyEditedVerseNumber);
-        setRevealedVerses(initiallyRevealed);
 
         // Scroll the active verse into view
         if (mostRecentlyEditedVerseNumber > 1) {
@@ -119,6 +104,21 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
           }
         }
       }
+
+      const lastVerseWithContent = (() => {
+        for (let i = targetVerses.length - 1; i >= 0; i--) {
+          if (targetVerses[i].content.trim() !== '') return targetVerses[i];
+        }
+        return targetVerses[0];
+      })();
+
+      // Initialize revealed verses with those that have content and the initial active verse
+      const initiallyRevealed = new Set<number>();
+      targetVerses.forEach(v => {
+        if (v.verseNumber <= lastVerseWithContent.verseNumber) initiallyRevealed.add(v.verseNumber);
+      });
+      initiallyRevealed.add(mostRecentlyEditedVerseNumber);
+      setRevealedVerses(initiallyRevealed);
     }
   }, [targetVerses, sourceVerses, setInitialContent]);
 
