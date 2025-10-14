@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { useMatch, useNavigate } from '@tanstack/react-router';
 import { Loader } from 'lucide-react';
@@ -48,6 +48,21 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({});
   const verseRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [buttonTop, setButtonTop] = useState<number>(0);
+
+  const lastRevealedVerseNumber = useMemo(
+    () => (revealedVerses.size > 0 ? Math.max(...Array.from(revealedVerses)) : 1),
+    [revealedVerses]
+  );
+
+  const lastRevealedVerse = useMemo(
+    () => verses.find(v => v.verseNumber === lastRevealedVerseNumber),
+    [verses, lastRevealedVerseNumber]
+  );
+
+  const lastRevealedVerseHasContent = useMemo(
+    () => Boolean(lastRevealedVerse?.content.trim()),
+    [lastRevealedVerse]
+  );
 
   const saveVerse = useCallback(
     async (verse: number, text: string) => {
@@ -165,14 +180,17 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const updateButtonPosition = useCallback(() => {
     const container = targetScrollRef.current;
-    const textarea = textareaRefs.current[activeVerseId];
-    if (!container || !textarea) return;
+    if (!container) return;
+
+    const lastRevealedVerseDiv = verseRefs.current[lastRevealedVerseNumber];
+
+    if (!lastRevealedVerseDiv) return;
 
     const containerRect = container.getBoundingClientRect();
-    const textareaRect = textarea.getBoundingClientRect();
-    const top = container.scrollTop + (textareaRect.bottom - containerRect.top) + 20; // 20px gap
+    const verseRect = lastRevealedVerseDiv.getBoundingClientRect();
+    const top = container.scrollTop + (verseRect.bottom - containerRect.top); // 20px gap
     setButtonTop(top);
-  }, [activeVerseId]);
+  }, [lastRevealedVerseNumber]);
 
   const scrollVerseToTop = useCallback((verseNumber: number) => {
     const container = targetScrollRef.current;
@@ -199,7 +217,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       autoResizeTextarea(textarea);
     }
     updateButtonPosition();
-  }, [activeVerseId, verses]);
+  }, [activeVerseId, verses, revealedVerses, updateButtonPosition]);
 
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
@@ -424,11 +442,11 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
               <div className='absolute right-4 z-10' style={{ top: buttonTop }}>
                 <Button
                   className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
-                    verses.find(v => v.verseNumber === activeVerseId)?.content.trim()
+                    lastRevealedVerseHasContent
                       ? 'hover:bg-primary-hover cursor-pointer text-white'
                       : 'cursor-not-allowed bg-gray-300 text-gray-500'
                   }`}
-                  disabled={!verses.find(v => v.verseNumber === activeVerseId)?.content.trim()}
+                  disabled={!lastRevealedVerseHasContent}
                   title='Next Verse (Enter)'
                   onClick={() => moveToNextVerse()}
                 >
