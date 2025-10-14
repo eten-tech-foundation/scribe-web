@@ -199,7 +199,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       autoResizeTextarea(textarea);
     }
     updateButtonPosition();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeVerseId, verses]);
 
   const totalSourceVerses = sourceVerses.length;
