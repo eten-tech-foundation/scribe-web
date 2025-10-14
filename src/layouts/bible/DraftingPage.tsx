@@ -353,7 +353,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         </div>
       </div>
 
-      <div className='mx-auto max-w-5xl flex-1 overflow-hidden'>
+      <div className='mx-auto max-w-7xl flex-1 overflow-hidden'>
         <div className='grid h-full grid-cols-2' style={{ gridTemplateRows: '4rem 1fr' }}>
           <div className='bg-background sticky top-0 z-10 ml-8 px-6 py-4'>
             <h3 className='text-xl font-bold text-gray-800'>{projectItem.bibleName}</h3>
