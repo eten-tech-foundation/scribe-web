@@ -271,40 +271,55 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     requestAnimationFrame(() => scrollVerseToTop(prevId));
   };
 
-  const moveToNextVerse = useCallback(async () => {
-    const currentVerse = verses.find(v => v.verseNumber === activeVerseId);
-    if (!currentVerse || currentVerse.content.trim() === '') return;
+  const advanceToVerse = useCallback(
+    async (nextVerseId: number, verseToSave?: { verseNumber: number; content: string }) => {
+      if (nextVerseId > totalSourceVerses) return;
 
-    const nextVerseId = activeVerseId + 1;
-
-    if (nextVerseId <= totalSourceVerses) {
+      // Create the next verse if it doesn't exist
       const nextVerseExists = verses.find(v => v.verseNumber === nextVerseId);
-
       if (!nextVerseExists) {
         setVerses(prev => [...prev, { verseNumber: nextVerseId, content: '' }]);
         setInitialContent(nextVerseId, '');
       }
 
+      // Save the specified verse if it has unsaved changes
+      if (verseToSave) {
+        const status = getSaveStatus(verseToSave.verseNumber);
+        if (status.hasUnsavedChanges) {
+          await saveImmediately(verseToSave.verseNumber, verseToSave.content);
+        }
+      }
+
+      // Update active verse and scroll
       setPreviousActiveVerseId(activeVerseId);
       setActiveVerseId(nextVerseId);
 
-      const status = getSaveStatus(activeVerseId);
-      if (status.hasUnsavedChanges) {
-        await saveImmediately(activeVerseId, currentVerse.content);
-      }
-      // Scroll so the previous verse aligns to the top of the container (or verse 1)
       const prevId = Math.max(1, nextVerseId - 1);
       requestAnimationFrame(() => scrollVerseToTop(prevId));
-    }
-  }, [
-    activeVerseId,
-    verses,
-    totalSourceVerses,
-    saveImmediately,
-    setInitialContent,
-    getSaveStatus,
-    scrollVerseToTop,
-  ]);
+    },
+    [
+      activeVerseId,
+      verses,
+      totalSourceVerses,
+      saveImmediately,
+      setInitialContent,
+      getSaveStatus,
+      scrollVerseToTop,
+    ]
+  );
+
+  const moveToNextVerse = useCallback(async () => {
+    const currentVerse = verses.find(v => v.verseNumber === activeVerseId);
+    if (!currentVerse || currentVerse.content.trim() === '') return;
+
+    await advanceToVerse(activeVerseId + 1, currentVerse);
+  }, [activeVerseId, verses, advanceToVerse]);
+
+  const revealNextVerse = useCallback(async () => {
+    if (!lastRevealedVerseHasContent || !lastRevealedVerse) return;
+
+    await advanceToVerse(lastRevealedVerseNumber + 1, lastRevealedVerse);
+  }, [lastRevealedVerseNumber, lastRevealedVerseHasContent, lastRevealedVerse, advanceToVerse]);
 
   const handleSubmit = async () => {
     if (isTranslationComplete) {
@@ -447,8 +462,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                       : 'cursor-not-allowed bg-gray-300 text-gray-500'
                   }`}
                   disabled={!lastRevealedVerseHasContent}
-                  title='Next Verse (Enter)'
-                  onClick={() => moveToNextVerse()}
+                  title='Next Verse'
+                  onClick={() => revealNextVerse()}
                 >
                   Next Verse
                 </Button>
