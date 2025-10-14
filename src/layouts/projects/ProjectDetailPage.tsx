@@ -34,8 +34,10 @@ import { ViewPageHeader } from '@/layouts/projects/ViewPageHeader';
 import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
+import { ExportProjectDialog } from './ExportProjectDialog';
+
 interface ProjectDetailPageProps {
-  projectId?: string;
+  projectId?: number | null;
   projectTitle: string;
   projectSourceLanguageName: string;
   projectTargetLanguageName: string;
@@ -59,21 +61,23 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const [selectedAssignments, setSelectedAssignments] = useState<number[]>([]);
   const [isRefreshingAfterAssignment, setIsRefreshingAfterAssignment] = useState(false);
   const [updatingAssignmentIds, setUpdatingAssignmentIds] = useState<number[]>([]);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
-  // Fetch chapter assignments
   const {
     data: chapterAssignments,
     isLoading: assignmentsLoading,
     isFetching: assignmentsFetching,
   } = useChapterAssignments(projectId ? projectId.toString() : '0', userdetail?.email ?? '');
 
-  // Fetch books
+  const projectUnitId = useMemo(() => {
+    return chapterAssignments?.[0]?.projectUnitId ?? null;
+  }, [chapterAssignments]);
+
   const { data: books, isLoading: booksLoading } = useProjectUnitBooks(
     projectId ? projectId.toString() : '0',
     userdetail?.email ?? ''
   );
 
-  // Fetch users
   const { data: users, isLoading: usersLoading } = useUsers(userdetail?.email ?? '');
 
   const getSelectedUserFullName = () => {
@@ -99,6 +103,28 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       assignment => assignment.bookNameEng === selectedBookData.engDisplayName
     );
   }, [chapterAssignments, selectedBook, books]);
+
+  const exportBooks = useMemo(() => {
+    if (!books || !chapterAssignments) return [];
+
+    return books.map(book => {
+      const bookAssignments = chapterAssignments.filter(
+        assignment => assignment.bookNameEng === book.engDisplayName
+      );
+
+      const completedChapters = bookAssignments.filter(
+        assignment => assignment.completedVerses === assignment.totalVerses
+      ).length;
+
+      return {
+        bookId: book.bookId,
+        engDisplayName: book.engDisplayName,
+        code: book.code,
+        completedChapters,
+        totalChapters: bookAssignments.length || 0,
+      };
+    });
+  }, [books, chapterAssignments]);
 
   const formatProgress = (completedVerses: number, totalVerses: number) => {
     return `${completedVerses} of ${totalVerses}`;
@@ -160,8 +186,21 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
   return (
     <div className='flex h-full min-w-[750px] flex-col'>
-      {/* Header with Back Button */}
-      <ViewPageHeader title={headerTitle} onBack={onBack} />
+      <ViewPageHeader
+        rightContent={
+          <Button
+            className='border-primary text-primary hover flex items-center gap-2 border-2'
+            disabled={booksLoading || !books || books.length === 0}
+            size='sm'
+            variant={'outline'}
+            onClick={() => setIsExportDialogOpen(true)}
+          >
+            Export Project
+          </Button>
+        }
+        title={headerTitle}
+        onBack={onBack}
+      />
 
       <div className='flex flex-1 overflow-hidden md:gap-4 lg:gap-6'>
         {/* Project Details Card - Exactly 1/3 width */}
@@ -188,7 +227,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
         {/* Table Section - Exactly 2/3 width */}
         <div className='flex w-2/3 flex-grow flex-col overflow-hidden'>
-          {/* Book Selection Section */}
           <div className='flex-shrink-0 pb-4 pl-[3px]'>
             <div className='flex items-center gap-3'>
               <Select value={selectedBook} onValueChange={setSelectedBook}>
@@ -322,7 +360,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         </div>
       </div>
 
-      {/* User Assignment Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className='sm:max-w-md' onInteractOutside={e => e.preventDefault()}>
           <DialogHeader>
@@ -360,6 +397,15 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ExportProjectDialog
+        books={exportBooks}
+        isLoading={booksLoading}
+        isOpen={isExportDialogOpen}
+        projectName={projectTitle}
+        projectUnitId={projectUnitId}
+        onClose={() => setIsExportDialogOpen(false)}
+      />
     </div>
   );
 };
