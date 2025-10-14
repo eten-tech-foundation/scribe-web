@@ -453,7 +453,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
               );
             })}
 
-            {activeVerseId < totalSourceVerses && (
+            {revealedVerses.size < totalSourceVerses && (
               <div className='absolute right-4 z-10' style={{ top: buttonTop }}>
                 <Button
                   className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
