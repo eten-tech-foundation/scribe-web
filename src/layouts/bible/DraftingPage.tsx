@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { useMatch, useNavigate } from '@tanstack/react-router';
 import { Loader } from 'lucide-react';
@@ -6,11 +6,8 @@ import { Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
 import { useBibleTextDebounce } from '@/hooks/useBibleTextDebounce';
-import { TargetPanel } from '@/layouts/bible/TargetPanel';
 import { type ProjectItem, type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
-
-import { SourcePanel } from './SourcePanel';
 
 export interface Source {
   id: number;
@@ -44,11 +41,28 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const [verses, setVerses] = useState<TargetVerse[]>(targetVerses);
   const [activeVerseId, setActiveVerseId] = useState(1);
   const [previousActiveVerseId, setPreviousActiveVerseId] = useState<number | null>(null);
-  const [textareaHeights, setTextareaHeights] = useState<Record<number, number>>({});
+  const [revealedVerses, setRevealedVerses] = useState<Set<number>>(new Set());
 
-  const sourceScrollRef = useRef<HTMLDivElement>(null);
   const targetScrollRef = useRef<HTMLDivElement>(null);
-  const isScrollingSyncRef = useRef(false);
+
+  const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({});
+  const verseRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const [buttonTop, setButtonTop] = useState<number>(0);
+
+  const lastRevealedVerseNumber = useMemo(
+    () => (revealedVerses.size > 0 ? Math.max(...Array.from(revealedVerses)) : 1),
+    [revealedVerses]
+  );
+
+  const lastRevealedVerse = useMemo(
+    () => verses.find(v => v.verseNumber === lastRevealedVerseNumber),
+    [verses, lastRevealedVerseNumber]
+  );
+
+  const lastRevealedVerseHasContent = useMemo(
+    () => Boolean(lastRevealedVerse?.content.trim()),
+    [lastRevealedVerse]
+  );
 
   const saveVerse = useCallback(
     async (verse: number, text: string) => {
@@ -76,17 +90,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     }
   );
 
-  const handleHeightChange = (verseId: number, height: number) => {
-    setTextareaHeights(prev => {
-      const currentHeight = prev[verseId] || 0;
-      const newHeight = Math.max(currentHeight, height);
-      if (newHeight !== currentHeight) {
-        return { ...prev, [verseId]: newHeight };
-      }
-      return prev;
-    });
-  };
-
   useEffect(() => {
     if (targetVerses.length > 0) {
       targetVerses.forEach(verse => {
@@ -98,30 +101,123 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         return targetVerse && targetVerse.content.trim() !== '';
       });
 
+      let mostRecentlyEditedVerseNumber = 1;
+
       if (allVersesCompleted) {
-        setActiveVerseId(1);
+        setActiveVerseId(mostRecentlyEditedVerseNumber);
       } else {
-        // Find the most recently edited verse (last verse with content)
-        let mostRecentlyEditedVerse = 1;
+        // Find the first empty verse
+        const firstEmptyVerse = targetVerses.find(v => v.content.trim() === '') ?? targetVerses[0];
+        mostRecentlyEditedVerseNumber = firstEmptyVerse.verseNumber;
+        setActiveVerseId(mostRecentlyEditedVerseNumber);
 
-        for (let i = targetVerses.length - 1; i >= 0; i--) {
-          if (targetVerses[i].content.trim() !== '') {
-            mostRecentlyEditedVerse = targetVerses[i].verseNumber;
-            break;
+        // Scroll the active verse into view
+        if (mostRecentlyEditedVerseNumber > 1) {
+          const verseDiv = verseRefs.current[mostRecentlyEditedVerseNumber];
+          if (verseDiv) {
+            verseDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         }
-
-        // If no verses have content, find first empty verse
-        if (mostRecentlyEditedVerse === 1 && targetVerses[0]?.content.trim() === '') {
-          const firstEmpty = targetVerses.find(v => v.content.trim() === '');
-          if (firstEmpty) {
-            mostRecentlyEditedVerse = firstEmpty.verseNumber;
-          }
-        }
-        setActiveVerseId(mostRecentlyEditedVerse);
       }
+
+      const lastVerseWithContent = (() => {
+        for (let i = targetVerses.length - 1; i >= 0; i--) {
+          if (targetVerses[i].content.trim() !== '') return targetVerses[i];
+        }
+        return targetVerses[0];
+      })();
+
+      // Initialize revealed verses with those that have content and the initial active verse
+      const initiallyRevealed = new Set<number>();
+      targetVerses.forEach(v => {
+        if (v.verseNumber <= lastVerseWithContent.verseNumber) initiallyRevealed.add(v.verseNumber);
+      });
+      initiallyRevealed.add(mostRecentlyEditedVerseNumber);
+      setRevealedVerses(initiallyRevealed);
     }
   }, [targetVerses, sourceVerses, setInitialContent]);
+
+  // Whenever active verse changes, mark it as revealed
+  useEffect(() => {
+    setRevealedVerses(prev => {
+      if (prev.has(activeVerseId)) return prev;
+      const next = new Set(prev);
+      next.add(activeVerseId);
+      return next;
+    });
+  }, [activeVerseId]);
+
+  // Ensure revealed textareas are properly sized on reveal (including on page load)
+  useEffect(() => {
+    revealedVerses.forEach(verseNumber => {
+      const textarea = textareaRefs.current[verseNumber];
+      if (textarea) autoResizeTextarea(textarea);
+    });
+  }, [revealedVerses]);
+
+  useEffect(() => {
+    if (verses.length === 0) {
+      setVerses([
+        {
+          verseNumber: 1,
+          content: '',
+        },
+      ]);
+    } else {
+      verses.forEach(verse => {
+        const textarea = textareaRefs.current[verse.verseNumber];
+        if (textarea && verse.content) {
+          autoResizeTextarea(textarea);
+        }
+      });
+    }
+  }, [setVerses, verses]);
+
+  const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.max(20, textarea.scrollHeight) + 'px';
+  };
+
+  const updateButtonPosition = useCallback(() => {
+    const container = targetScrollRef.current;
+    if (!container) return;
+
+    const lastRevealedVerseDiv = verseRefs.current[lastRevealedVerseNumber];
+
+    if (!lastRevealedVerseDiv) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const verseRect = lastRevealedVerseDiv.getBoundingClientRect();
+    const top = container.scrollTop + (verseRect.bottom - containerRect.top); // 20px gap
+    setButtonTop(top);
+  }, [lastRevealedVerseNumber]);
+
+  const scrollVerseToTop = useCallback((verseNumber: number) => {
+    const container = targetScrollRef.current;
+    const row = verseRefs.current[verseNumber];
+    if (!container || !row) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+
+    // Compute new scrollTop so that the row's top aligns with the container's top
+    const newScrollTop = container.scrollTop + (rowRect.top - containerRect.top);
+    container.scrollTo({ top: newScrollTop, behavior: 'smooth' });
+  }, []);
+
+  useLayoutEffect(() => {
+    // Focus and position updates after DOM mutations, before paint
+    const textarea = textareaRefs.current[activeVerseId];
+    if (textarea) {
+      textarea.focus();
+      const len = textarea.value.length;
+      try {
+        textarea.setSelectionRange(len, len);
+      } catch {}
+      autoResizeTextarea(textarea);
+    }
+    updateButtonPosition();
+  }, [activeVerseId, verses, revealedVerses, updateButtonPosition]);
 
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
@@ -146,6 +242,16 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     debouncedSave(id, text);
   };
 
+  const handleTextChange = (verseId: number, text: string) => {
+    updateTargetVerse(verseId, text);
+
+    const textarea = textareaRefs.current[verseId];
+    if (textarea) {
+      autoResizeTextarea(textarea);
+    }
+    updateButtonPosition();
+  };
+
   const handleActiveVerseChange = async (newVerseId: number) => {
     if (previousActiveVerseId !== null && previousActiveVerseId !== newVerseId) {
       const previousVerse = verses.find(v => v.verseNumber === previousActiveVerseId);
@@ -159,46 +265,61 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
     setPreviousActiveVerseId(activeVerseId);
     setActiveVerseId(newVerseId);
+    // useLayoutEffect will focus and reposition Next button after state updates
+    // Also scroll so the previous verse aligns to the top (or verse 1)
+    const prevId = Math.max(1, newVerseId - 1);
+    requestAnimationFrame(() => scrollVerseToTop(prevId));
   };
 
-  const moveToNextVerse = useCallback(async () => {
-    const currentVerse = verses.find(v => v.verseNumber === activeVerseId);
-    if (!currentVerse || currentVerse.content.trim() === '') return;
+  const advanceToVerse = useCallback(
+    async (nextVerseId: number, verseToSave?: { verseNumber: number; content: string }) => {
+      if (nextVerseId > totalSourceVerses) return;
 
-    const nextVerseId = activeVerseId + 1;
-
-    if (nextVerseId <= totalSourceVerses) {
+      // Create the next verse if it doesn't exist
       const nextVerseExists = verses.find(v => v.verseNumber === nextVerseId);
-
       if (!nextVerseExists) {
         setVerses(prev => [...prev, { verseNumber: nextVerseId, content: '' }]);
         setInitialContent(nextVerseId, '');
       }
 
+      // Save the specified verse if it has unsaved changes
+      if (verseToSave) {
+        const status = getSaveStatus(verseToSave.verseNumber);
+        if (status.hasUnsavedChanges) {
+          await saveImmediately(verseToSave.verseNumber, verseToSave.content);
+        }
+      }
+
+      // Update active verse and scroll
       setPreviousActiveVerseId(activeVerseId);
       setActiveVerseId(nextVerseId);
 
-      const status = getSaveStatus(activeVerseId);
-      if (status.hasUnsavedChanges) {
-        await saveImmediately(activeVerseId, currentVerse.content);
-      }
-    }
-  }, [activeVerseId, verses, totalSourceVerses, saveImmediately, setInitialContent, getSaveStatus]);
+      const prevId = Math.max(1, nextVerseId - 1);
+      requestAnimationFrame(() => scrollVerseToTop(prevId));
+    },
+    [
+      activeVerseId,
+      verses,
+      totalSourceVerses,
+      saveImmediately,
+      setInitialContent,
+      getSaveStatus,
+      scrollVerseToTop,
+    ]
+  );
 
-  const handleScroll = (source: 'source' | 'target', scrollTop: number) => {
-    if (isScrollingSyncRef.current) return;
-    isScrollingSyncRef.current = true;
+  const moveToNextVerse = useCallback(async () => {
+    const currentVerse = verses.find(v => v.verseNumber === activeVerseId);
+    if (!currentVerse || currentVerse.content.trim() === '') return;
 
-    if (source === 'source' && targetScrollRef.current) {
-      targetScrollRef.current.scrollTop = scrollTop;
-    } else if (source === 'target' && sourceScrollRef.current) {
-      sourceScrollRef.current.scrollTop = scrollTop;
-    }
+    await advanceToVerse(activeVerseId + 1, currentVerse);
+  }, [activeVerseId, verses, advanceToVerse]);
 
-    setTimeout(() => {
-      isScrollingSyncRef.current = false;
-    }, 50);
-  };
+  const revealNextVerse = useCallback(async () => {
+    if (!lastRevealedVerseHasContent || !lastRevealedVerse) return;
+
+    await advanceToVerse(lastRevealedVerseNumber + 1, lastRevealedVerse);
+  }, [lastRevealedVerseNumber, lastRevealedVerseHasContent, lastRevealedVerse, advanceToVerse]);
 
   const handleSubmit = async () => {
     if (isTranslationComplete) {
@@ -216,6 +337,13 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         email: userdetail.email,
       });
       await navigate({ to: '/' });
+    }
+  };
+
+  const handleKeyDown = async (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      await moveToNextVerse();
     }
   };
 
@@ -258,34 +386,89 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         </div>
       </div>
 
-      <div className='flex-1 overflow-hidden'>
-        <div className='flex h-full'>
-          <div className='w-1/2'>
-            <SourcePanel
-              activeVerseId={activeVerseId}
-              bibleName={projectItem.bibleName}
-              scrollRef={sourceScrollRef}
-              textareaHeights={textareaHeights}
-              verses={sourceVerses}
-              onHeightChange={handleHeightChange}
-              onScroll={scrollTop => handleScroll('source', scrollTop)}
-            />
+      <div className='mx-auto max-w-7xl flex-1 overflow-hidden'>
+        <div className='grid h-full grid-cols-2' style={{ gridTemplateRows: '4rem 1fr' }}>
+          <div className='bg-background sticky top-0 z-10 ml-8 px-6 py-4'>
+            <h3 className='text-xl font-bold text-gray-800'>{projectItem.bibleName}</h3>
           </div>
-          <div className='w-1/2'>
-            <TargetPanel
-              activeVerseId={activeVerseId}
-              moveToNextVerse={moveToNextVerse}
-              scrollRef={targetScrollRef}
-              setActiveVerseId={handleActiveVerseChange}
-              setVerses={setVerses}
-              targetLanguage={projectItem.targetLanguage}
-              textareaHeights={textareaHeights}
-              totalSourceVerses={totalSourceVerses}
-              updateVerse={updateTargetVerse}
-              verses={verses}
-              onHeightChange={handleHeightChange}
-              onScroll={scrollTop => handleScroll('target', scrollTop)}
-            />
+          <div className='bg-background sticky top-0 z-10 py-4'>
+            <h3 className='text-xl font-bold text-gray-800'>{projectItem.targetLanguage}</h3>
+          </div>
+
+          <div
+            ref={targetScrollRef}
+            className='relative col-span-2 flex h-full flex-col overflow-y-auto'
+            onScroll={() => updateButtonPosition()}
+          >
+            {sourceVerses.map(verse => {
+              const isActive = activeVerseId === verse.verseNumber;
+              const currentTargetVerse = verses.find(v => v.verseNumber === verse.verseNumber);
+              return (
+                <div
+                  key={verse.verseNumber}
+                  ref={el => (verseRefs.current[verse.verseNumber] = el)}
+                  className='grid grid-cols-2 gap-4 px-6 py-4'
+                >
+                  {/* source verse */}
+                  <div className='col-1 flex items-start transition-all'>
+                    <div className='w-8 flex-shrink-0'>
+                      <span className='text-lg font-medium text-gray-700'>{verse.verseNumber}</span>
+                    </div>
+                    <div className='flex-1'>
+                      <div
+                        className={`bg-card rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
+                      >
+                        <p className='min-h-12 content-center overflow-hidden text-base leading-relaxed leading-snug text-gray-800 outline-none'>
+                          {verse.text}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* target verse */}
+                  <div
+                    className={`col-2 flex transition-all ${isActive || revealedVerses.has(verse.verseNumber) ? '' : 'hidden'}`}
+                  >
+                    <div
+                      className={`flex-1 cursor-pointer rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
+                      onClick={() => handleActiveVerseChange(verse.verseNumber)}
+                    >
+                      <textarea
+                        ref={el => (textareaRefs.current[verse.verseNumber] = el)}
+                        aria-label={`Translation for verse ${verse.verseNumber}`}
+                        autoCapitalize='sentences'
+                        autoCorrect='on'
+                        className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-relaxed leading-snug text-gray-800 outline-none'
+                        id={`verse-${verse.verseNumber}`}
+                        placeholder='Enter translation...'
+                        spellCheck={true}
+                        value={currentTargetVerse?.content ?? ''}
+                        onChange={e => handleTextChange(verse.verseNumber, e.target.value)}
+                        onFocus={() => handleActiveVerseChange(verse.verseNumber)}
+                        onKeyDown={e => handleKeyDown(e)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {revealedVerses.size < totalSourceVerses && (
+              <div className='absolute right-4 z-10' style={{ top: buttonTop }}>
+                <Button
+                  className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
+                    lastRevealedVerseHasContent
+                      ? 'hover:bg-primary-hover cursor-pointer text-white'
+                      : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                  }`}
+                  disabled={!lastRevealedVerseHasContent}
+                  title='Next Verse'
+                  onClick={() => revealNextVerse()}
+                >
+                  Next Verse
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
