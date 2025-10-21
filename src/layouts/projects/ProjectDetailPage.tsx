@@ -190,7 +190,13 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         rightContent={
           <Button
             className='border-primary text-primary hover flex items-center gap-2 border-2'
-            disabled={booksLoading || !books || books.length === 0}
+            disabled={
+              booksLoading ||
+              !books ||
+              books.length === 0 ||
+              !chapterAssignments ||
+              chapterAssignments.length === 0
+            }
             size='sm'
             variant={'outline'}
             onClick={() => setIsExportDialogOpen(true)}
