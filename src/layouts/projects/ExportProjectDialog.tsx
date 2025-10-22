@@ -51,27 +51,28 @@ export const ExportProjectDialog: React.FC<ExportProjectDialogProps> = ({
   const [isExporting, setIsExporting] = useState(false);
 
   const exportUsfm = useExportUsfm();
+  const filteredBooks = useMemo(() => books.filter(book => book.totalChapters > 0), [books]);
 
   useEffect(() => {
-    if (isOpen && books.length > 0) {
-      setSelectedBooks(books.map(book => book.bookId));
+    if (isOpen && filteredBooks.length > 0) {
+      setSelectedBooks(filteredBooks.map(book => book.bookId));
       setError(null);
     }
-  }, [isOpen, books]);
+  }, [isOpen, filteredBooks]);
 
   const isAllSelected = useMemo(
-    () => books.length > 0 && selectedBooks.length === books.length,
-    [books.length, selectedBooks.length]
+    () => filteredBooks.length > 0 && selectedBooks.length === filteredBooks.length,
+    [filteredBooks.length, selectedBooks.length]
   );
 
   const isIndeterminate = useMemo(
-    () => selectedBooks.length > 0 && selectedBooks.length < books.length,
-    [selectedBooks.length, books.length]
+    () => selectedBooks.length > 0 && selectedBooks.length < filteredBooks.length,
+    [selectedBooks.length, filteredBooks.length]
   );
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedBooks(books.map(book => book.bookId));
+      setSelectedBooks(filteredBooks.map(book => book.bookId));
     } else {
       setSelectedBooks([]);
     }
@@ -96,7 +97,12 @@ export const ExportProjectDialog: React.FC<ExportProjectDialogProps> = ({
       const url = window.URL.createObjectURL(zipBlob);
       const link = document.createElement('a');
       const now = new Date();
-      const timestamp = now.toISOString().replace(/[:T]/g, '-').split('.')[0];
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hour = String(now.getHours()).padStart(2, '0');
+      const minute = String(now.getMinutes()).padStart(2, '0');
+      const timestamp = `${year}-${month}-${day}-${hour}-${minute}`;
       const filename = `${timestamp} ${projectName}.zip`;
 
       link.href = url;
@@ -138,7 +144,7 @@ export const ExportProjectDialog: React.FC<ExportProjectDialogProps> = ({
               <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
               <span className='text-gray-500'>Loading books...</span>
             </div>
-          ) : books.length === 0 ? (
+          ) : filteredBooks.length === 0 ? (
             <div className='flex items-center justify-center py-8'>
               <span className='text-gray-500'>No books found in this project</span>
             </div>
@@ -148,7 +154,7 @@ export const ExportProjectDialog: React.FC<ExportProjectDialogProps> = ({
                 <Table>
                   <TableHeader className='sticky top-0 z-10'>
                     <TableRow>
-                      <TableHead className='w-12 px-4 py-3'>
+                      <TableHead className='bg-popover w-12 px-4 py-3'>
                         <Checkbox
                           checked={isAllSelected}
                           className={
@@ -160,16 +166,16 @@ export const ExportProjectDialog: React.FC<ExportProjectDialogProps> = ({
                           onCheckedChange={handleSelectAll}
                         />
                       </TableHead>
-                      <TableHead className='px-4 py-3 text-left text-sm font-semibold'>
-                        Book Name
+                      <TableHead className='bg-popover px-4 py-3 text-left text-sm font-semibold'>
+                        Book
                       </TableHead>
-                      <TableHead className='px-4 py-3 text-left text-sm font-semibold'>
+                      <TableHead className='bg-popover px-4 py-3 text-left text-sm font-semibold'>
                         Completed Chapters
                       </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {books.map(book => (
+                    {filteredBooks.map(book => (
                       <TableRow
                         key={book.bookId}
                         className='hover cursor-pointer'

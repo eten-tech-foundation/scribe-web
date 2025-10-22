@@ -178,6 +178,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const isLoadingData = assignmentsLoading || assignChapterMutation.isPending;
 
   const isRefreshing = isRefreshingAfterAssignment && assignmentsFetching && !assignmentsLoading;
+  const isDisabled = booksLoading || !books?.length || !chapterAssignments?.length;
 
   if (isRefreshingAfterAssignment && !assignmentsFetching) {
     setIsRefreshingAfterAssignment(false);
@@ -190,7 +191,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         rightContent={
           <Button
             className='border-primary text-primary hover flex items-center gap-2 border-2'
-            disabled={booksLoading || !books || books.length === 0}
+            disabled={isDisabled}
             size='sm'
             variant={'outline'}
             onClick={() => setIsExportDialogOpen(true)}
