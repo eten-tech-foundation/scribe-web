@@ -209,15 +209,18 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     // Focus and position updates after DOM mutations, before paint
     const textarea = textareaRefs.current[activeVerseId];
     if (textarea) {
-      textarea.focus();
-      const len = textarea.value.length;
-      try {
-        textarea.setSelectionRange(len, len);
-      } catch {}
+      // Only move focus/caret when switching verses, not on every text change
+      if (document.activeElement !== textarea) {
+        textarea.focus();
+        const len = textarea.value.length;
+        try {
+          textarea.setSelectionRange(len, len);
+        } catch {}
+      }
       autoResizeTextarea(textarea);
     }
     updateButtonPosition();
-  }, [activeVerseId, verses, revealedVerses, updateButtonPosition]);
+  }, [activeVerseId, revealedVerses, updateButtonPosition]);
 
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
