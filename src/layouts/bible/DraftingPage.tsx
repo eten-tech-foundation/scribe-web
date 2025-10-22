@@ -433,7 +433,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                     className={`col-2 flex transition-all ${isActive || revealedVerses.has(verse.verseNumber) ? '' : 'hidden'}`}
                   >
                     <div
-                      className={`flex-1 cursor-pointer rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
+                      className={`flex-1 cursor-pointer rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''} ${currentTargetVerse?.content.trim() !== '' && !isActive ? 'bg-card' : ''}`}
                       onClick={() => handleActiveVerseChange(verse.verseNumber)}
                     >
                       <textarea
