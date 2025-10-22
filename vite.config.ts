@@ -53,5 +53,17 @@ export default defineConfig(({ mode }) => {
     test: {
       environment: 'jsdom',
     },
+    server: {
+      proxy: {
+        '/api': {
+          target: 'https://api.aquifer.bible',
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/api/, ''),
+          headers: {
+            'api-key': '16ebe125927f4b3a87c5020a9683054a', // Add your API key
+          },
+        },
+      },
+    },
   };
 });

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { useMatch, useNavigate } from '@tanstack/react-router';
-import { Loader } from 'lucide-react';
+import { BookText, Loader } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
 import { useBibleTextDebounce } from '@/hooks/useBibleTextDebounce';
+import { ResourcePanel } from '@/layouts/resources/ResourcePanel';
 import { type ProjectItem, type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
@@ -48,6 +49,11 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({});
   const verseRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [buttonTop, setButtonTop] = useState<number>(0);
+  const [showResources, setShowResources] = useState(true);
+  const resourceNames = [
+    { id: 'UWTranslationNotes', name: 'Translation Notes (uW)' },
+    { id: 'Images', name: 'Images' },
+  ];
 
   const lastRevealedVerseNumber = useMemo(
     () => (revealedVerses.size > 0 ? Math.max(...Array.from(revealedVerses)) : 1),
@@ -346,7 +352,28 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       await moveToNextVerse();
     }
   };
+  const handleResourceToggle = async () => {
+    setShowResources(v => !v);
 
+    // if (showResources === false) {
+    //   const API_BASE_URL = '/api';
+    //   const response = await fetch(
+    //     `${API_BASE_URL}/resources/search?BookCode=MAT&StartChapter=1&EndChapter=1&StartVerse=1&EndVerse=1&LanguageCode=eng&ResourceType=None&Limit=100`,
+    //     {
+    //       method: 'GET',
+    //       mode: 'cors',
+    //     }
+    //   );
+    //   console.log('response', response);
+    //   const data: SearchResponse = await response.json();
+    //   console.log('data', data);
+    //   // A Set to keep track of the collectionTitles we have already seen.
+    //   const collectionTitles = [...new Set(data.items.map(item => item.grouping.collectionTitle))];
+
+    //   console.log(collectionTitles);
+    //   setResourceNames(collectionTitles);
+    // }
+  };
   return (
     <div className='flex h-full flex-col overflow-hidden'>
       <div className='flex-shrink-0'>
@@ -363,6 +390,15 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
               )}
               {hasAnyError && <span className='text-sm text-red-500'>Auto-save failed</span>}
             </div>
+            <Button
+              aria-pressed={showResources}
+              className='bg-primary flex cursor-pointer items-center gap-2'
+              title={showResources ? 'Hide Resources' : 'Show Resources'}
+              type='button'
+              onClick={() => handleResourceToggle()}
+            >
+              <BookText color='#ffffff' />
+            </Button>
             <div className='bg-input rounded-lg border md:w-50 lg:w-76 xl:w-105'>
               <div className='h-4 overflow-hidden rounded-full'>
                 <div
@@ -385,90 +421,102 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
           </div>
         </div>
       </div>
-
-      <div className='mx-auto max-w-7xl flex-1 overflow-hidden'>
-        <div className='grid h-full grid-cols-2' style={{ gridTemplateRows: '4rem 1fr' }}>
-          <div className='bg-background sticky top-0 z-10 ml-8 px-6 py-4'>
-            <h3 className='text-xl font-bold text-gray-800'>{projectItem.bibleName}</h3>
+      <div className='flex h-full'>
+        {showResources && (
+          <div className='w-[25%]'>
+            <ResourcePanel
+              activeVerseId={activeVerseId}
+              resourceNames={resourceNames}
+              sourceData={projectItem}
+            />
           </div>
-          <div className='bg-background sticky top-0 z-10 py-4'>
-            <h3 className='text-xl font-bold text-gray-800'>{projectItem.targetLanguage}</h3>
-          </div>
+        )}
+        <div className={`mx-auto ${showResources ? '' : 'max-w-7xl'} flex-1 overflow-hidden`}>
+          <div className='grid h-full grid-cols-2' style={{ gridTemplateRows: '4rem 1fr' }}>
+            <div className='bg-background sticky top-0 z-10 ml-8 px-6 py-4'>
+              <h3 className='text-xl font-bold text-gray-800'>{projectItem.bibleName}</h3>
+            </div>
+            <div className='bg-background sticky top-0 z-10 py-4'>
+              <h3 className='text-xl font-bold text-gray-800'>{projectItem.targetLanguage}</h3>
+            </div>
 
-          <div
-            ref={targetScrollRef}
-            className='relative col-span-2 flex h-full flex-col overflow-y-auto'
-            onScroll={() => updateButtonPosition()}
-          >
-            {sourceVerses.map(verse => {
-              const isActive = activeVerseId === verse.verseNumber;
-              const currentTargetVerse = verses.find(v => v.verseNumber === verse.verseNumber);
-              return (
-                <div
-                  key={verse.verseNumber}
-                  ref={el => (verseRefs.current[verse.verseNumber] = el)}
-                  className='grid grid-cols-2 gap-4 px-6 py-4'
-                >
-                  {/* source verse */}
-                  <div className='col-1 flex items-start transition-all'>
-                    <div className='w-8 flex-shrink-0'>
-                      <span className='text-lg font-medium text-gray-700'>{verse.verseNumber}</span>
+            <div
+              ref={targetScrollRef}
+              className='relative col-span-2 flex h-full flex-col overflow-y-auto'
+              onScroll={() => updateButtonPosition()}
+            >
+              {sourceVerses.map(verse => {
+                const isActive = activeVerseId === verse.verseNumber;
+                const currentTargetVerse = verses.find(v => v.verseNumber === verse.verseNumber);
+                return (
+                  <div
+                    key={verse.verseNumber}
+                    ref={el => (verseRefs.current[verse.verseNumber] = el)}
+                    className='grid grid-cols-2 gap-4 px-6 py-4'
+                  >
+                    {/* source verse */}
+                    <div className='col-1 flex items-start transition-all'>
+                      <div className='w-8 flex-shrink-0'>
+                        <span className='text-lg font-medium text-gray-700'>
+                          {verse.verseNumber}
+                        </span>
+                      </div>
+                      <div className='flex-1'>
+                        <div
+                          className={`bg-card rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
+                        >
+                          <p className='min-h-12 content-center overflow-hidden text-base leading-relaxed leading-snug text-gray-800 outline-none'>
+                            {verse.text}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div className='flex-1'>
+
+                    {/* target verse */}
+                    <div
+                      className={`col-2 flex transition-all ${isActive || revealedVerses.has(verse.verseNumber) ? '' : 'hidden'}`}
+                    >
                       <div
-                        className={`bg-card rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
+                        className={`flex-1 cursor-pointer rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
+                        onClick={() => handleActiveVerseChange(verse.verseNumber)}
                       >
-                        <p className='min-h-12 content-center overflow-hidden text-base leading-relaxed leading-snug text-gray-800 outline-none'>
-                          {verse.text}
-                        </p>
+                        <textarea
+                          ref={el => (textareaRefs.current[verse.verseNumber] = el)}
+                          aria-label={`Translation for verse ${verse.verseNumber}`}
+                          autoCapitalize='sentences'
+                          autoCorrect='on'
+                          className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-relaxed leading-snug text-gray-800 outline-none'
+                          id={`verse-${verse.verseNumber}`}
+                          placeholder='Enter translation...'
+                          spellCheck={true}
+                          value={currentTargetVerse?.content ?? ''}
+                          onChange={e => handleTextChange(verse.verseNumber, e.target.value)}
+                          onFocus={() => handleActiveVerseChange(verse.verseNumber)}
+                          onKeyDown={e => handleKeyDown(e)}
+                        />
                       </div>
                     </div>
                   </div>
+                );
+              })}
 
-                  {/* target verse */}
-                  <div
-                    className={`col-2 flex transition-all ${isActive || revealedVerses.has(verse.verseNumber) ? '' : 'hidden'}`}
+              {revealedVerses.size < totalSourceVerses && (
+                <div className='absolute right-4 z-10' style={{ top: buttonTop }}>
+                  <Button
+                    className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
+                      lastRevealedVerseHasContent
+                        ? 'hover:bg-primary-hover cursor-pointer text-white'
+                        : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                    }`}
+                    disabled={!lastRevealedVerseHasContent}
+                    title='Next Verse'
+                    onClick={() => revealNextVerse()}
                   >
-                    <div
-                      className={`flex-1 cursor-pointer rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
-                      onClick={() => handleActiveVerseChange(verse.verseNumber)}
-                    >
-                      <textarea
-                        ref={el => (textareaRefs.current[verse.verseNumber] = el)}
-                        aria-label={`Translation for verse ${verse.verseNumber}`}
-                        autoCapitalize='sentences'
-                        autoCorrect='on'
-                        className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-relaxed leading-snug text-gray-800 outline-none'
-                        id={`verse-${verse.verseNumber}`}
-                        placeholder='Enter translation...'
-                        spellCheck={true}
-                        value={currentTargetVerse?.content ?? ''}
-                        onChange={e => handleTextChange(verse.verseNumber, e.target.value)}
-                        onFocus={() => handleActiveVerseChange(verse.verseNumber)}
-                        onKeyDown={e => handleKeyDown(e)}
-                      />
-                    </div>
-                  </div>
+                    Next Verse
+                  </Button>
                 </div>
-              );
-            })}
-
-            {revealedVerses.size < totalSourceVerses && (
-              <div className='absolute right-4 z-10' style={{ top: buttonTop }}>
-                <Button
-                  className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
-                    lastRevealedVerseHasContent
-                      ? 'hover:bg-primary-hover cursor-pointer text-white'
-                      : 'cursor-not-allowed bg-gray-300 text-gray-500'
-                  }`}
-                  disabled={!lastRevealedVerseHasContent}
-                  title='Next Verse'
-                  onClick={() => revealNextVerse()}
-                >
-                  Next Verse
-                </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
