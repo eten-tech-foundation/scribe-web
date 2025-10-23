@@ -91,50 +91,43 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   );
 
   useEffect(() => {
-    if (targetVerses.length > 0) {
-      targetVerses.forEach(verse => {
-        setInitialContent(verse.verseNumber, verse.content);
-      });
+    if (targetVerses.length === 0) return;
+    targetVerses.forEach(verse => {
+      setInitialContent(verse.verseNumber, verse.content);
+    });
 
-      const allVersesCompleted = sourceVerses.every(sourceVerse => {
-        const targetVerse = targetVerses.find(tv => tv.verseNumber === sourceVerse.verseNumber);
-        return targetVerse && targetVerse.content.trim() !== '';
-      });
-
-      let mostRecentlyEditedVerseNumber = 1;
-
-      if (allVersesCompleted) {
-        setActiveVerseId(mostRecentlyEditedVerseNumber);
-      } else {
-        // Find the first empty verse
-        const firstEmptyVerse = targetVerses.find(v => v.content.trim() === '') ?? targetVerses[0];
-        mostRecentlyEditedVerseNumber = firstEmptyVerse.verseNumber;
-        setActiveVerseId(mostRecentlyEditedVerseNumber);
-
-        // Scroll the active verse into view
-        if (mostRecentlyEditedVerseNumber > 1) {
-          const verseDiv = verseRefs.current[mostRecentlyEditedVerseNumber];
-          if (verseDiv) {
-            verseDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }
+    // Find the last verse with content
+    const lastVerseWithContent = (() => {
+      for (let i = targetVerses.length - 1; i >= 0; i--) {
+        if (targetVerses[i].content.trim() !== '') return targetVerses[i];
       }
+      return targetVerses[0];
+    })();
 
-      const lastVerseWithContent = (() => {
-        for (let i = targetVerses.length - 1; i >= 0; i--) {
-          if (targetVerses[i].content.trim() !== '') return targetVerses[i];
-        }
-        return targetVerses[0];
-      })();
+    // Check if all verses are completed
+    const allVersesCompleted = sourceVerses.every(sourceVerse => {
+      const targetVerse = targetVerses.find(tv => tv.verseNumber === sourceVerse.verseNumber);
+      return targetVerse && targetVerse.content.trim() !== '';
+    });
 
-      // Initialize revealed verses with those that have content and the initial active verse
-      const initiallyRevealed = new Set<number>();
-      targetVerses.forEach(v => {
-        if (v.verseNumber <= lastVerseWithContent.verseNumber) initiallyRevealed.add(v.verseNumber);
-      });
-      initiallyRevealed.add(mostRecentlyEditedVerseNumber);
-      setRevealedVerses(initiallyRevealed);
+    // Set active verse: first if all completed, otherwise last edited
+    const activeVerseNumber = allVersesCompleted ? 1 : lastVerseWithContent.verseNumber;
+    setActiveVerseId(activeVerseNumber);
+
+    if (!allVersesCompleted && activeVerseNumber > 1) {
+      const verseDiv = verseRefs.current[activeVerseNumber];
+      if (verseDiv) {
+        verseDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
+
+    const initiallyRevealed = new Set<number>(
+      targetVerses
+        .filter(v => v.verseNumber <= lastVerseWithContent.verseNumber)
+        .map(v => v.verseNumber)
+    );
+    initiallyRevealed.add(activeVerseNumber);
+    setRevealedVerses(initiallyRevealed);
   }, [targetVerses, sourceVerses, setInitialContent]);
 
   // Whenever active verse changes, mark it as revealed
@@ -209,15 +202,18 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     // Focus and position updates after DOM mutations, before paint
     const textarea = textareaRefs.current[activeVerseId];
     if (textarea) {
-      textarea.focus();
-      const len = textarea.value.length;
-      try {
-        textarea.setSelectionRange(len, len);
-      } catch {}
+      // Only move focus/caret when switching verses, not on every text change
+      if (document.activeElement !== textarea) {
+        textarea.focus();
+        const len = textarea.value.length;
+        try {
+          textarea.setSelectionRange(len, len);
+        } catch {}
+      }
       autoResizeTextarea(textarea);
     }
     updateButtonPosition();
-  }, [activeVerseId, verses, revealedVerses, updateButtonPosition]);
+  }, [activeVerseId, revealedVerses, updateButtonPosition]);
 
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
@@ -416,9 +412,9 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                     </div>
                     <div className='flex-1'>
                       <div
-                        className={`bg-card rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
+                        className={`bg-card rounded-lg border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
                       >
-                        <p className='min-h-12 content-center overflow-hidden text-base leading-relaxed leading-snug text-gray-800 outline-none'>
+                        <p className='min-h-12 content-center overflow-hidden text-base leading-snug text-gray-800 outline-none'>
                           {verse.text}
                         </p>
                       </div>
@@ -430,7 +426,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                     className={`col-2 flex transition-all ${isActive || revealedVerses.has(verse.verseNumber) ? '' : 'hidden'}`}
                   >
                     <div
-                      className={`flex-1 cursor-pointer rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
+                      className={`flex-1 cursor-pointer rounded-lg border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''} ${currentTargetVerse?.content.trim() !== '' && !isActive ? 'bg-card' : ''}`}
                       onClick={() => handleActiveVerseChange(verse.verseNumber)}
                     >
                       <textarea
@@ -438,7 +434,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                         aria-label={`Translation for verse ${verse.verseNumber}`}
                         autoCapitalize='sentences'
                         autoCorrect='on'
-                        className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-relaxed leading-snug text-gray-800 outline-none'
+                        className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-snug text-gray-800 outline-none'
                         id={`verse-${verse.verseNumber}`}
                         placeholder='Enter translation...'
                         spellCheck={true}
@@ -462,7 +458,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                       : 'cursor-not-allowed bg-gray-300 text-gray-500'
                   }`}
                   disabled={!lastRevealedVerseHasContent}
-                  title='Next Verse'
+                  title='Next Verse (Enter)'
                   onClick={() => revealNextVerse()}
                 >
                   Next Verse
