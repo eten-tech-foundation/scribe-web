@@ -4,8 +4,7 @@ name: PR Closed
 on:
   pull_request:
     types: [closed]
-  push:  # Add temporarily for testing
-      branches: [fix/pr-close]
+
 jobs:
   cleanup:
     runs-on: ubuntu-latest
