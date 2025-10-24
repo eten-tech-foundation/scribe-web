@@ -56,3 +56,17 @@ export const translationRoute = createRoute({
   gcTime: 0,
   staleTime: 0,
 });
+
+export const viewResourceRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/view/$bookId/$chapterNumber',
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      t: (search.t as string) || undefined,
+    };
+  },
+  loader: translationLoader,
+  component: DraftingPage,
+  gcTime: 0,
+  staleTime: 0,
+});
