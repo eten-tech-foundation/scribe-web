@@ -10,6 +10,7 @@ import {
   tailwindTestRoute,
   translationRoute,
   userListRoute,
+  viewResourceRoute,
 } from './route-definitions';
 
 const routeTree = rootRoute.addChildren([
@@ -19,6 +20,7 @@ const routeTree = rootRoute.addChildren([
   userListRoute,
   projectsRoute,
   translationRoute,
+  viewResourceRoute,
 ]);
 
 export const router = new Router({ routeTree });
