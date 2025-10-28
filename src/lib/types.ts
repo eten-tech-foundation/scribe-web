@@ -86,3 +86,23 @@ export interface VerseData {
   bibleTextId: number;
   assignedUserId: number;
 }
+
+export interface Source {
+  id: number;
+  verseNumber: number;
+  text: string;
+}
+
+export interface TargetVerse {
+  id?: number;
+  content: string;
+  verseNumber: number;
+}
+
+export interface DraftingUIProps {
+  projectItem: ProjectItem;
+  sourceVerses: Source[];
+  targetVerses: TargetVerse[];
+  userdetail: User;
+  readOnly?: boolean;
+}

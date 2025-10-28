@@ -1,33 +1,14 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback } from 'react';
 
 import { useMatch, useNavigate } from '@tanstack/react-router';
 import { ChevronLeft, Loader } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
-import { useBibleTextDebounce } from '@/hooks/useBibleTextDebounce';
-import { type ProjectItem, type User } from '@/lib/types';
+import { type DraftingUIProps } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
-export interface Source {
-  id: number;
-  verseNumber: number;
-  text: string;
-}
-
-export interface TargetVerse {
-  id?: number;
-  content: string;
-  verseNumber: number;
-}
-
-interface DraftingUIProps {
-  projectItem: ProjectItem;
-  sourceVerses: Source[];
-  targetVerses: TargetVerse[];
-  userdetail: User;
-  readOnly?: boolean;
-}
+import { useDrafting } from '../../hooks/useDrafting';
 
 const DraftingUI: React.FC<DraftingUIProps> = ({
   projectItem,
@@ -40,42 +21,19 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const submitChapterMutation = useSubmitChapter();
   const navigate = useNavigate();
 
-  const [verses, setVerses] = useState<TargetVerse[]>(targetVerses);
-  const [activeVerseId, setActiveVerseId] = useState(1);
-  const [previousActiveVerseId, setPreviousActiveVerseId] = useState<number | null>(null);
-  const [revealedVerses, setRevealedVerses] = useState<Set<number>>(new Set());
-
-  const targetScrollRef = useRef<HTMLDivElement>(null);
-
-  const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({});
-  const verseRefs = useRef<Record<number, HTMLDivElement | null>>({});
-  const [buttonTop, setButtonTop] = useState<number>(0);
-
-  const lastRevealedVerseNumber = useMemo(
-    () => (revealedVerses.size > 0 ? Math.max(...Array.from(revealedVerses)) : 1),
-    [revealedVerses]
-  );
-
-  const lastRevealedVerse = useMemo(
-    () => verses.find(v => v.verseNumber === lastRevealedVerseNumber),
-    [verses, lastRevealedVerseNumber]
-  );
-
-  const lastRevealedVerseHasContent = useMemo(
-    () => Boolean(lastRevealedVerse?.content.trim()),
-    [lastRevealedVerse]
-  );
-
   const saveVerse = useCallback(
     async (verse: number, text: string) => {
-      const sourceVerse = sourceVerses.find((v: Source) => v.verseNumber === verse);
+      const sourceVerse = sourceVerses.find(v => v.verseNumber === verse);
+      if (!sourceVerse) {
+        console.error(`Source verse not found for verse ${verse}`);
+        return;
+      }
       const trimmedText = text.trim();
-
       await addVerseMutation.mutateAsync({
         verseData: {
           projectUnitId: projectItem.projectUnitId,
           content: trimmedText,
-          bibleTextId: (sourceVerse as Source).id,
+          bibleTextId: sourceVerse.id,
           assignedUserId: userdetail.id,
         },
         email: userdetail.email,
@@ -84,279 +42,38 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     [addVerseMutation, projectItem.projectUnitId, sourceVerses, userdetail]
   );
 
-  const { debouncedSave, saveImmediately, getSaveStatus, setInitialContent } = useBibleTextDebounce(
-    {
-      onSave: saveVerse,
-      debounceMs: 2000,
-      retryDelayMs: 10000,
-    }
-  );
+  const {
+    verses,
+    activeVerseId,
+    revealedVerses,
+    buttonTop,
+    lastRevealedVerseHasContent,
+    targetScrollRef,
+    textareaRefs,
+    verseRefs,
+    getSaveStatus,
+    saveImmediately,
+    handleTextChange,
+    handleActiveVerseChange,
+    moveToNextVerse,
+    revealNextVerse,
+    updateButtonPosition,
+  } = useDrafting({ sourceVerses, targetVerses, readOnly, onSave: saveVerse });
 
-  const handleBack = () => {
-    void navigate({ to: '/' });
-  };
-
-  useEffect(() => {
-    if (targetVerses.length === 0) return;
-
-    if (!readOnly) {
-      targetVerses.forEach(verse => {
-        setInitialContent(verse.verseNumber, verse.content);
-      });
-    }
-
-    // Find the last verse with content
-    const lastVerseWithContent = (() => {
-      for (let i = targetVerses.length - 1; i >= 0; i--) {
-        if (targetVerses[i].content.trim() !== '') return targetVerses[i];
-      }
-      return targetVerses[0];
-    })();
-
-    // Check if all verses are completed
-    const allVersesCompleted = sourceVerses.every(sourceVerse => {
-      const targetVerse = targetVerses.find(tv => tv.verseNumber === sourceVerse.verseNumber);
-      return targetVerse && targetVerse.content.trim() !== '';
-    });
-
-    // Set active verse: first if all completed, otherwise last edited
-    const activeVerseNumber = allVersesCompleted ? 1 : lastVerseWithContent.verseNumber;
-    setActiveVerseId(activeVerseNumber);
-
-    if (!allVersesCompleted && activeVerseNumber > 1 && !readOnly) {
-      const verseDiv = verseRefs.current[activeVerseNumber];
-      if (verseDiv) {
-        verseDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-
-    const initiallyRevealed = new Set<number>();
-
-    if (readOnly) {
-      sourceVerses.forEach(v => initiallyRevealed.add(v.verseNumber));
-    } else {
-      targetVerses
-        .filter(v => v.verseNumber <= lastVerseWithContent.verseNumber)
-        .forEach(v => initiallyRevealed.add(v.verseNumber));
-      initiallyRevealed.add(activeVerseNumber);
-    }
-
-    setRevealedVerses(initiallyRevealed);
-  }, [targetVerses, sourceVerses, setInitialContent, readOnly]);
-
-  // Mark active verse as revealed
-  useEffect(() => {
-    if (!readOnly) {
-      setRevealedVerses(prev => {
-        if (prev.has(activeVerseId)) return prev;
-        const next = new Set(prev);
-        next.add(activeVerseId);
-        return next;
-      });
-    }
-  }, [activeVerseId, readOnly]);
-
-  // Auto-resize revealed textareas
-  useEffect(() => {
-    if (!readOnly) {
-      revealedVerses.forEach(verseNumber => {
-        const textarea = textareaRefs.current[verseNumber];
-        if (textarea) autoResizeTextarea(textarea);
-      });
-    }
-  }, [revealedVerses, readOnly]);
-
-  // Initialize verses if empty
-  useEffect(() => {
-    if (verses.length === 0) {
-      setVerses([{ verseNumber: 1, content: '' }]);
-    } else if (!readOnly) {
-      verses.forEach(verse => {
-        const textarea = textareaRefs.current[verse.verseNumber];
-        if (textarea && verse.content) {
-          autoResizeTextarea(textarea);
-        }
-      });
-    }
-  }, [verses, readOnly]);
-
-  const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.max(20, textarea.scrollHeight) + 'px';
-  };
-
-  const updateButtonPosition = useCallback(() => {
-    if (readOnly) return;
-
-    const container = targetScrollRef.current;
-    if (!container) return;
-
-    const lastRevealedVerseDiv = verseRefs.current[lastRevealedVerseNumber];
-    if (!lastRevealedVerseDiv) return;
-
-    const containerRect = container.getBoundingClientRect();
-    const verseRect = lastRevealedVerseDiv.getBoundingClientRect();
-    const top = container.scrollTop + (verseRect.bottom - containerRect.top);
-    setButtonTop(top);
-  }, [lastRevealedVerseNumber, readOnly]);
-
-  const scrollVerseToTop = useCallback((verseNumber: number) => {
-    const container = targetScrollRef.current;
-    const row = verseRefs.current[verseNumber];
-    if (!container || !row) return;
-
-    const containerRect = container.getBoundingClientRect();
-    const rowRect = row.getBoundingClientRect();
-
-    const newScrollTop = container.scrollTop + (rowRect.top - containerRect.top);
-    container.scrollTo({ top: newScrollTop, behavior: 'smooth' });
-  }, []);
-
-  useLayoutEffect(() => {
-    if (readOnly) return;
-
-    const textarea = textareaRefs.current[activeVerseId];
-    if (textarea) {
-      if (document.activeElement !== textarea) {
-        textarea.focus();
-        const len = textarea.value.length;
-        try {
-          textarea.setSelectionRange(len, len);
-        } catch {}
-      }
-      autoResizeTextarea(textarea);
-    }
-    updateButtonPosition();
-  }, [activeVerseId, revealedVerses, updateButtonPosition, readOnly]);
+  const handleBack = () => void navigate({ to: '/' });
 
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
   const progressPercentage = (versesWithText / totalSourceVerses) * 100;
   const isTranslationComplete = versesWithText === totalSourceVerses;
 
-  const isAnythingSaving =
-    !readOnly &&
-    verses.some(v => {
-      const status = getSaveStatus(v.verseNumber);
-      return status.showLoader;
-    });
-
-  const hasAnyError =
-    !readOnly &&
-    verses.some(v => {
-      const status = getSaveStatus(v.verseNumber);
-      return status.hasRetryScheduled;
-    });
-
-  const updateTargetVerse = (id: number, text: string) => {
-    if (readOnly) return;
-
-    setVerses(currentVerses =>
-      currentVerses.map(verse => (verse.verseNumber === id ? { ...verse, content: text } : verse))
-    );
-    debouncedSave(id, text);
-  };
-
-  const handleTextChange = (verseId: number, text: string) => {
-    if (readOnly) return;
-
-    updateTargetVerse(verseId, text);
-
-    const textarea = textareaRefs.current[verseId];
-    if (textarea) {
-      autoResizeTextarea(textarea);
-    }
-    updateButtonPosition();
-  };
-
-  const handleActiveVerseChange = async (newVerseId: number) => {
-    if (readOnly) return;
-
-    if (previousActiveVerseId !== null && previousActiveVerseId !== newVerseId) {
-      const previousVerse = verses.find(v => v.verseNumber === previousActiveVerseId);
-      if (previousVerse) {
-        const status = getSaveStatus(previousActiveVerseId);
-        if (status.hasUnsavedChanges) {
-          await saveImmediately(previousActiveVerseId, previousVerse.content);
-        }
-      }
-    }
-
-    setPreviousActiveVerseId(activeVerseId);
-    setActiveVerseId(newVerseId);
-    // useLayoutEffect will focus and reposition Next button after state updates
-    // Also scroll so the previous verse aligns to the top (or verse 1)
-    const prevId = Math.max(1, newVerseId - 1);
-    requestAnimationFrame(() => scrollVerseToTop(prevId));
-  };
-
-  const advanceToVerse = useCallback(
-    async (nextVerseId: number, verseToSave?: { verseNumber: number; content: string }) => {
-      if (readOnly || nextVerseId > totalSourceVerses) return;
-
-      // Create the next verse if it doesn't exist
-      const nextVerseExists = verses.find(v => v.verseNumber === nextVerseId);
-      if (!nextVerseExists) {
-        setVerses(prev => [...prev, { verseNumber: nextVerseId, content: '' }]);
-        setInitialContent(nextVerseId, '');
-      }
-
-      // Save the specified verse if it has unsaved changes
-      if (verseToSave) {
-        const status = getSaveStatus(verseToSave.verseNumber);
-        if (status.hasUnsavedChanges) {
-          await saveImmediately(verseToSave.verseNumber, verseToSave.content);
-        }
-      }
-
-      // Update active verse and scroll
-      setPreviousActiveVerseId(activeVerseId);
-      setActiveVerseId(nextVerseId);
-
-      const prevId = Math.max(1, nextVerseId - 1);
-      requestAnimationFrame(() => scrollVerseToTop(prevId));
-    },
-    [
-      activeVerseId,
-      verses,
-      totalSourceVerses,
-      saveImmediately,
-      setInitialContent,
-      getSaveStatus,
-      scrollVerseToTop,
-      readOnly,
-    ]
-  );
-
-  const moveToNextVerse = useCallback(async () => {
-    if (readOnly) return;
-
-    const currentVerse = verses.find(v => v.verseNumber === activeVerseId);
-    if (!currentVerse || currentVerse.content.trim() === '') return;
-
-    await advanceToVerse(activeVerseId + 1, currentVerse);
-  }, [activeVerseId, verses, advanceToVerse, readOnly]);
-
-  const revealNextVerse = useCallback(async () => {
-    if (readOnly || !lastRevealedVerseHasContent || !lastRevealedVerse) return;
-
-    await advanceToVerse(lastRevealedVerseNumber + 1, lastRevealedVerse);
-  }, [
-    lastRevealedVerseNumber,
-    lastRevealedVerseHasContent,
-    lastRevealedVerse,
-    advanceToVerse,
-    readOnly,
-  ]);
+  const isAnythingSaving = !readOnly && verses.some(v => getSaveStatus(v.verseNumber).showLoader);
+  const hasAnyError = !readOnly && verses.some(v => getSaveStatus(v.verseNumber).hasRetryScheduled);
 
   const handleSubmit = async () => {
     if (readOnly || !isTranslationComplete) return;
-
     const savePromises = verses
-      .filter(verse => {
-        const status = getSaveStatus(verse.verseNumber);
-        return status.hasUnsavedChanges;
-      })
+      .filter(verse => getSaveStatus(verse.verseNumber).hasUnsavedChanges)
       .map(verse => saveImmediately(verse.verseNumber, verse.content));
 
     await Promise.all(savePromises);
