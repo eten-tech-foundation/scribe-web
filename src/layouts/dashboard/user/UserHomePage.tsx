@@ -28,9 +28,8 @@ const getStatusText = (item: ProjectItem) => {
 };
 
 export function UserHomePage() {
-  const [activeTab, setActiveTab] = useState<'my-work' | 'my-history'>('my-work');
   const [navigatingToProject, setNavigatingToProject] = useState<string | null>(null);
-  const { userdetail } = useAppStore();
+  const { userdetail, activeTab, setActiveTab } = useAppStore();
   const navigate = useNavigate();
   const { data: projectData = [], isLoading: loading } = useChapterAssignments(userdetail as User);
 

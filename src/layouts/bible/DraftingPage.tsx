@@ -60,8 +60,12 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     updateButtonPosition,
   } = useDrafting({ sourceVerses, targetVerses, readOnly, onSave: saveVerse });
 
-  const handleBack = () => void navigate({ to: '/' });
+  const { setActiveTab } = useAppStore();
 
+  const handleBack = () => {
+    setActiveTab('my-history');
+    void navigate({ to: '/' });
+  };
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
   const progressPercentage = (versesWithText / totalSourceVerses) * 100;
