@@ -359,7 +359,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
               )}
               {hasAnyError && <span className='text-sm text-red-500'>Auto-save failed</span>}
             </div>
-            <div className='bg-input rounded-lg border md:w-50 lg:w-76 xl:w-105'>
+            <div className='bg-input w-50 rounded-lg border md:w-50 lg:w-76 xl:w-105'>
               <div className='h-4 overflow-hidden rounded-full'>
                 <div
                   className='bg-primary h-full rounded-full transition-all duration-300'
