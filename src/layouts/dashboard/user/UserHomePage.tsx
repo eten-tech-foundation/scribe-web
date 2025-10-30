@@ -29,7 +29,7 @@ const getStatusText = (item: ProjectItem) => {
 
 export function UserHomePage() {
   const [navigatingToProject, setNavigatingToProject] = useState<string | null>(null);
-  const { userdetail, activeTab, setActiveTab } = useAppStore();
+  const { userdetail, userDashboardTab, setUserDashboardTab } = useAppStore();
   const navigate = useNavigate();
   const { data: projectData = [], isLoading: loading } = useChapterAssignments(userdetail as User);
 
@@ -78,8 +78,8 @@ export function UserHomePage() {
     }
   };
 
-  const currentData = activeTab === 'my-work' ? myWorkData : historyData;
-  const isHistory = activeTab === 'my-history';
+  const currentData = userDashboardTab === 'my-work' ? myWorkData : historyData;
+  const isHistory = userDashboardTab === 'my-history';
   const emptyMessage = isHistory ? 'No completed work found' : 'No work assigned';
 
   return (
@@ -91,21 +91,21 @@ export function UserHomePage() {
       <div className='mb-6 flex-shrink-0'>
         <button
           className={`cursor-pointer border-b-3 px-1 pb-3 text-sm font-medium transition-colors ${
-            activeTab === 'my-work'
+            userDashboardTab === 'my-work'
               ? 'border-primary text-foreground'
               : 'text-foreground border-transparent hover:text-gray-700'
           }`}
-          onClick={() => setActiveTab('my-work')}
+          onClick={() => setUserDashboardTab('my-work')}
         >
           My Work ({myWorkData.length})
         </button>
         <button
           className={`ml-6 cursor-pointer border-b-3 px-1 pb-3 text-sm font-medium transition-colors ${
-            activeTab === 'my-history'
+            userDashboardTab === 'my-history'
               ? 'border-primary text-foreground'
               : 'text-foreground border-transparent hover:text-gray-700'
           }`}
-          onClick={() => setActiveTab('my-history')}
+          onClick={() => setUserDashboardTab('my-history')}
         >
           My History ({historyData.length})
         </button>

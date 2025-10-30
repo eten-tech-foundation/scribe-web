@@ -60,10 +60,10 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     updateButtonPosition,
   } = useDrafting({ sourceVerses, targetVerses, readOnly, onSave: saveVerse });
 
-  const { setActiveTab } = useAppStore();
+  const { setUserDashboardTab } = useAppStore();
 
   const handleBack = () => {
-    setActiveTab('my-history');
+    setUserDashboardTab('my-history');
     void navigate({ to: '/' });
   };
   const totalSourceVerses = sourceVerses.length;
