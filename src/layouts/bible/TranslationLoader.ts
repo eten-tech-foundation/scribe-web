@@ -2,10 +2,8 @@ import { type LoaderFnContext } from '@tanstack/react-router';
 
 import { fetchTargetText } from '@/hooks/useBibleTarget';
 import { fetchBibleText } from '@/hooks/useBibleText';
-import { type ProjectItem } from '@/lib/types';
+import { type ProjectItem, type Source, type TargetVerse } from '@/lib/types';
 import { useAppStore } from '@/store/store';
-
-import { type Source, type TargetVerse } from './DraftingPage';
 
 interface SourceVerseData {
   id: number;
