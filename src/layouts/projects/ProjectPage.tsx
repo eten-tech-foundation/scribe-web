@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { type Project } from '@/lib/types';
 
 interface ProjectsPageProps {
@@ -26,6 +27,49 @@ interface ProjectsPageProps {
     projectSource: string
   ) => void;
 }
+
+// Adding a component for truncated text with tooltip
+const TruncatedText: React.FC<{ text: string }> = ({ text }) => {
+  const textRef = useRef<HTMLDivElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    const checkTruncation = () => {
+      if (textRef.current) {
+        setIsTruncated(textRef.current.scrollWidth > textRef.current.clientWidth);
+      }
+    };
+
+    checkTruncation();
+    window.addEventListener('resize', checkTruncation);
+    return () => window.removeEventListener('resize', checkTruncation);
+  }, [text]);
+
+  if (!isTruncated) {
+    return (
+      <div ref={textRef} className='truncate'>
+        {text}
+      </div>
+    );
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div ref={textRef} className='truncate'>
+          {text}
+        </div>
+      </TooltipTrigger>
+      <TooltipContent
+        align='start'
+        className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+        side='top'
+      >
+        {text}
+      </TooltipContent>
+    </Tooltip>
+  );
+};
 
 export const ProjectsPage: React.FC<ProjectsPageProps> = ({
   loading,
@@ -76,63 +120,58 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
               <span className='text-gray-500'>{t('noProjectsFound')}</span>
             </div>
           ) : (
-            <div className='flex h-full flex-col overflow-y-auto'>
-              <Table className='table-fixed'>
-                <TableHeader className='sticky top-0 z-10'>
-                  <TableRow className='hover:bg-transparent'>
-                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                      {t('title')}
-                    </TableHead>
-
-                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                      {t('sourceLanguage')}
-                    </TableHead>
-                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                      {t('targetLanguage')}
-                    </TableHead>
-                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                      {t('sourceBible')}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className='divide-border divide-y'>
-                  {sortedProjects.map(project => (
-                    <TableRow
-                      key={project.id}
-                      className='cursor-pointer border-b transition-colors hover:bg-gray-50'
-                      onClick={() =>
-                        handleRowClick(
-                          project.id,
-                          project.name,
-                          project.sourceName,
-                          project.sourceLanguageName,
-                          project.targetLanguageName
-                        )
-                      }
-                    >
-                      <TableCell
-                        className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'
-                        title={project.name}
-                      >
-                        {project.name}
-                      </TableCell>
-                      <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
-                        {project.sourceLanguageName}
-                      </TableCell>
-                      <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
-                        {project.targetLanguageName}
-                      </TableCell>
-                      <TableCell
-                        className='text-popover-foreground w-1/4 truncate px-6 py-4 text-sm'
-                        title={project.sourceName}
-                      >
-                        {project.sourceName}
-                      </TableCell>
+            <TooltipProvider delayDuration={300}>
+              <div className='flex h-full flex-col overflow-y-auto'>
+                <Table className='table-fixed'>
+                  <TableHeader className='sticky top-0 z-10'>
+                    <TableRow className='hover:bg-transparent'>
+                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                        {t('title')}
+                      </TableHead>
+                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                        {t('sourceLanguage')}
+                      </TableHead>
+                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                        {t('targetLanguage')}
+                      </TableHead>
+                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                        {t('sourceBible')}
+                      </TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody className='divide-border divide-y'>
+                    {sortedProjects.map(project => (
+                      <TableRow
+                        key={project.id}
+                        className='cursor-pointer border-b transition-colors hover:bg-gray-50'
+                        onClick={() =>
+                          handleRowClick(
+                            project.id,
+                            project.name,
+                            project.sourceName,
+                            project.sourceLanguageName,
+                            project.targetLanguageName
+                          )
+                        }
+                      >
+                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
+                          <TruncatedText text={project.name} />
+                        </TableCell>
+                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
+                          {project.sourceLanguageName}
+                        </TableCell>
+                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
+                          {project.targetLanguageName}
+                        </TableCell>
+                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm'>
+                          <TruncatedText text={project.sourceName} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </TooltipProvider>
           )}
         </div>
       </div>
