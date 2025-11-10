@@ -162,6 +162,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
           <div
             ref={targetScrollRef}
             className='relative col-span-2 flex h-full flex-col overflow-y-auto'
+            style={{ scrollbarGutter: 'stable' }}
             onScroll={() => !readOnly && updateButtonPosition()}
           >
             {sourceVerses.map(verse => {
