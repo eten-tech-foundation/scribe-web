@@ -155,7 +155,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
           <div className='bg-background sticky top-0 z-10 ml-8 px-6 py-4'>
             <h3 className='text-xl font-bold text-gray-800'>{projectItem.bibleName}</h3>
           </div>
-          <div className='bg-background sticky top-0 z-10 py-4'>
+          <div className='bg-background firefox-header-fix sticky top-0 z-10 py-4'>
             <h3 className='text-xl font-bold text-gray-800'>{projectItem.targetLanguage}</h3>
           </div>
 
