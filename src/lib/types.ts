@@ -25,6 +25,7 @@ export interface Project {
   sourceLanguageName: string;
   targetLanguageName: string;
 }
+
 export interface CreateProject {
   id: number;
   name: string;
@@ -36,6 +37,7 @@ export interface CreateProject {
   sourceLanguage: number;
   targetLanguage: number;
 }
+
 export interface Chapter {
   id: string | number;
   book: string;
@@ -78,6 +80,8 @@ export interface ProjectItem {
   totalVerses: number;
   completedVerses: number;
   submittedTime: string | null;
+  bookCode: string;
+  sourceLangCode: string;
 }
 
 export interface VerseData {
@@ -87,22 +91,90 @@ export interface VerseData {
   assignedUserId: number;
 }
 
-export interface Source {
+export interface AudioStep {
+  stepNumber: number;
+  url: string;
+}
+
+export interface AudioData {
+  url?: string;
+  steps?: AudioStep[];
+}
+
+export interface AudioContent {
+  mp3?: AudioData;
+  webm?: AudioData;
+}
+
+export interface TipTapMark {
+  type: string;
+  attrs?: {
+    resourceId?: number;
+    level?: number;
+    indent?: number;
+    src?: string;
+    alt?: string;
+    start?: number;
+    [key: string]: unknown;
+  };
+}
+
+export interface TipTapNode {
+  type: string;
+  content?: TipTapNode[];
+  text?: string;
+  marks?: TipTapMark[];
+  attrs?: {
+    level?: number;
+    indent?: number;
+    src?: string;
+    alt?: string;
+    start?: number;
+    resourceId?: number;
+    [key: string]: unknown;
+  };
+}
+
+export interface ContentItem {
+  tiptap?: TipTapNode | AudioContent;
+  stepNumber?: number;
+  url?: string;
+}
+
+export type GuideContentData = ContentItem[] | AudioContent;
+
+export interface GroupingData {
+  name?: string;
+  collectionCode?: string;
+}
+
+export interface GuideContent {
   id: number;
-  verseNumber: number;
-  text: string;
+  name: string;
+  localizedName: string;
+  content: GuideContentData;
+  grouping: GroupingData;
 }
 
-export interface TargetVerse {
-  id?: number;
-  content: string;
-  verseNumber: number;
+export interface ItemWithUrl {
+  id: number;
+  name: string;
+  localizedName: string;
+  mediaType: string;
+  url: string;
+  thumbnailUrl?: string;
+  isVideo?: boolean;
+  grouping: GroupingData;
 }
 
-export interface DraftingUIProps {
-  projectItem: ProjectItem;
-  sourceVerses: Source[];
-  targetVerses: TargetVerse[];
-  userdetail: User;
-  readOnly?: boolean;
+export interface ResourceName {
+  id: string;
+  name: string;
+}
+
+export interface ResourceItem {
+  id: number;
+  localizedName: string;
+  mediaType: string;
+  grouping: GroupingData;
 }
