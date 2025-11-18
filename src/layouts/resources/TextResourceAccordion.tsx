@@ -52,10 +52,6 @@ export const TextResourceAccordion: React.FC<TextResourceAccordionProps> = ({
   const dirAttr = direction.toLowerCase() as 'ltr' | 'rtl';
   const alignClass = direction === 'RTL' ? 'text-right' : 'text-left';
 
-  // Debug logging
-  console.log('TextResourceAccordion - Direction prop:', direction);
-  console.log('TextResourceAccordion - Resources count:', resources.length);
-
   return (
     <div className='h-full space-y-2' dir={dirAttr}>
       <Accordion
@@ -96,12 +92,7 @@ export const TextResourceAccordion: React.FC<TextResourceAccordionProps> = ({
                           );
 
                           return (
-                            <div
-                              key={idx}
-                              className='pb-4'
-                              // className='border-b border-gray-100 pb-4 last:border-b-0'
-                              dir={dirAttr}
-                            >
+                            <div key={idx} className='pb-4' dir={dirAttr}>
                               {stepNumber && (
                                 <div
                                   className={`mb-2 text-sm font-semibold text-blue-600 ${alignClass}`}

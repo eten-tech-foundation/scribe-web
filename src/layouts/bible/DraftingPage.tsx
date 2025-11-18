@@ -6,7 +6,7 @@ import { BookText, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
 import { useBibleTextDebounce } from '@/hooks/useBibleTextDebounce';
-import { useResourceState, useResourceStatePersistence } from '@/hooks/useResourceStatePersistence';
+import { useResourceState, useSaveResourceState } from '@/hooks/useResourceStatePersistence';
 import { ResourcePanel } from '@/layouts/resources/ResourcePanel';
 import { type ProjectItem, type ResourceName, type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
@@ -40,104 +40,137 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const submitChapterMutation = useSubmitChapter();
   const navigate = useNavigate();
 
+  // Verse state
   const [verses, setVerses] = useState<TargetVerse[]>(targetVerses);
   const [activeVerseId, setActiveVerseId] = useState(1);
   const [previousActiveVerseId, setPreviousActiveVerseId] = useState<number | null>(null);
   const [revealedVerses, setRevealedVerses] = useState<Set<number>>(new Set());
 
   const targetScrollRef = useRef<HTMLDivElement>(null);
-
   const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({});
   const verseRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [buttonTop, setButtonTop] = useState<number>(0);
 
-  // Resource state management
-  const resourceNames = [
+  // Resource panel state
+  const resourceNames: ResourceName[] = [
     { id: 'UWTranslationNotes', name: 'Translation Notes (uW)' },
     { id: 'Images', name: 'Images' },
   ];
 
   const [showResources, setShowResources] = useState(false);
-  const [currentResource, setCurrentResource] = useState<ResourceName | null>(null);
-  const [currentLanguage, setCurrentLanguage] = useState(projectItem.sourceLangCode);
-  const [isResourceStateInitialized, setIsResourceStateInitialized] = useState(false);
-
-  // const MemoizedResourcePanel = React.memo(ResourcePanel);
+  const [currentResource, setCurrentResource] = useState<ResourceName>(resourceNames[0]);
+  const [currentLanguage, setCurrentLanguage] = useState('');
 
   // Fetch saved resource state
-  const {
-    data: savedResourceState,
-    isLoading: isLoadingResourceState,
-    isFetched: isResourceStateFetched,
-  } = useResourceState(projectItem.chapterAssignmentId, userdetail.email);
+  const { data: savedResourceState, isFetched } = useResourceState(
+    projectItem.chapterAssignmentId,
+    userdetail.email
+  );
+
+  // Save mutation
+  const saveResourceStateMutation = useSaveResourceState();
+
+  // Track initialization and last saved state
+  const isInitializedRef = useRef(false);
+  const lastSavedStateRef = useRef<{
+    activeResource: string;
+    languageCode: string;
+    tabStatus: boolean;
+  } | null>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize resource state from saved data (runs once)
   useEffect(() => {
-    if (!isResourceStateFetched || isResourceStateInitialized) return;
-
-    console.log('Initializing resource state from saved data:', savedResourceState);
+    if (!isFetched || isInitializedRef.current) return;
 
     if (savedResourceState) {
+      // Restore saved state
       const { activeResource, languageCode, tabStatus } = savedResourceState;
 
-      // Restore tab status (show/hide resources panel)
       if (typeof tabStatus === 'boolean') {
-        console.log('Restoring tab status:', tabStatus);
         setShowResources(tabStatus);
       }
 
-      // Restore active resource
       if (activeResource) {
         const savedResource = resourceNames.find(r => r.id === activeResource);
-        if (savedResource) {
-          console.log('Restoring resource:', savedResource.name);
-          setCurrentResource(savedResource);
-        }
-      } else {
-        // Default to Translation Notes when saved state has no activeResource
-        console.log('No saved resource found, defaulting to Translation Notes');
-        setCurrentResource(resourceNames[0]); // Translation Notes
+        setCurrentResource(savedResource ?? resourceNames[0]);
       }
 
-      // Restore language code
       if (languageCode) {
-        console.log('Restoring language:', languageCode);
         setCurrentLanguage(languageCode);
-      } else {
-        // When saved state exists but no language, default to source language
-        console.log('No saved language found, using source language');
-        setCurrentLanguage(projectItem.sourceLangCode);
       }
+
+      // Set last saved state
+      lastSavedStateRef.current = {
+        activeResource: activeResource || resourceNames[0].id,
+        languageCode: languageCode || '',
+        tabStatus: typeof tabStatus === 'boolean' ? tabStatus : false,
+      };
     } else {
-      // When no saved state exists, default to Translation Notes and source language
-      console.log(
-        'No saved resource state found, using Translation Notes and source language as defaults'
-      );
-      setCurrentResource(resourceNames[0]); // Translation Notes
-      setCurrentLanguage(projectItem.sourceLangCode); // Source language
+      // No saved state, set defaults as last saved
+      lastSavedStateRef.current = {
+        activeResource: resourceNames[0].id,
+        languageCode: '',
+        tabStatus: false,
+      };
     }
 
-    // Add a small delay before enabling persistence to ensure all state updates are complete
-    setTimeout(() => {
-      setIsResourceStateInitialized(true);
-    }, 100);
+    isInitializedRef.current = true;
+  }, [isFetched, savedResourceState]);
+
+  // Save resource state with debouncing (only after initialization)
+  useEffect(() => {
+    if (!isInitializedRef.current) return;
+
+    const currentState = {
+      activeResource: currentResource.id,
+      languageCode: currentLanguage,
+      tabStatus: showResources,
+    };
+
+    // Check if state actually changed
+    if (lastSavedStateRef.current) {
+      const hasChanged =
+        lastSavedStateRef.current.activeResource !== currentState.activeResource ||
+        lastSavedStateRef.current.languageCode !== currentState.languageCode ||
+        lastSavedStateRef.current.tabStatus !== currentState.tabStatus;
+
+      if (!hasChanged) {
+        return;
+      }
+    }
+
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Debounce save by 500ms
+    saveTimeoutRef.current = setTimeout(() => {
+      saveResourceStateMutation.mutate({
+        chapterAssignmentId: projectItem.chapterAssignmentId,
+        resourceState: { resources: currentState },
+        email: userdetail.email,
+      });
+      lastSavedStateRef.current = currentState;
+    }, 500);
+
+    // Cleanup
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, [
-    isResourceStateFetched,
-    savedResourceState,
-    isResourceStateInitialized,
-    projectItem.sourceLangCode,
+    currentResource.id,
+    currentLanguage,
+    showResources,
+    projectItem.chapterAssignmentId,
+    userdetail.email,
+    saveResourceStateMutation,
   ]);
 
-  // Persist resource state changes (only after initialization and when language has value)
-  useResourceStatePersistence({
-    chapterAssignmentId: projectItem.chapterAssignmentId,
-    selectedResourceId: currentResource?.id ?? '',
-    selectedLanguage: currentLanguage,
-    showResources,
-    userEmail: userdetail.email,
-    enabled: isResourceStateInitialized && currentLanguage !== '',
-  });
-
+  // Verse translation logic
   const lastRevealedVerseNumber = useMemo(
     () => (revealedVerses.size > 0 ? Math.max(...Array.from(revealedVerses)) : 1),
     [revealedVerses]
@@ -179,50 +212,50 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     }
   );
 
+  // Initialize verses on load
   useEffect(() => {
-    if (targetVerses.length > 0) {
-      targetVerses.forEach(verse => {
-        setInitialContent(verse.verseNumber, verse.content);
-      });
+    if (targetVerses.length === 0) return;
 
-      const allVersesCompleted = sourceVerses.every(sourceVerse => {
-        const targetVerse = targetVerses.find(tv => tv.verseNumber === sourceVerse.verseNumber);
-        return targetVerse && targetVerse.content.trim() !== '';
-      });
+    targetVerses.forEach(verse => {
+      setInitialContent(verse.verseNumber, verse.content);
+    });
 
-      let mostRecentlyEditedVerseNumber = 1;
+    const allVersesCompleted = sourceVerses.every(sourceVerse => {
+      const targetVerse = targetVerses.find(tv => tv.verseNumber === sourceVerse.verseNumber);
+      return targetVerse && targetVerse.content.trim() !== '';
+    });
 
-      if (allVersesCompleted) {
-        setActiveVerseId(mostRecentlyEditedVerseNumber);
-      } else {
-        const firstEmptyVerse = targetVerses.find(v => v.content.trim() === '') ?? targetVerses[0];
-        mostRecentlyEditedVerseNumber = firstEmptyVerse.verseNumber;
-        setActiveVerseId(mostRecentlyEditedVerseNumber);
+    let mostRecentlyEditedVerseNumber = 1;
 
-        if (mostRecentlyEditedVerseNumber > 1) {
-          const verseDiv = verseRefs.current[mostRecentlyEditedVerseNumber];
-          if (verseDiv) {
-            verseDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
+    if (!allVersesCompleted) {
+      const firstEmptyVerse = targetVerses.find(v => v.content.trim() === '') ?? targetVerses[0];
+      mostRecentlyEditedVerseNumber = firstEmptyVerse.verseNumber;
+      setActiveVerseId(mostRecentlyEditedVerseNumber);
+
+      if (mostRecentlyEditedVerseNumber > 1) {
+        const verseDiv = verseRefs.current[mostRecentlyEditedVerseNumber];
+        if (verseDiv) {
+          verseDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }
-
-      const lastVerseWithContent = (() => {
-        for (let i = targetVerses.length - 1; i >= 0; i--) {
-          if (targetVerses[i].content.trim() !== '') return targetVerses[i];
-        }
-        return targetVerses[0];
-      })();
-
-      const initiallyRevealed = new Set<number>();
-      targetVerses.forEach(v => {
-        if (v.verseNumber <= lastVerseWithContent.verseNumber) initiallyRevealed.add(v.verseNumber);
-      });
-      initiallyRevealed.add(mostRecentlyEditedVerseNumber);
-      setRevealedVerses(initiallyRevealed);
     }
+
+    const lastVerseWithContent = (() => {
+      for (let i = targetVerses.length - 1; i >= 0; i--) {
+        if (targetVerses[i].content.trim() !== '') return targetVerses[i];
+      }
+      return targetVerses[0];
+    })();
+
+    const initiallyRevealed = new Set<number>();
+    targetVerses.forEach(v => {
+      if (v.verseNumber <= lastVerseWithContent.verseNumber) initiallyRevealed.add(v.verseNumber);
+    });
+    initiallyRevealed.add(mostRecentlyEditedVerseNumber);
+    setRevealedVerses(initiallyRevealed);
   }, [targetVerses, sourceVerses, setInitialContent]);
 
+  // Reveal active verse
   useEffect(() => {
     setRevealedVerses(prev => {
       if (prev.has(activeVerseId)) return prev;
@@ -232,6 +265,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     });
   }, [activeVerseId]);
 
+  // Auto-resize textareas
   useEffect(() => {
     revealedVerses.forEach(verseNumber => {
       const textarea = textareaRefs.current[verseNumber];
@@ -240,22 +274,13 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   }, [revealedVerses]);
 
   useEffect(() => {
-    if (verses.length === 0) {
-      setVerses([
-        {
-          verseNumber: 1,
-          content: '',
-        },
-      ]);
-    } else {
-      verses.forEach(verse => {
-        const textarea = textareaRefs.current[verse.verseNumber];
-        if (textarea && verse.content) {
-          autoResizeTextarea(textarea);
-        }
-      });
-    }
-  }, [setVerses, verses]);
+    verses.forEach(verse => {
+      const textarea = textareaRefs.current[verse.verseNumber];
+      if (textarea && verse.content) {
+        autoResizeTextarea(textarea);
+      }
+    });
+  }, [verses]);
 
   const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
     textarea.style.height = 'auto';
@@ -264,11 +289,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const updateButtonPosition = useCallback(() => {
     const container = targetScrollRef.current;
-    if (!container) return;
-
     const lastRevealedVerseDiv = verseRefs.current[lastRevealedVerseNumber];
-
-    if (!lastRevealedVerseDiv) return;
+    if (!container || !lastRevealedVerseDiv) return;
 
     const containerRect = container.getBoundingClientRect();
     const verseRect = lastRevealedVerseDiv.getBoundingClientRect();
@@ -283,7 +305,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
     const containerRect = container.getBoundingClientRect();
     const rowRect = row.getBoundingClientRect();
-
     const newScrollTop = container.scrollTop + (rowRect.top - containerRect.top);
     container.scrollTo({ top: newScrollTop, behavior: 'smooth' });
   }, []);
@@ -301,36 +322,26 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     updateButtonPosition();
   }, [activeVerseId, verses, revealedVerses, updateButtonPosition]);
 
+  // Progress and status
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
-  const countWithContent = verses.filter(v => v.content && v.content.trim() !== '').length;
-  const progressPercentage = (countWithContent / sourceVerses.length) * 100;
+  const progressPercentage = (versesWithText / totalSourceVerses) * 100;
   const isTranslationComplete = versesWithText === totalSourceVerses;
 
-  const isAnythingSaving = verses.some(v => {
-    const status = getSaveStatus(v.verseNumber);
-    return status.showLoader;
-  });
+  const isAnythingSaving = verses.some(v => getSaveStatus(v.verseNumber).showLoader);
+  const hasAnyError = verses.some(v => getSaveStatus(v.verseNumber).hasRetryScheduled);
 
-  const hasAnyError = verses.some(v => {
-    const status = getSaveStatus(v.verseNumber);
-    return status.hasRetryScheduled;
-  });
-
-  const updateTargetVerse = (id: number, text: string) => {
-    setVerses(currentVerses =>
-      currentVerses.map(verse => (verse.verseNumber === id ? { ...verse, content: text } : verse))
-    );
-    debouncedSave(id, text);
-  };
-
+  // Handlers
   const handleTextChange = (verseId: number, text: string) => {
-    updateTargetVerse(verseId, text);
+    setVerses(currentVerses =>
+      currentVerses.map(verse =>
+        verse.verseNumber === verseId ? { ...verse, content: text } : verse
+      )
+    );
+    debouncedSave(verseId, text);
 
     const textarea = textareaRefs.current[verseId];
-    if (textarea) {
-      autoResizeTextarea(textarea);
-    }
+    if (textarea) autoResizeTextarea(textarea);
     updateButtonPosition();
   };
 
@@ -388,33 +399,28 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const moveToNextVerse = useCallback(async () => {
     const currentVerse = verses.find(v => v.verseNumber === activeVerseId);
     if (!currentVerse || currentVerse.content.trim() === '') return;
-
     await advanceToVerse(activeVerseId + 1, currentVerse);
   }, [activeVerseId, verses, advanceToVerse]);
 
   const revealNextVerse = useCallback(async () => {
     if (!lastRevealedVerseHasContent || !lastRevealedVerse) return;
-
     await advanceToVerse(lastRevealedVerseNumber + 1, lastRevealedVerse);
   }, [lastRevealedVerseNumber, lastRevealedVerseHasContent, lastRevealedVerse, advanceToVerse]);
 
   const handleSubmit = async () => {
-    if (isTranslationComplete) {
-      const savePromises = verses
-        .filter(verse => {
-          const status = getSaveStatus(verse.verseNumber);
-          return status.hasUnsavedChanges;
-        })
-        .map(verse => saveImmediately(verse.verseNumber, verse.content));
+    if (!isTranslationComplete) return;
 
-      await Promise.all(savePromises);
+    const savePromises = verses
+      .filter(verse => getSaveStatus(verse.verseNumber).hasUnsavedChanges)
+      .map(verse => saveImmediately(verse.verseNumber, verse.content));
 
-      await submitChapterMutation.mutateAsync({
-        chapterAssignmentId: projectItem.chapterAssignmentId,
-        email: userdetail.email,
-      });
-      await navigate({ to: '/' });
-    }
+    await Promise.all(savePromises);
+
+    await submitChapterMutation.mutateAsync({
+      chapterAssignmentId: projectItem.chapterAssignmentId,
+      email: userdetail.email,
+    });
+    await navigate({ to: '/' });
   };
 
   const handleKeyDown = async (e: React.KeyboardEvent) => {
@@ -424,17 +430,9 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     }
   };
 
-  const handleResourceToggle = async () => {
-    setShowResources(v => !v);
-  };
-
-  const handleLanguageChange = (language: string) => {
-    console.log('Language changed to:', language);
-    setCurrentLanguage(language);
-  };
-
   return (
     <div className='flex h-full flex-col overflow-hidden'>
+      {/* Header */}
       <div className='flex-shrink-0'>
         <div className='flex items-center justify-between px-6 py-4'>
           <div className='flex-shrink-0'>
@@ -454,7 +452,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
               className='bg-primary flex cursor-pointer items-center gap-2'
               title={showResources ? 'Hide Resources' : 'Show Resources'}
               type='button'
-              onClick={() => handleResourceToggle()}
+              onClick={() => setShowResources(prev => !prev)}
             >
               <BookText color='#ffffff' />
             </Button>
@@ -480,20 +478,23 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Main content */}
       <div className='flex h-full overflow-hidden'>
-        {showResources && (
+        {showResources && isInitializedRef.current && (
           <div className='w-[25%]'>
             <ResourcePanel
               activeVerseId={activeVerseId}
               initialLanguage={currentLanguage}
-              initialResource={currentResource ?? undefined}
+              initialResource={currentResource}
               resourceNames={resourceNames}
               sourceData={projectItem}
-              onLanguageChange={handleLanguageChange}
+              onLanguageChange={setCurrentLanguage}
               onResourceChange={setCurrentResource}
             />
           </div>
         )}
+
         <div className={`mx-auto ${showResources ? '' : 'max-w-7xl'} flex-1 overflow-hidden`}>
           <div className='grid h-full grid-cols-2' style={{ gridTemplateRows: '4rem 1fr' }}>
             <div className='bg-background sticky top-0 z-10 ml-8 px-6 py-4'>
@@ -506,7 +507,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
             <div
               ref={targetScrollRef}
               className='relative col-span-2 flex h-full flex-col overflow-y-auto'
-              onScroll={() => updateButtonPosition()}
+              onScroll={updateButtonPosition}
             >
               {sourceVerses.map(verse => {
                 const isActive = activeVerseId === verse.verseNumber;
@@ -517,7 +518,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                     ref={el => (verseRefs.current[verse.verseNumber] = el)}
                     className='grid grid-cols-2 gap-4 px-6 py-4'
                   >
-                    {/* source verse */}
                     <div className='col-1 flex items-start transition-all'>
                       <div className='w-8 flex-shrink-0'>
                         <span className='text-lg font-medium text-gray-700'>
@@ -526,21 +526,26 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                       </div>
                       <div className='flex-1'>
                         <div
-                          className={`bg-card rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
+                          className={`bg-card rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${
+                            isActive ? 'border-primary' : ''
+                          }`}
                         >
-                          <p className='min-h-12 content-center overflow-hidden text-base leading-relaxed leading-snug text-gray-800 outline-none'>
+                          <p className='min-h-12 content-center overflow-hidden text-base leading-relaxed text-gray-800 outline-none'>
                             {verse.text}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    {/* target verse */}
                     <div
-                      className={`col-2 flex transition-all ${isActive || revealedVerses.has(verse.verseNumber) ? '' : 'hidden'}`}
+                      className={`col-2 flex transition-all ${
+                        isActive || revealedVerses.has(verse.verseNumber) ? '' : 'hidden'
+                      }`}
                     >
                       <div
-                        className={`flex-1 cursor-pointer rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''}`}
+                        className={`flex-1 cursor-pointer rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${
+                          isActive ? 'border-primary' : ''
+                        }`}
                         onClick={() => handleActiveVerseChange(verse.verseNumber)}
                       >
                         <textarea
@@ -548,14 +553,14 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                           aria-label={`Translation for verse ${verse.verseNumber}`}
                           autoCapitalize='sentences'
                           autoCorrect='on'
-                          className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-relaxed leading-snug text-gray-800 outline-none'
+                          className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-relaxed text-gray-800 outline-none'
                           id={`verse-${verse.verseNumber}`}
                           placeholder='Enter translation...'
                           spellCheck={true}
                           value={currentTargetVerse?.content ?? ''}
                           onChange={e => handleTextChange(verse.verseNumber, e.target.value)}
                           onFocus={() => handleActiveVerseChange(verse.verseNumber)}
-                          onKeyDown={e => handleKeyDown(e)}
+                          onKeyDown={handleKeyDown}
                         />
                       </div>
                     </div>
@@ -573,7 +578,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                     }`}
                     disabled={!lastRevealedVerseHasContent}
                     title='Next Verse'
-                    onClick={() => revealNextVerse()}
+                    onClick={revealNextVerse}
                   >
                     Next Verse
                   </Button>

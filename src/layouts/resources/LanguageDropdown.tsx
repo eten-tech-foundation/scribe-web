@@ -51,7 +51,7 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
     if (!hasSelectedLang || !selectedLanguage) {
       return 'Select a language';
     }
-    return selectedLang?.display !== '' ? selectedLang.display : selectedLang.englishDisplay;
+    return selectedLang.display || selectedLang.englishDisplay || selectedLanguage;
   };
 
   return (
@@ -77,9 +77,11 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
               <SelectItem key={lang.code} value={lang.code}>
                 <div className='flex flex-col'>
                   <span className='font-medium text-gray-900 dark:text-gray-100'>
-                    {lang.display !== '' ? lang.display : lang.englishDisplay}
+                    {lang.display || lang.englishDisplay || lang.code}
                   </span>
-                  <span className='text-xs text-gray-500'>{lang.englishDisplay}</span>
+                  {lang.englishDisplay && lang.display !== lang.englishDisplay && (
+                    <span className='text-xs text-gray-500'>{lang.englishDisplay}</span>
+                  )}
                 </div>
               </SelectItem>
             ))

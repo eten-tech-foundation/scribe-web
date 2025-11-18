@@ -37,62 +37,98 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
   const [selectedResource, setSelectedResource] = useState(initialResource ?? resourceNames[0]);
   const [selectedImage, setSelectedImage] = useState<ItemWithUrl | null>(null);
   const [openItem, setOpenItem] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Language management hook
+  // Track if language has been initialized from parent
+  const isLanguageInitializedRef = useRef(false);
+  const hasAutoSelectedRef = useRef(false);
+
+  // Language management hook (does NOT depend on activeVerseId)
   const {
     availableLanguages,
     selectedLanguage,
     loadingLanguages,
     handleLanguageChange,
     currentLanguageDirection,
-  } = useResourceLanguages(selectedResource, sourceData.sourceLangCode, sourceData, activeVerseId);
+  } = useResourceLanguages(selectedResource, sourceData.sourceLangCode, sourceData);
+  console.log(availableLanguages, 'availableLanguages in ResourcePanel');
 
-  // Initialize resource state
+  // Update resource when initialResource changes
   useEffect(() => {
     if (initialResource) {
       setSelectedResource(initialResource);
     }
   }, [initialResource]);
 
-  // Initialize language state after available languages are loaded
+  // Initialize language from saved state OR auto-select source language
   useEffect(() => {
-    if (loadingLanguages || availableLanguages.length === 0 || isInitialized) {
-      return;
+    // Only initialize once
+    if (isLanguageInitializedRef.current) return;
+
+    // Wait for languages to load
+    if (loadingLanguages || availableLanguages.length === 0) return;
+
+    // Check if we have an initialLanguage from saved state
+    if (initialLanguage) {
+      const languageExists = availableLanguages.some(l => l.code === initialLanguage);
+
+      if (languageExists) {
+        // Saved language exists, use it
+        handleLanguageChange(initialLanguage);
+        isLanguageInitializedRef.current = true;
+        return;
+      }
     }
 
-    // Check if initialLanguage exists in available languages
-    const languageExists = availableLanguages.some(l => l.code === initialLanguage);
+    // No saved language or saved language doesn't exist
+    // Auto-select source language if available
+    const sourceLanguageExists = availableLanguages.some(l => l.code === sourceData.sourceLangCode);
 
-    if (initialLanguage && languageExists) {
-      // Initial language is available, use it
-      handleLanguageChange(initialLanguage);
-    } else if (initialLanguage) {
-      // Initial language provided but not available, reset to empty (show "Select a language")
+    if (sourceLanguageExists && !hasAutoSelectedRef.current) {
+      handleLanguageChange(sourceData.sourceLangCode);
+      hasAutoSelectedRef.current = true;
+      isLanguageInitializedRef.current = true;
+    } else {
+      // No source language available, leave empty for user selection
       handleLanguageChange('');
+      isLanguageInitializedRef.current = true;
     }
+  }, [
+    availableLanguages,
+    loadingLanguages,
+    initialLanguage,
+    sourceData.sourceLangCode,
+    handleLanguageChange,
+  ]);
 
-    setIsInitialized(true);
-  }, [availableLanguages, loadingLanguages, initialLanguage, isInitialized]);
-  console.log('selectedLanguage:', selectedLanguage, selectedResource, activeVerseId, sourceData);
-
-  // Custom hooks
-  const { localizeRefName, imageItems, loadingImages } = useResourceFetch(
-    selectedResource,
-    activeVerseId,
-    sourceData,
-    selectedLanguage || undefined
-  );
-
-  // Track previous language to avoid unnecessary callbacks
-  const prevLanguageRef = useRef(selectedLanguage);
-
+  // Reset initialization flag when resource changes
   useEffect(() => {
-    if (prevLanguageRef.current !== selectedLanguage && selectedLanguage !== '') {
+    isLanguageInitializedRef.current = false;
+    hasAutoSelectedRef.current = false;
+  }, [selectedResource.id]);
+
+  // Notify parent of language changes (only after initialization)
+  const prevLanguageRef = useRef(selectedLanguage);
+  useEffect(() => {
+    if (
+      isLanguageInitializedRef.current &&
+      prevLanguageRef.current !== selectedLanguage &&
+      selectedLanguage !== ''
+    ) {
       onLanguageChange?.(selectedLanguage);
       prevLanguageRef.current = selectedLanguage;
     }
   }, [selectedLanguage, onLanguageChange]);
+
+  // Determine if we should fetch resources
+  const shouldFetchResources = isLanguageInitializedRef.current && selectedLanguage !== '';
+
+  // Fetch resources (ONLY this hook depends on activeVerseId for content)
+  const { localizeRefName, imageItems, loadingImages } = useResourceFetch(
+    selectedResource,
+    activeVerseId,
+    sourceData,
+    shouldFetchResources ? selectedLanguage : undefined
+  );
 
   const {
     guideContents,
@@ -110,10 +146,8 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
   const handleResourceSelect = (resource: ResourceName) => {
     setSelectedResource(resource);
     onResourceChange?.(resource);
-
-    // Reset language to empty when resource changes
+    // Reset language when resource changes
     handleLanguageChange('');
-    setIsInitialized(false);
   };
 
   // Handle language selection
@@ -148,14 +182,24 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
 
   // Auto-expand first accordion item when resources load
   useEffect(() => {
-    if (localizeRefName.length > 0) {
+    if (localizeRefName.length > 0 && shouldFetchResources) {
       const firstItemId = localizeRefName[0].id.toString();
       setOpenItem(firstItemId);
-      handleAccordionChange(firstItemId);
+      void handleAccordionChange(firstItemId);
     } else {
       setOpenItem(null);
     }
-  }, [localizeRefName]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localizeRefName, shouldFetchResources]);
+
+  // Show loading state while initializing
+  const isInitializing = !isLanguageInitializedRef.current && loadingLanguages;
+
+  // Determine if language dropdown should be enabled
+  // Enable for both Translation Notes and Images
+  const isLanguageDropdownEnabled =
+    selectedResource.id === 'UWTranslationNotes' || selectedResource.name === 'Images';
+  console.log('isLanguageDropdownEnabled', isLanguageDropdownEnabled);
 
   return (
     <aside className='bg-background flex h-full flex-col'>
@@ -169,18 +213,24 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
           onSelect={handleResourceSelect}
         />
 
-        <LanguageDropdown
-          availableLanguages={availableLanguages}
-          loading={loadingLanguages}
-          selectedLanguage={selectedLanguage}
-          onSelect={handleLanguageSelect}
-        />
+        {isLanguageDropdownEnabled && (
+          <LanguageDropdown
+            availableLanguages={availableLanguages}
+            loading={loadingLanguages}
+            selectedLanguage={selectedLanguage}
+            onSelect={handleLanguageSelect}
+          />
+        )}
       </div>
 
       <div className='flex-1 overflow-y-auto rounded-md border px-4 pt-2'>
-        {loadingImages ? (
+        {isInitializing || loadingImages ? (
           <div className='flex h-full items-center justify-center'>
             <Loader2 className='h-8 w-8 animate-spin text-blue-600' />
+          </div>
+        ) : !shouldFetchResources && isLanguageDropdownEnabled ? (
+          <div className='flex h-full items-center justify-center'>
+            <p className='text-sm text-gray-500'>Select a language to view resources</p>
           </div>
         ) : imageItems.length > 0 ? (
           <ImageGrid

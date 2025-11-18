@@ -33,7 +33,7 @@ export const ResourceDropdown = ({
     onSelect(resource);
     setIsOpen(false);
   };
-  console.log(disabled, 'disabled prop in ResourceDropdown');
+  // console.log(disabled, 'disabled prop in ResourceDropdown');
   return (
     <div ref={dropdownRef} className='relative mt-2'>
       <button

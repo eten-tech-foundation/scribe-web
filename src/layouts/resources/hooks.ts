@@ -49,7 +49,7 @@ interface LanguageResourceCount {
   }>;
 }
 
-interface LanguageOption {
+export interface LanguageOption {
   id: number;
   code: string;
   display: string;
@@ -69,24 +69,23 @@ interface AssociationResponse {
 export const useResourceLanguages = (
   selectedResource: ResourceName,
   sourceLanguageCode: string,
-  sourceData: ProjectItem,
-  activeVerseId: number
+  sourceData: ProjectItem
 ) => {
+  console.log(selectedResource, 'selectedResource in useResourceLanguages');
+
   const [availableLanguages, setAvailableLanguages] = useState<LanguageOption[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [loadingLanguages, setLoadingLanguages] = useState(false);
   const [allLanguagesCache, setAllLanguagesCache] = useState<Language[]>([]);
 
-  // Track sourceData to call /languages API only once
-  const sourceDataRef = useRef<string>('');
-  const currentSourceDataKey = `${sourceData.bookCode}-${sourceData.chapterNumber}`;
+  // Track the current resource + chapter to avoid unnecessary refetches
+  const lastFetchKeyRef = useRef<string>('');
+  const currentFetchKey = `${sourceData.bookCode}-${sourceData.chapterNumber}-${selectedResource.id}`;
 
-  // Fetch all languages only once when sourceData changes
+  // Fetch all languages once per chapter
   useEffect(() => {
     const fetchAllLanguages = async () => {
-      if (sourceDataRef.current === currentSourceDataKey && allLanguagesCache.length > 0) {
-        return;
-      }
+      if (allLanguagesCache.length > 0) return;
 
       try {
         const languagesRes = await fetch(`${API_BASE_URL}/languages`, {
@@ -96,129 +95,102 @@ export const useResourceLanguages = (
         if (!languagesRes.ok) throw new Error('Failed to fetch languages');
         const allLanguages = (await languagesRes.json()) as Language[];
         setAllLanguagesCache(allLanguages);
-        sourceDataRef.current = currentSourceDataKey;
       } catch (error) {
         console.error('Error fetching all languages:', error);
       }
     };
 
     void fetchAllLanguages();
-  }, [currentSourceDataKey, allLanguagesCache.length]);
+  }, [allLanguagesCache.length]);
 
-  // Fetch available languages for Translation Notes (doesn't depend on activeVerseId)
+  // Fetch available languages based on resource type
   useEffect(() => {
-    const fetchTranslationNotesLanguages = async () => {
-      const isTranslationNotes = selectedResource.id === 'UWTranslationNotes';
+    const isTranslationNotes = selectedResource.id === 'UWTranslationNotes';
+    const isImages = selectedResource.name === 'Images';
 
-      if (!isTranslationNotes) {
-        return;
-      }
+    // Clear languages for non-supported resources
+    if (!isTranslationNotes && !isImages) {
+      setAvailableLanguages([]);
+      setSelectedLanguage('');
+      lastFetchKeyRef.current = '';
+      return;
+    }
 
-      if (allLanguagesCache.length === 0) {
-        return;
-      }
+    // Wait for languages cache
+    if (allLanguagesCache.length === 0) {
+      return;
+    }
 
+    // Skip if already fetched for this resource + chapter
+    if (lastFetchKeyRef.current === currentFetchKey) {
+      return;
+    }
+
+    const fetchLanguages = async () => {
       setLoadingLanguages(true);
+
       try {
-        const collectionRes = await fetch(
-          `${API_BASE_URL}/resources/collections/${selectedResource.id}`,
-          { method: 'GET', mode: 'cors' }
-        );
-        if (!collectionRes.ok) throw new Error('Failed to fetch resource collection');
-        const collectionData = (await collectionRes.json()) as ResourceCollectionResponse;
+        let languageOptions: LanguageOption[] = [];
 
-        // Map available languages with localized display names
-        let languageOptions = collectionData.availableLanguages.map(availLang => {
-          const langInfo = allLanguagesCache.find(l => l.id === availLang.languageId);
+        if (isImages) {
+          // Fetch languages for entire chapter (not specific verse)
+          const availableResourcesRes = await fetch(
+            `${API_BASE_URL}/languages/available-resources?bookcode=${sourceData.bookCode}&StartChapter=${sourceData.chapterNumber}&StartVerse=1&EndVerse=999&EndChapter=${sourceData.chapterNumber}`,
+            { method: 'GET', mode: 'cors' }
+          );
 
-          return {
-            id: availLang.languageId,
-            code: availLang.languageCode,
-            display: langInfo?.localizedDisplay ?? availLang.displayName,
-            englishDisplay: langInfo?.englishDisplay,
-            itemCount: availLang.resourceItemCount,
-            scriptDirection: langInfo?.scriptDirection
-              ? (langInfo.scriptDirection as 'LTR' | 'RTL')
-              : 'LTR',
-          };
-        });
+          if (!availableResourcesRes.ok) throw new Error('Failed to fetch available resources');
+          const availableResourcesData =
+            (await availableResourcesRes.json()) as LanguageResourceCount[];
 
-        // Always include source language even if not in available languages
-        const sourceLanguageInfo = allLanguagesCache.find(l => l.code === sourceLanguageCode);
-        const hasSourceLanguage = languageOptions.some(l => l.code === sourceLanguageCode);
+          languageOptions = availableResourcesData
+            .filter(langData => {
+              const imagesCount = langData.resourceCounts.find(rc => rc.type === 'Images');
+              return imagesCount && imagesCount.count > 0;
+            })
+            .map(langData => {
+              const langInfo = allLanguagesCache.find(l => l.id === langData.languageId);
+              const imagesCount =
+                langData.resourceCounts.find(rc => rc.type === 'Images')?.count || 0;
 
-        if (!hasSourceLanguage && sourceLanguageInfo) {
-          languageOptions.unshift({
-            id: sourceLanguageInfo.id,
-            code: sourceLanguageInfo.code,
-            display: sourceLanguageInfo.localizedDisplay,
-            englishDisplay: sourceLanguageInfo.englishDisplay,
-            itemCount: 0,
-            scriptDirection: sourceLanguageInfo.scriptDirection as 'LTR' | 'RTL',
-          });
-        }
+              return {
+                id: langData.languageId,
+                code: langData.languageCode,
+                display: langInfo?.localizedDisplay ?? langData.languageCode,
+                englishDisplay: langInfo?.englishDisplay,
+                itemCount: imagesCount,
+                scriptDirection: langInfo?.scriptDirection
+                  ? (langInfo.scriptDirection as 'LTR' | 'RTL')
+                  : 'LTR',
+              };
+            });
+        } else if (isTranslationNotes) {
+          // Fetch languages for translation notes collection
+          const collectionRes = await fetch(
+            `${API_BASE_URL}/resources/collections/${selectedResource.id}`,
+            { method: 'GET', mode: 'cors' }
+          );
 
-        setAvailableLanguages(languageOptions);
-        setSelectedLanguage('');
-      } catch (error) {
-        console.error('Error fetching translation notes languages:', error);
-        setAvailableLanguages([]);
-        setSelectedLanguage('');
-      } finally {
-        setLoadingLanguages(false);
-      }
-    };
+          if (!collectionRes.ok) throw new Error('Failed to fetch resource collection');
+          const collectionData = (await collectionRes.json()) as ResourceCollectionResponse;
 
-    void fetchTranslationNotesLanguages();
-  }, [selectedResource.id, sourceLanguageCode, allLanguagesCache]);
-
-  // Fetch available languages for Images (depends on activeVerseId)
-  useEffect(() => {
-    const fetchImagesLanguages = async () => {
-      const isImages = selectedResource.name === 'Images';
-
-      if (!isImages) {
-        return;
-      }
-
-      if (allLanguagesCache.length === 0) {
-        return;
-      }
-
-      setLoadingLanguages(true);
-      try {
-        const availableResourcesRes = await fetch(
-          `${API_BASE_URL}/languages/available-resources?bookcode=${sourceData.bookCode}&StartChapter=${sourceData.chapterNumber}&StartVerse=${activeVerseId}&EndVerse=${activeVerseId}&EndChapter=${sourceData.chapterNumber}`,
-          { method: 'GET', mode: 'cors' }
-        );
-        if (!availableResourcesRes.ok) throw new Error('Failed to fetch available resources');
-        const availableResourcesData =
-          (await availableResourcesRes.json()) as LanguageResourceCount[];
-
-        // Filter languages that have Images and map to LanguageOption
-        let languageOptions = availableResourcesData
-          .filter(langData => {
-            const imagesCount = langData.resourceCounts.find(rc => rc.type === 'Images');
-            return imagesCount && imagesCount.count > 0;
-          })
-          .map(langData => {
-            const langInfo = allLanguagesCache.find(l => l.id === langData.languageId);
-            const imagesCount =
-              langData.resourceCounts.find(rc => rc.type === 'Images')?.count || 0;
+          languageOptions = collectionData.availableLanguages.map(availLang => {
+            const langInfo = allLanguagesCache.find(l => l.id === availLang.languageId);
 
             return {
-              id: langData.languageId,
-              code: langData.languageCode,
-              display: langInfo?.localizedDisplay ?? langData.languageCode,
+              id: availLang.languageId,
+              code: availLang.languageCode,
+              display: langInfo?.localizedDisplay ?? availLang.displayName,
               englishDisplay: langInfo?.englishDisplay,
-              itemCount: imagesCount,
+              itemCount: availLang.resourceItemCount,
               scriptDirection: langInfo?.scriptDirection
                 ? (langInfo.scriptDirection as 'LTR' | 'RTL')
                 : 'LTR',
             };
           });
+        }
 
-        // Always include source language even if not in available languages
+        // Always include source language
         const sourceLanguageInfo = allLanguagesCache.find(l => l.code === sourceLanguageCode);
         const hasSourceLanguage = languageOptions.some(l => l.code === sourceLanguageCode);
 
@@ -234,9 +206,9 @@ export const useResourceLanguages = (
         }
 
         setAvailableLanguages(languageOptions);
-        setSelectedLanguage('');
+        lastFetchKeyRef.current = currentFetchKey;
       } catch (error) {
-        console.error('Error fetching images languages:', error);
+        console.error('Error fetching languages:', error);
         setAvailableLanguages([]);
         setSelectedLanguage('');
       } finally {
@@ -244,26 +216,16 @@ export const useResourceLanguages = (
       }
     };
 
-    void fetchImagesLanguages();
+    void fetchLanguages();
   }, [
+    selectedResource.id,
     selectedResource.name,
     sourceLanguageCode,
     sourceData.bookCode,
     sourceData.chapterNumber,
-    activeVerseId,
     allLanguagesCache,
+    currentFetchKey,
   ]);
-
-  // Clear languages when neither Translation Notes nor Images is selected
-  useEffect(() => {
-    const isTranslationNotes = selectedResource.id === 'UWTranslationNotes';
-    const isImages = selectedResource.name === 'Images';
-
-    if (!isTranslationNotes && !isImages) {
-      setAvailableLanguages([]);
-      setSelectedLanguage('');
-    }
-  }, [selectedResource.id, selectedResource.name]);
 
   const handleLanguageChange = useCallback((languageCode: string) => {
     setSelectedLanguage(languageCode);
@@ -282,182 +244,8 @@ export const useResourceLanguages = (
     currentLanguageDirection,
   };
 };
-// export const useResourceLanguages = (
-//   selectedResource: ResourceName,
-//   sourceLanguageCode: string,
-//   sourceData: ProjectItem,
-//   activeVerseId: number
-// ) => {
-//   const [availableLanguages, setAvailableLanguages] = useState<LanguageOption[]>([]);
-//   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
-//   const [loadingLanguages, setLoadingLanguages] = useState(false);
-//   const [allLanguagesCache, setAllLanguagesCache] = useState<Language[]>([]);
 
-//   // Track sourceData to call /languages API only once
-//   const sourceDataRef = useRef<string>('');
-//   const currentSourceDataKey = `${sourceData.bookCode}-${sourceData.chapterNumber}`;
-
-//   // Fetch all languages only once when sourceData changes
-//   useEffect(() => {
-//     const fetchAllLanguages = async () => {
-//       if (sourceDataRef.current === currentSourceDataKey && allLanguagesCache.length > 0) {
-//         return; // Already fetched for this sourceData
-//       }
-
-//       try {
-//         const languagesRes = await fetch(`${API_BASE_URL}/languages`, {
-//           method: 'GET',
-//           mode: 'cors',
-//         });
-//         if (!languagesRes.ok) throw new Error('Failed to fetch languages');
-//         const allLanguages = (await languagesRes.json()) as Language[];
-//         setAllLanguagesCache(allLanguages);
-//         sourceDataRef.current = currentSourceDataKey;
-//       } catch (error) {
-//         console.error('Error fetching all languages:', error);
-//       }
-//     };
-
-//     void fetchAllLanguages();
-//   }, [currentSourceDataKey]);
-
-//   useEffect(() => {
-//     const fetchLanguages = async () => {
-//       const isTranslationNotes = selectedResource.id === 'UWTranslationNotes';
-//       const isImages = selectedResource.name === 'Images';
-
-//       // Only fetch languages for translation notes and images
-//       if (!isTranslationNotes && !isImages) {
-//         setAvailableLanguages([]);
-//         setSelectedLanguage('');
-//         return;
-//       }
-
-//       // Wait for languages cache to be populated
-//       if (allLanguagesCache.length === 0) {
-//         return;
-//       }
-
-//       setLoadingLanguages(true);
-//       try {
-//         let languageOptions: LanguageOption[] = [];
-
-//         if (isImages) {
-//           // Fetch available languages for images using the new endpoint
-//           const availableResourcesRes = await fetch(
-//             `${API_BASE_URL}/languages/available-resources?bookcode=${sourceData.bookCode}&StartChapter=${sourceData.chapterNumber}&StartVerse=${activeVerseId}&EndVerse=${activeVerseId}&EndChapter=${sourceData.chapterNumber}`,
-//             { method: 'GET', mode: 'cors' }
-//           );
-//           if (!availableResourcesRes.ok) throw new Error('Failed to fetch available resources');
-//           const availableResourcesData =
-//             (await availableResourcesRes.json()) as LanguageResourceCount[];
-
-//           // Filter languages that have Images and map to LanguageOption
-//           languageOptions = availableResourcesData
-//             .filter(langData => {
-//               const imagesCount = langData.resourceCounts.find(rc => rc.type === 'Images');
-//               return imagesCount && imagesCount.count > 0;
-//             })
-//             .map(langData => {
-//               const langInfo = allLanguagesCache.find(l => l.id === langData.languageId);
-//               const imagesCount =
-//                 langData.resourceCounts.find(rc => rc.type === 'Images')?.count || 0;
-
-//               return {
-//                 id: langData.languageId,
-//                 code: langData.languageCode,
-//                 display: langInfo?.localizedDisplay ?? langData.languageCode,
-//                 englishDisplay: langInfo?.englishDisplay,
-//                 itemCount: imagesCount,
-//                 scriptDirection: langInfo?.scriptDirection
-//                   ? (langInfo.scriptDirection as 'LTR' | 'RTL')
-//                   : 'LTR',
-//               };
-//             });
-//         } else if (isTranslationNotes) {
-//           // Fetch available languages for translation notes
-//           const collectionRes = await fetch(
-//             `${API_BASE_URL}/resources/collections/${selectedResource.id}`,
-//             { method: 'GET', mode: 'cors' }
-//           );
-//           if (!collectionRes.ok) throw new Error('Failed to fetch resource collection');
-//           const collectionData = (await collectionRes.json()) as ResourceCollectionResponse;
-
-//           // Map available languages with localized display names
-//           languageOptions = collectionData.availableLanguages.map(availLang => {
-//             const langInfo = allLanguagesCache.find(l => l.id === availLang.languageId);
-
-//             return {
-//               id: availLang.languageId,
-//               code: availLang.languageCode,
-//               display: langInfo?.localizedDisplay ?? availLang.displayName,
-//               englishDisplay: langInfo?.englishDisplay,
-//               itemCount: availLang.resourceItemCount,
-//               scriptDirection: langInfo?.scriptDirection
-//                 ? (langInfo.scriptDirection as 'LTR' | 'RTL')
-//                 : 'LTR',
-//             };
-//           });
-//         }
-
-//         // Always include source language even if not in available languages
-//         const sourceLanguageInfo = allLanguagesCache.find(l => l.code === sourceLanguageCode);
-//         const hasSourceLanguage = languageOptions.some(l => l.code === sourceLanguageCode);
-
-//         if (!hasSourceLanguage && sourceLanguageInfo) {
-//           languageOptions.unshift({
-//             id: sourceLanguageInfo.id,
-//             code: sourceLanguageInfo.code,
-//             display: sourceLanguageInfo.localizedDisplay,
-//             englishDisplay: sourceLanguageInfo.englishDisplay,
-//             itemCount: 0,
-//             scriptDirection: sourceLanguageInfo.scriptDirection as 'LTR' | 'RTL',
-//           });
-//         }
-
-//         setAvailableLanguages(languageOptions);
-//         console.log('initial availableLanguages:', languageOptions);
-
-//         // Reset to empty string - parent will handle initialization
-//         setSelectedLanguage('');
-//       } catch (error) {
-//         console.error('Error fetching languages:', error);
-//         setAvailableLanguages([]);
-//         console.log('error availableLanguages: []');
-
-//         setSelectedLanguage('');
-//       } finally {
-//         setLoadingLanguages(false);
-//       }
-//     };
-
-//     void fetchLanguages();
-//   }, [
-//     selectedResource.id,
-//     selectedResource.name,
-//     sourceLanguageCode,
-//     sourceData.bookCode,
-//     sourceData.chapterNumber,
-//     allLanguagesCache,
-//   ]);
-
-//   const handleLanguageChange = (languageCode: string) => {
-//     console.log('handleLanguageChange to:', languageCode);
-
-//     setSelectedLanguage(languageCode);
-//   };
-
-//   return {
-//     availableLanguages,
-//     selectedLanguage,
-//     loadingLanguages,
-//     handleLanguageChange,
-//     currentLanguageDirection:
-//       availableLanguages.find(l => l.code === selectedLanguage)?.scriptDirection ?? 'LTR',
-//   };
-// };
-
-// Hook for fetching resources
+// Hook for fetching resources (content for specific verse)
 export const useResourceFetch = (
   selectedResource: ResourceName,
   activeVerseId: number,
@@ -469,15 +257,20 @@ export const useResourceFetch = (
   const [loadingImages, setLoadingImages] = useState(false);
 
   useEffect(() => {
+    // Don't fetch if no language selected
+    if (selectedLanguage === undefined || selectedLanguage === '') {
+      setLocalizeRefName([]);
+      setImageItems([]);
+      return;
+    }
+
     const fetchResources = async () => {
       const isImageResource = selectedResource.name === 'Images';
+      const languageCode = selectedLanguage || sourceData.sourceLangCode;
 
       if (isImageResource) {
         setLoadingImages(true);
         try {
-          // Use selected language for images, otherwise use source language
-          const languageCode = selectedLanguage ?? sourceData.sourceLangCode;
-
           const response = await fetch(
             `${API_BASE_URL}/resources/search?BookCode=${sourceData.bookCode}&StartChapter=${sourceData.chapterNumber}&EndChapter=${sourceData.chapterNumber}&LanguageCode=${languageCode}&StartVerse=${activeVerseId}&EndVerse=${activeVerseId}&ResourceType=${selectedResource.id}&Limit=100`,
             { method: 'GET', mode: 'cors' }
@@ -485,10 +278,14 @@ export const useResourceFetch = (
 
           if (!response.ok) {
             console.error('Failed to fetch resources');
+            setImageItems([]);
+            setLocalizeRefName([]);
             return;
           }
 
           const data = (await response.json()) as FetchResponse;
+
+          // Fetch URLs for all images
           const itemsWithUrls: ItemWithUrl[] = await Promise.all(
             data.items.map(async (item: unknown) => {
               const resourceItem = item as ItemWithUrl;
@@ -515,27 +312,37 @@ export const useResourceFetch = (
           setLocalizeRefName([]);
         } catch (error) {
           console.error('Error fetching media resources:', error);
+          setImageItems([]);
+          setLocalizeRefName([]);
         } finally {
           setLoadingImages(false);
         }
       } else {
-        // Use selected language for translation notes, otherwise use source language
-        const languageCode = selectedLanguage ?? sourceData.sourceLangCode;
-        console.log('Fetching translation notes with language code:', languageCode);
+        // Fetch translation notes
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/resources/search?BookCode=${sourceData.bookCode}&StartChapter=${sourceData.chapterNumber}&EndChapter=${sourceData.chapterNumber}&LanguageCode=${languageCode}&StartVerse=${activeVerseId}&EndVerse=${activeVerseId}&ResourceCollectionCode=${selectedResource.id}&Limit=100`,
+            { method: 'GET', mode: 'cors' }
+          );
 
-        const response = await fetch(
-          `${API_BASE_URL}/resources/search?BookCode=${sourceData.bookCode}&StartChapter=${sourceData.chapterNumber}&EndChapter=${sourceData.chapterNumber}&LanguageCode=${languageCode}&StartVerse=${activeVerseId}&EndVerse=${activeVerseId}&ResourceCollectionCode=${selectedResource.id}&Limit=100`,
-          { method: 'GET', mode: 'cors' }
-        );
-        if (!response.ok) {
-          console.error('Failed to fetch resources');
-          return;
+          if (!response.ok) {
+            console.error('Failed to fetch resources');
+            setLocalizeRefName([]);
+            setImageItems([]);
+            return;
+          }
+
+          const data = (await response.json()) as FetchResponse;
+          setLocalizeRefName(data.items as ResourceItem[]);
+          setImageItems([]);
+        } catch (error) {
+          console.error('Error fetching resources:', error);
+          setLocalizeRefName([]);
+          setImageItems([]);
         }
-        const data = (await response.json()) as FetchResponse;
-        setLocalizeRefName(data.items as ResourceItem[]);
-        setImageItems([]);
       }
     };
+
     void fetchResources();
   }, [selectedResource, activeVerseId, sourceData, selectedLanguage]);
 
