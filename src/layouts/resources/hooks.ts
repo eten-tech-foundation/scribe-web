@@ -114,7 +114,6 @@ export const useResourceLanguages = (
       return;
     }
 
-    // Wait for languages cache
     if (allLanguagesCache.length === 0) {
       return;
     }
@@ -131,7 +130,7 @@ export const useResourceLanguages = (
         let languageOptions: LanguageOption[] = [];
 
         if (isImages) {
-          // Fetch languages for entire chapter (not specific verse)
+          // Fetch languages for entire chapter
           const availableResourcesRes = await fetch(
             `${API_BASE_URL}/languages/available-resources?bookcode=${sourceData.bookCode}&StartChapter=${sourceData.chapterNumber}&StartVerse=1&EndVerse=200&EndChapter=${sourceData.chapterNumber}`,
             { method: 'GET', mode: 'cors' }
@@ -149,7 +148,7 @@ export const useResourceLanguages = (
             .map(langData => {
               const langInfo = allLanguagesCache.find(l => l.id === langData.languageId);
               const imagesCount =
-                langData.resourceCounts.find(rc => rc.type === 'Images')?.count || 0;
+                langData.resourceCounts.find(rc => rc.type === 'Images')?.count ?? 0;
 
               return {
                 id: langData.languageId,
@@ -256,7 +255,7 @@ export const useResourceFetch = (
 
   useEffect(() => {
     // Don't fetch if no language selected
-    if (selectedLanguage === undefined || selectedLanguage === '') {
+    if (!selectedLanguage) {
       setLocalizeRefName([]);
       setImageItems([]);
       return;
@@ -354,8 +353,6 @@ export const useGuideContent = () => {
   const [relatedAudioIds, setRelatedAudioIds] = useState<Record<number, number | null>>({});
 
   const fetchGuideContent = async (id: number): Promise<GuideContent | undefined> => {
-    if (guideContents[id]) return guideContents[id];
-
     setLoadingGuides(prev => ({ ...prev, [id]: true }));
     try {
       const res = await fetch(`${API_BASE_URL}/resources/${id}`, {
@@ -386,7 +383,7 @@ export const useGuideContent = () => {
         item.grouping.collectionCode === collectionCode
     );
 
-    if (audioItem && !guideContents[audioItem.id]) {
+    if (audioItem) {
       await fetchGuideContent(audioItem.id);
     }
 
@@ -417,7 +414,7 @@ export const useResourceDialog = () => {
     try {
       let finalResourceId = resourceId;
 
-      if (parentResourceId !== null && parentResourceId !== undefined) {
+      if (parentResourceId != null) {
         const associationsRes = await fetch(
           `${API_BASE_URL}/resources/${parentResourceId}/associations`,
           { method: 'GET', mode: 'cors' }

@@ -19,7 +19,7 @@ export const TipTapRenderer: React.FC<TipTapRendererProps> = ({
   const alignClass = direction === 'RTL' ? 'text-right' : 'text-left';
   const marginClass = direction === 'RTL' ? 'mr' : 'ml';
 
-  const renderNode = (node: TipTapNode, index: number): React.ReactNode => {
+  const renderNode = (node: TipTapNode | null | undefined, index: number): React.ReactNode => {
     if (!node) return null;
 
     switch (node.type) {
@@ -218,7 +218,11 @@ export const TipTapRenderer: React.FC<TipTapRendererProps> = ({
               <span
                 key={index}
                 className='cursor-pointer text-blue-600'
-                onClick={() => onResourceClick?.(resourceId!, parentResourceId)}
+                onClick={() => {
+                  if (onResourceClick && resourceId !== undefined) {
+                    onResourceClick(resourceId, parentResourceId);
+                  }
+                }}
               >
                 {element}
               </span>

@@ -38,11 +38,9 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
   const [selectedImage, setSelectedImage] = useState<ItemWithUrl | null>(null);
   const [openItem, setOpenItem] = useState<string | null>(null);
 
-  // Track if language has been initialized from parent
   const isLanguageInitializedRef = useRef(false);
   const hasAutoSelectedRef = useRef(false);
 
-  // Language management hook (does NOT depend on activeVerseId)
   const {
     availableLanguages,
     selectedLanguage,
@@ -51,34 +49,26 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
     currentLanguageDirection,
   } = useResourceLanguages(selectedResource, sourceData.sourceLangCode, sourceData);
 
-  // Update resource when initialResource changes
   useEffect(() => {
     if (initialResource) {
       setSelectedResource(initialResource);
     }
   }, [initialResource]);
 
-  // Initialize language from saved state OR auto-select source language
   useEffect(() => {
-    // Only initialize once
     if (isLanguageInitializedRef.current) return;
 
-    // Wait for languages to load
     if (loadingLanguages || availableLanguages.length === 0) return;
 
-    // Check if we have an initialLanguage from saved state
     if (initialLanguage) {
       const languageExists = availableLanguages.some(l => l.code === initialLanguage);
 
       if (languageExists) {
-        // Saved language exists, use it
         handleLanguageChange(initialLanguage);
         isLanguageInitializedRef.current = true;
         return;
       }
     }
-
-    // No saved language or saved language doesn't exist
     // Auto-select source language if available
     const sourceLanguageExists = availableLanguages.some(l => l.code === sourceData.sourceLangCode);
 
@@ -105,7 +95,6 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
     hasAutoSelectedRef.current = false;
   }, [selectedResource.id]);
 
-  // Notify parent of language changes (only after initialization)
   const prevLanguageRef = useRef(selectedLanguage);
   useEffect(() => {
     if (
@@ -118,7 +107,6 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
     }
   }, [selectedLanguage, onLanguageChange]);
 
-  // Determine if we should fetch resources
   const shouldFetchResources = isLanguageInitializedRef.current && selectedLanguage !== '';
 
   // Fetch resources (ONLY this hook depends on activeVerseId for content)
@@ -141,35 +129,30 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
   const { resourceDialog, loadingResourceDialog, handleResourceClick, resourceError, closeDialog } =
     useResourceDialog();
 
-  // Handle resource selection
   const handleResourceSelect = (resource: ResourceName) => {
     setSelectedResource(resource);
     onResourceChange?.(resource);
-    // Reset language when resource changes
     handleLanguageChange('');
   };
 
-  // Handle language selection
   const handleLanguageSelect = (languageCode: string) => {
     handleLanguageChange(languageCode);
   };
 
-  // Handle accordion value change
   const handleAccordionChange = async (value: string | undefined) => {
     setOpenItem(value ?? null);
 
     if (value) {
       const itemId = parseInt(value);
-      if (!guideContents[itemId]) {
+      if (!(itemId in guideContents)) {
         await fetchGuideContent(itemId);
       }
 
-      // Fetch related audio if not already fetched
       const item = localizeRefName.find(sv => sv.id === itemId);
-      if (item && relatedAudioIds[itemId] === undefined) {
+      if (item && !(itemId in relatedAudioIds)) {
         const audioId = await fetchRelatedAudio(
           item.localizedName,
-          item.grouping?.collectionCode ?? '',
+          item.grouping.collectionCode ?? '',
           localizeRefName
         );
         if (audioId !== undefined) {
@@ -179,7 +162,6 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
     }
   };
 
-  // Auto-expand first accordion item when resources load
   useEffect(() => {
     if (localizeRefName.length > 0 && shouldFetchResources) {
       const firstItemId = localizeRefName[0].id.toString();
@@ -194,8 +176,6 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
   // Show loading state while initializing
   const isInitializing = !isLanguageInitializedRef.current && loadingLanguages;
 
-  // Determine if language dropdown should be enabled
-  // ALWAYS enable for both Translation Notes and Images
   const isLanguageDropdownEnabled =
     selectedResource.id === 'UWTranslationNotes' || selectedResource.name === 'Images';
 

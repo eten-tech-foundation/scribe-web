@@ -28,7 +28,6 @@ interface TextResourceAccordionProps {
 
 const isAudioContent = (content: GuideContent['content']): content is AudioContent => {
   return (
-    content !== null &&
     typeof content === 'object' &&
     !Array.isArray(content) &&
     ('mp3' in content || 'webm' in content)
@@ -76,12 +75,13 @@ export const TextResourceAccordion: React.FC<TextResourceAccordionProps> = ({
                   <div className='flex items-center justify-center py-8'>
                     <Loader2 className='h-6 w-6 animate-spin text-blue-600' />
                   </div>
-                ) : guideContents[sv.id] ? (
+                ) : // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                guideContents[sv.id] ? (
                   <div dir={dirAttr}>
                     {isContentItemArray(guideContents[sv.id].content) ? (
                       <div className='space-y-6'>
                         {(guideContents[sv.id].content as ContentItem[]).map((contentItem, idx) => {
-                          if (!contentItem?.tiptap) return null;
+                          if (!contentItem.tiptap) return null;
 
                           const stepNumber = contentItem.stepNumber;
                           const audioStep = audioData?.mp3?.steps?.find(

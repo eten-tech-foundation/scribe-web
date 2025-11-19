@@ -30,6 +30,11 @@ interface DraftingUIProps {
   userdetail: User;
 }
 
+const RESOURCE_NAMES: ResourceName[] = [
+  { id: 'UWTranslationNotes', name: 'Translation Notes (uW)' },
+  { id: 'Images', name: 'Images' },
+];
+
 const DraftingUI: React.FC<DraftingUIProps> = ({
   projectItem,
   sourceVerses,
@@ -40,7 +45,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const submitChapterMutation = useSubmitChapter();
   const navigate = useNavigate();
 
-  // Verse state
   const [verses, setVerses] = useState<TargetVerse[]>(targetVerses);
   const [activeVerseId, setActiveVerseId] = useState(1);
   const [previousActiveVerseId, setPreviousActiveVerseId] = useState<number | null>(null);
@@ -51,14 +55,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const verseRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [buttonTop, setButtonTop] = useState<number>(0);
 
-  // Resource panel state
-  const resourceNames: ResourceName[] = [
-    { id: 'UWTranslationNotes', name: 'Translation Notes (uW)' },
-    { id: 'Images', name: 'Images' },
-  ];
-
   const [showResources, setShowResources] = useState(false);
-  const [currentResource, setCurrentResource] = useState<ResourceName>(resourceNames[0]);
+  const [currentResource, setCurrentResource] = useState<ResourceName>(RESOURCE_NAMES[0]);
   const [currentLanguage, setCurrentLanguage] = useState('');
 
   // Fetch saved resource state
@@ -67,10 +65,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     userdetail.email
   );
 
-  // Save mutation
   const saveResourceStateMutation = useSaveResourceState();
 
-  // Track initialization and last saved state
   const isInitializedRef = useRef(false);
   const lastSavedStateRef = useRef<{
     activeResource: string;
@@ -78,6 +74,12 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     tabStatus: boolean;
   } | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Memoize auto-resize function
+  const autoResizeTextarea = useCallback((textarea: HTMLTextAreaElement) => {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.max(20, textarea.scrollHeight) + 'px';
+  }, []);
 
   // Initialize resource state from saved data (runs once)
   useEffect(() => {
@@ -92,24 +94,22 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       }
 
       if (activeResource) {
-        const savedResource = resourceNames.find(r => r.id === activeResource);
-        setCurrentResource(savedResource ?? resourceNames[0]);
+        const savedResource = RESOURCE_NAMES.find(r => r.id === activeResource);
+        setCurrentResource(savedResource ?? RESOURCE_NAMES[0]);
       }
 
       if (languageCode) {
         setCurrentLanguage(languageCode);
       }
 
-      // Set last saved state
       lastSavedStateRef.current = {
-        activeResource: activeResource || resourceNames[0].id,
+        activeResource: activeResource || RESOURCE_NAMES[0].id,
         languageCode: languageCode || '',
         tabStatus: typeof tabStatus === 'boolean' ? tabStatus : false,
       };
     } else {
-      // No saved state, set defaults as last saved
       lastSavedStateRef.current = {
-        activeResource: resourceNames[0].id,
+        activeResource: RESOURCE_NAMES[0].id,
         languageCode: '',
         tabStatus: false,
       };
@@ -140,7 +140,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       }
     }
 
-    // Clear existing timeout
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
@@ -155,7 +154,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       lastSavedStateRef.current = currentState;
     }, 500);
 
-    // Cleanup
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
@@ -170,7 +168,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     saveResourceStateMutation,
   ]);
 
-  // Verse translation logic
   const lastRevealedVerseNumber = useMemo(
     () => (revealedVerses.size > 0 ? Math.max(...Array.from(revealedVerses)) : 1),
     [revealedVerses]
@@ -212,7 +209,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     }
   );
 
-  // Initialize verses on load
   useEffect(() => {
     if (targetVerses.length === 0) return;
 
@@ -253,9 +249,9 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     });
     initiallyRevealed.add(mostRecentlyEditedVerseNumber);
     setRevealedVerses(initiallyRevealed);
-  }, [targetVerses, sourceVerses, setInitialContent]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
-  // Reveal active verse
   useEffect(() => {
     setRevealedVerses(prev => {
       if (prev.has(activeVerseId)) return prev;
@@ -265,13 +261,12 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     });
   }, [activeVerseId]);
 
-  // Auto-resize textareas
   useEffect(() => {
     revealedVerses.forEach(verseNumber => {
       const textarea = textareaRefs.current[verseNumber];
       if (textarea) autoResizeTextarea(textarea);
     });
-  }, [revealedVerses]);
+  }, [revealedVerses, autoResizeTextarea]);
 
   useEffect(() => {
     verses.forEach(verse => {
@@ -280,12 +275,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         autoResizeTextarea(textarea);
       }
     });
-  }, [verses]);
-
-  const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.max(20, textarea.scrollHeight) + 'px';
-  };
+  }, [verses, autoResizeTextarea]);
 
   const updateButtonPosition = useCallback(() => {
     const container = targetScrollRef.current;
@@ -320,9 +310,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       autoResizeTextarea(textarea);
     }
     updateButtonPosition();
-  }, [activeVerseId, verses, revealedVerses, updateButtonPosition]);
+  }, [activeVerseId, verses, revealedVerses, updateButtonPosition, autoResizeTextarea]);
 
-  // Progress and status
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
   const progressPercentage = (versesWithText / totalSourceVerses) * 100;
@@ -331,36 +320,41 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const isAnythingSaving = verses.some(v => getSaveStatus(v.verseNumber).showLoader);
   const hasAnyError = verses.some(v => getSaveStatus(v.verseNumber).hasRetryScheduled);
 
-  // Handlers
-  const handleTextChange = (verseId: number, text: string) => {
-    setVerses(currentVerses =>
-      currentVerses.map(verse =>
-        verse.verseNumber === verseId ? { ...verse, content: text } : verse
-      )
-    );
-    debouncedSave(verseId, text);
+  const handleTextChange = useCallback(
+    (verseId: number, text: string) => {
+      setVerses(currentVerses =>
+        currentVerses.map(verse =>
+          verse.verseNumber === verseId ? { ...verse, content: text } : verse
+        )
+      );
+      debouncedSave(verseId, text);
 
-    const textarea = textareaRefs.current[verseId];
-    if (textarea) autoResizeTextarea(textarea);
-    updateButtonPosition();
-  };
+      const textarea = textareaRefs.current[verseId];
+      if (textarea) autoResizeTextarea(textarea);
+      updateButtonPosition();
+    },
+    [debouncedSave, autoResizeTextarea, updateButtonPosition]
+  );
 
-  const handleActiveVerseChange = async (newVerseId: number) => {
-    if (previousActiveVerseId !== null && previousActiveVerseId !== newVerseId) {
-      const previousVerse = verses.find(v => v.verseNumber === previousActiveVerseId);
-      if (previousVerse) {
-        const status = getSaveStatus(previousActiveVerseId);
-        if (status.hasUnsavedChanges) {
-          await saveImmediately(previousActiveVerseId, previousVerse.content);
+  const handleActiveVerseChange = useCallback(
+    async (newVerseId: number) => {
+      if (previousActiveVerseId !== null && previousActiveVerseId !== newVerseId) {
+        const previousVerse = verses.find(v => v.verseNumber === previousActiveVerseId);
+        if (previousVerse) {
+          const status = getSaveStatus(previousActiveVerseId);
+          if (status.hasUnsavedChanges) {
+            await saveImmediately(previousActiveVerseId, previousVerse.content);
+          }
         }
       }
-    }
 
-    setPreviousActiveVerseId(activeVerseId);
-    setActiveVerseId(newVerseId);
-    const prevId = Math.max(1, newVerseId - 1);
-    requestAnimationFrame(() => scrollVerseToTop(prevId));
-  };
+      setPreviousActiveVerseId(activeVerseId);
+      setActiveVerseId(newVerseId);
+      const prevId = Math.max(1, newVerseId - 1);
+      requestAnimationFrame(() => scrollVerseToTop(prevId));
+    },
+    [previousActiveVerseId, verses, getSaveStatus, saveImmediately, activeVerseId, scrollVerseToTop]
+  );
 
   const advanceToVerse = useCallback(
     async (nextVerseId: number, verseToSave?: { verseNumber: number; content: string }) => {
@@ -407,7 +401,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     await advanceToVerse(lastRevealedVerseNumber + 1, lastRevealedVerse);
   }, [lastRevealedVerseNumber, lastRevealedVerseHasContent, lastRevealedVerse, advanceToVerse]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!isTranslationComplete) return;
 
     const savePromises = verses
@@ -421,18 +415,33 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       email: userdetail.email,
     });
     await navigate({ to: '/' });
-  };
+  }, [
+    isTranslationComplete,
+    verses,
+    getSaveStatus,
+    saveImmediately,
+    submitChapterMutation,
+    projectItem.chapterAssignmentId,
+    userdetail.email,
+    navigate,
+  ]);
 
-  const handleKeyDown = async (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      await moveToNextVerse();
-    }
-  };
+  const handleKeyDown = useCallback(
+    async (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        await moveToNextVerse();
+      }
+    },
+    [moveToNextVerse]
+  );
+
+  const toggleResources = useCallback(() => {
+    setShowResources(prev => !prev);
+  }, []);
 
   return (
     <div className='flex h-full flex-col overflow-hidden'>
-      {/* Header */}
       <div className='flex-shrink-0'>
         <div className='flex items-center justify-between px-6 py-4'>
           <div className='flex-shrink-0'>
@@ -452,7 +461,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
               className='bg-primary flex cursor-pointer items-center gap-2'
               title={showResources ? 'Hide Resources' : 'Show Resources'}
               type='button'
-              onClick={() => setShowResources(prev => !prev)}
+              onClick={toggleResources}
             >
               <BookText color='#ffffff' />
             </Button>
@@ -479,7 +488,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         </div>
       </div>
 
-      {/* Main content */}
       <div className='flex h-full overflow-hidden'>
         {showResources && isInitializedRef.current && (
           <div className='w-[25%]'>
@@ -487,7 +495,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
               activeVerseId={activeVerseId}
               initialLanguage={currentLanguage}
               initialResource={currentResource}
-              resourceNames={resourceNames}
+              resourceNames={RESOURCE_NAMES}
               sourceData={projectItem}
               onLanguageChange={setCurrentLanguage}
               onResourceChange={setCurrentResource}

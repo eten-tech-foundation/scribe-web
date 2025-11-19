@@ -16,6 +16,7 @@ import {
   type GuideContent,
   type ItemWithUrl,
   type ProjectItem,
+  type TipTapNode,
 } from '@/lib/types';
 import { getPublisherName } from '@/lib/utils';
 
@@ -112,7 +113,7 @@ export const ImageDialog = ({
         ) : (
           image && (
             <img
-              alt={image.localizedName ?? 'Image preview'}
+              alt={image.localizedName || 'Image preview'}
               className='object-contain'
               src={image.url}
               style={{
@@ -143,6 +144,10 @@ interface ResourceDialogProps {
 const isContentItemArray = (content: GuideContent['content']): content is ContentItem[] =>
   Array.isArray(content);
 
+const isTipTapNode = (tiptap: ContentItem['tiptap']): tiptap is TipTapNode => {
+  return typeof tiptap === 'object' && 'type' in tiptap;
+};
+
 export const ResourceDialog: React.FC<ResourceDialogProps> = ({
   resource,
   loading,
@@ -163,9 +168,8 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
       <DialogContent
         className='bg-background w-full" flex max-h-[80vh] !max-w-5xl flex-col p-0'
         dir={dirAttr}
-        showCloseButton={false} // hide default shadcn close icon
+        showCloseButton={false}
       >
-        {/* Sticky Header */}
         <DialogHeader
           className={`sticky top-0 z-20 flex items-center justify-between px-6 py-2 ${
             isRTL ? 'flex-row-reverse' : 'flex-row'
@@ -197,7 +201,6 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
           )}
         </DialogHeader>
 
-        {/* Scrollable Content */}
         <div className='flex-1 overflow-y-auto px-6 py-2' dir={dirAttr}>
           {loading ? (
             <div className='flex items-center justify-center py-8'>
@@ -207,37 +210,33 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
             <div className='flex h-[70vh] items-center justify-center py-8'>
               <p className={`text-center text-base`}>An error occurred. Please try again</p>
             </div>
-          ) : resource?.content ? (
-            isContentItemArray(resource.content) ? (
-              <div className='space-y-6'>
-                {resource.content.map((contentItem, idx) => {
-                  if (!contentItem?.tiptap) return null;
-                  const stepNumber = contentItem.stepNumber;
+          ) : resource?.content && isContentItemArray(resource.content) ? (
+            <div className='space-y-6'>
+              {resource.content.map((contentItem, idx) => {
+                if (!contentItem.tiptap || !isTipTapNode(contentItem.tiptap)) return null;
+                const stepNumber = contentItem.stepNumber;
 
-                  return (
-                    <div
-                      key={idx}
-                      className='border-b border-gray-100 pb-4 last:border-b-0'
-                      dir={dirAttr}
-                    >
-                      {stepNumber && (
-                        <div className={`mb-2 text-sm font-semibold text-blue-600 ${alignClass}`}>
-                          Step {stepNumber}
-                        </div>
-                      )}
-                      <TipTapRenderer
-                        content={contentItem.tiptap}
-                        direction={direction}
-                        parentResourceId={resource.id}
-                        onResourceClick={onResourceClick}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className={`text-sm text-gray-500 ${alignClass}`}>No content available</p>
-            )
+                return (
+                  <div
+                    key={idx}
+                    className='border-b border-gray-100 pb-4 last:border-b-0'
+                    dir={dirAttr}
+                  >
+                    {stepNumber && (
+                      <div className={`mb-2 text-sm font-semibold text-blue-600 ${alignClass}`}>
+                        Step {stepNumber}
+                      </div>
+                    )}
+                    <TipTapRenderer
+                      content={contentItem.tiptap}
+                      direction={direction}
+                      parentResourceId={resource.id}
+                      onResourceClick={onResourceClick}
+                    />
+                  </div>
+                );
+              })}
+            </div>
           ) : (
             <p className={`text-sm text-gray-500 ${alignClass}`}>No content available</p>
           )}

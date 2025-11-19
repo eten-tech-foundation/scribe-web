@@ -178,3 +178,13 @@ export interface ResourceItem {
   mediaType: string;
   grouping: GroupingData;
 }
+export interface Source {
+  id: number;
+  verseNumber: number;
+  text: string;
+}
+export interface TargetVerse {
+  id?: number;
+  content: string;
+  verseNumber: number;
+}

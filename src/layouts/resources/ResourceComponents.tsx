@@ -1,4 +1,3 @@
-// ResourceComponents.tsx
 import { useEffect, useRef, useState } from 'react';
 
 import { ChevronDown } from 'lucide-react';
@@ -33,7 +32,6 @@ export const ResourceDropdown = ({
     onSelect(resource);
     setIsOpen(false);
   };
-  // console.log(disabled, 'disabled prop in ResourceDropdown');
   return (
     <div ref={dropdownRef} className='relative mt-2'>
       <button
@@ -45,9 +43,9 @@ export const ResourceDropdown = ({
             ? 'cursor-not-allowed bg-gray-100 text-gray-400'
             : 'hover:bg-muted cursor-pointer'
         }`}
-        disabled={disabled} // native HTML disable
+        disabled={disabled}
         type='button'
-        onClick={() => !disabled && setIsOpen(!isOpen)} // prevent toggle when disabled
+        onClick={() => !disabled && setIsOpen(!isOpen)}
       >
         <span>{selectedResource.name}</span>
         <ChevronDown

@@ -2,14 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { config } from '@/lib/config';
 
-// GET response format (flat structure)
 export interface FetchResourceState {
   activeResource: string;
   languageCode: string;
   tabStatus: boolean;
 }
 
-// PUT request format (wrapped in resources)
 interface ResourceState {
   resources: {
     activeResource: string;
@@ -42,7 +40,7 @@ const fetchResourceState = async (
 
   if (!response.ok) {
     if (response.status === 404) {
-      return null; // No saved state exists
+      return null;
     }
     throw new Error('Failed to fetch resource state');
   }
