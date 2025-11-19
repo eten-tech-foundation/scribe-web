@@ -50,7 +50,6 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
     handleLanguageChange,
     currentLanguageDirection,
   } = useResourceLanguages(selectedResource, sourceData.sourceLangCode, sourceData);
-  console.log(availableLanguages, 'availableLanguages in ResourcePanel');
 
   // Update resource when initialResource changes
   useEffect(() => {
@@ -196,10 +195,9 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
   const isInitializing = !isLanguageInitializedRef.current && loadingLanguages;
 
   // Determine if language dropdown should be enabled
-  // Enable for both Translation Notes and Images
+  // ALWAYS enable for both Translation Notes and Images
   const isLanguageDropdownEnabled =
     selectedResource.id === 'UWTranslationNotes' || selectedResource.name === 'Images';
-  console.log('isLanguageDropdownEnabled', isLanguageDropdownEnabled);
 
   return (
     <aside className='bg-background flex h-full flex-col'>

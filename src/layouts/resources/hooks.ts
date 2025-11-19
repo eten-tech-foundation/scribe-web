@@ -71,8 +71,6 @@ export const useResourceLanguages = (
   sourceLanguageCode: string,
   sourceData: ProjectItem
 ) => {
-  console.log(selectedResource, 'selectedResource in useResourceLanguages');
-
   const [availableLanguages, setAvailableLanguages] = useState<LanguageOption[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [loadingLanguages, setLoadingLanguages] = useState(false);
@@ -135,7 +133,7 @@ export const useResourceLanguages = (
         if (isImages) {
           // Fetch languages for entire chapter (not specific verse)
           const availableResourcesRes = await fetch(
-            `${API_BASE_URL}/languages/available-resources?bookcode=${sourceData.bookCode}&StartChapter=${sourceData.chapterNumber}&StartVerse=1&EndVerse=999&EndChapter=${sourceData.chapterNumber}`,
+            `${API_BASE_URL}/languages/available-resources?bookcode=${sourceData.bookCode}&StartChapter=${sourceData.chapterNumber}&StartVerse=1&EndVerse=200&EndChapter=${sourceData.chapterNumber}`,
             { method: 'GET', mode: 'cors' }
           );
 
