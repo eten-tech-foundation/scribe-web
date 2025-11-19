@@ -188,3 +188,11 @@ export interface TargetVerse {
   content: string;
   verseNumber: number;
 }
+
+export interface DraftingUIProps {
+  projectItem: ProjectItem;
+  sourceVerses: Source[];
+  targetVerses: TargetVerse[];
+  userdetail: User;
+  readOnly?: boolean;
+}

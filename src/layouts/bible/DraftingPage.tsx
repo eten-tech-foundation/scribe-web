@@ -1,34 +1,20 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { useMatch, useNavigate } from '@tanstack/react-router';
-import { BookText, Loader } from 'lucide-react';
+import { BookText, ChevronLeft, Loader } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
 import { useBibleTextDebounce } from '@/hooks/useBibleTextDebounce';
 import { useResourceState, useSaveResourceState } from '@/hooks/useResourceStatePersistence';
 import { ResourcePanel } from '@/layouts/resources/ResourcePanel';
-import { type ProjectItem, type ResourceName, type User } from '@/lib/types';
+import {
+  type DraftingUIProps,
+  type ResourceName,
+  type Source,
+  type TargetVerse,
+} from '@/lib/types';
 import { useAppStore } from '@/store/store';
-
-export interface Source {
-  id: number;
-  verseNumber: number;
-  text: string;
-}
-
-export interface TargetVerse {
-  id?: number;
-  content: string;
-  verseNumber: number;
-}
-
-interface DraftingUIProps {
-  projectItem: ProjectItem;
-  sourceVerses: Source[];
-  targetVerses: TargetVerse[];
-  userdetail: User;
-}
 
 const RESOURCE_NAMES: ResourceName[] = [
   { id: 'UWTranslationNotes', name: 'Translation Notes (uW)' },
@@ -40,6 +26,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   sourceVerses,
   targetVerses,
   userdetail,
+  readOnly = false,
 }) => {
   const addVerseMutation = useAddTranslatedVerse();
   const submitChapterMutation = useSubmitChapter();
@@ -201,6 +188,13 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     [addVerseMutation, projectItem.projectUnitId, sourceVerses, userdetail]
   );
 
+  const { setUserDashboardTab } = useAppStore();
+
+  const handleBack = () => {
+    setUserDashboardTab('my-history');
+    void navigate({ to: '/' });
+  };
+
   const { debouncedSave, saveImmediately, getSaveStatus, setInitialContent } = useBibleTextDebounce(
     {
       onSave: saveVerse,
@@ -317,8 +311,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const progressPercentage = (versesWithText / totalSourceVerses) * 100;
   const isTranslationComplete = versesWithText === totalSourceVerses;
 
-  const isAnythingSaving = verses.some(v => getSaveStatus(v.verseNumber).showLoader);
-  const hasAnyError = verses.some(v => getSaveStatus(v.verseNumber).hasRetryScheduled);
+  const isAnythingSaving = !readOnly && verses.some(v => getSaveStatus(v.verseNumber).showLoader);
+  const hasAnyError = !readOnly && verses.some(v => getSaveStatus(v.verseNumber).hasRetryScheduled);
 
   const handleTextChange = useCallback(
     (verseId: number, text: string) => {
@@ -444,47 +438,59 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     <div className='flex h-full flex-col overflow-hidden'>
       <div className='flex-shrink-0'>
         <div className='flex items-center justify-between px-6 py-4'>
-          <div className='flex-shrink-0'>
+          <div className='flex flex-shrink-0 items-center gap-4'>
+            {readOnly && (
+              <span title='Back'>
+                <ChevronLeft
+                  className='flex-shrink-0 cursor-pointer'
+                  size={'24px'}
+                  strokeWidth={'2px'}
+                  onClick={handleBack}
+                />
+              </span>
+            )}
             <h2 className='text-3xl font-bold text-gray-900'>
               {projectItem.book} {projectItem.chapterNumber}
             </h2>
           </div>
-          <div className='flex flex-1 items-center justify-end gap-4'>
-            <div className='flex items-center gap-2'>
-              {isAnythingSaving && (
-                <Loader className='h-4 w-4 animate-spin text-[var(--primary)]' />
-              )}
-              {hasAnyError && <span className='text-sm text-red-500'>Auto-save failed</span>}
-            </div>
-            <Button
-              aria-pressed={showResources}
-              className='bg-primary flex cursor-pointer items-center gap-2'
-              title={showResources ? 'Hide Resources' : 'Show Resources'}
-              type='button'
-              onClick={toggleResources}
-            >
-              <BookText color='#ffffff' />
-            </Button>
-            <div className='bg-input rounded-lg border md:w-50 lg:w-76 xl:w-105'>
-              <div className='h-4 overflow-hidden rounded-full'>
-                <div
-                  className='bg-primary h-full rounded-full transition-all duration-300'
-                  style={{ width: `${progressPercentage}%` }}
-                ></div>
+          {!readOnly && (
+            <div className='flex flex-1 items-center justify-end gap-4'>
+              <div className='flex items-center gap-2'>
+                {isAnythingSaving && (
+                  <Loader className='h-4 w-4 animate-spin text-[var(--primary)]' />
+                )}
+                {hasAnyError && <span className='text-sm text-red-500'>Auto-save failed</span>}
               </div>
+              <Button
+                aria-pressed={showResources}
+                className='bg-primary flex cursor-pointer items-center gap-2'
+                title={showResources ? 'Hide Resources' : 'Show Resources'}
+                type='button'
+                onClick={toggleResources}
+              >
+                <BookText color='#ffffff' />
+              </Button>
+              <div className='bg-input rounded-lg border md:w-50 lg:w-76 xl:w-105'>
+                <div className='h-4 overflow-hidden rounded-full'>
+                  <div
+                    className='bg-primary h-full rounded-full transition-all duration-300'
+                    style={{ width: `${progressPercentage}%` }}
+                  ></div>
+                </div>
+              </div>
+              <Button
+                className={`flex-shrink-0 px-6 py-2 font-medium transition-all ${
+                  isTranslationComplete
+                    ? 'bg-primary hover:bg-primary-hover cursor-pointer text-white'
+                    : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                }`}
+                disabled={!isTranslationComplete}
+                onClick={handleSubmit}
+              >
+                Submit
+              </Button>
             </div>
-            <Button
-              className={`flex-shrink-0 px-6 py-2 font-medium transition-all ${
-                isTranslationComplete
-                  ? 'bg-primary hover:bg-primary-hover cursor-pointer text-white'
-                  : 'cursor-not-allowed bg-gray-300 text-gray-500'
-              }`}
-              disabled={!isTranslationComplete}
-              onClick={handleSubmit}
-            >
-              Submit
-            </Button>
-          </div>
+          )}
         </div>
       </div>
 
@@ -515,17 +521,22 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
             <div
               ref={targetScrollRef}
               className='relative col-span-2 flex h-full flex-col overflow-y-auto'
-              onScroll={updateButtonPosition}
+              style={{ scrollbarGutter: 'stable' }}
+              onScroll={() => !readOnly && updateButtonPosition()}
             >
               {sourceVerses.map(verse => {
-                const isActive = activeVerseId === verse.verseNumber;
+                const isActive = !readOnly && activeVerseId === verse.verseNumber;
                 const currentTargetVerse = verses.find(v => v.verseNumber === verse.verseNumber);
+                const shouldShowTarget =
+                  readOnly || isActive || revealedVerses.has(verse.verseNumber);
+
                 return (
                   <div
                     key={verse.verseNumber}
                     ref={el => (verseRefs.current[verse.verseNumber] = el)}
                     className='grid grid-cols-2 gap-4 px-6 py-4'
                   >
+                    {/* Source verse */}
                     <div className='col-1 flex items-start transition-all'>
                       <div className='w-8 flex-shrink-0'>
                         <span className='text-lg font-medium text-gray-700'>
@@ -545,38 +556,43 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                       </div>
                     </div>
 
+                    {/* Target verse */}
                     <div
-                      className={`col-2 flex transition-all ${
-                        isActive || revealedVerses.has(verse.verseNumber) ? '' : 'hidden'
-                      }`}
+                      className={`col-2 flex transition-all ${shouldShowTarget ? '' : 'hidden'}`}
                     >
-                      <div
-                        className={`flex-1 cursor-pointer rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${
-                          isActive ? 'border-primary' : ''
-                        }`}
-                        onClick={() => handleActiveVerseChange(verse.verseNumber)}
-                      >
-                        <textarea
-                          ref={el => (textareaRefs.current[verse.verseNumber] = el)}
-                          aria-label={`Translation for verse ${verse.verseNumber}`}
-                          autoCapitalize='sentences'
-                          autoCorrect='on'
-                          className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-relaxed text-gray-800 outline-none'
-                          id={`verse-${verse.verseNumber}`}
-                          placeholder='Enter translation...'
-                          spellCheck={true}
-                          value={currentTargetVerse?.content ?? ''}
-                          onChange={e => handleTextChange(verse.verseNumber, e.target.value)}
-                          onFocus={() => handleActiveVerseChange(verse.verseNumber)}
-                          onKeyDown={handleKeyDown}
-                        />
-                      </div>
+                      {readOnly ? (
+                        <div className='bg-card flex-1 rounded-lg border-2 px-4 py-3 shadow-sm'>
+                          <p className='min-h-12 text-base leading-snug text-gray-800'>
+                            {currentTargetVerse?.content ?? ''}
+                          </p>
+                        </div>
+                      ) : (
+                        <div
+                          className={`flex-1 cursor-pointer rounded-lg border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''} ${currentTargetVerse?.content.trim() !== '' && !isActive ? 'bg-card' : ''}`}
+                          onClick={() => handleActiveVerseChange(verse.verseNumber)}
+                        >
+                          <textarea
+                            ref={el => (textareaRefs.current[verse.verseNumber] = el)}
+                            aria-label={`Translation for verse ${verse.verseNumber}`}
+                            autoCapitalize='sentences'
+                            autoCorrect='on'
+                            className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-snug text-gray-800 outline-none'
+                            id={`verse-${verse.verseNumber}`}
+                            placeholder='Enter translation...'
+                            spellCheck={true}
+                            value={currentTargetVerse?.content ?? ''}
+                            onChange={e => handleTextChange(verse.verseNumber, e.target.value)}
+                            onFocus={() => handleActiveVerseChange(verse.verseNumber)}
+                            onKeyDown={handleKeyDown}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
               })}
 
-              {revealedVerses.size < totalSourceVerses && (
+              {!readOnly && revealedVerses.size < totalSourceVerses && (
                 <div className='absolute right-4 z-10' style={{ top: buttonTop }}>
                   <Button
                     className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
@@ -602,9 +618,19 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
 const DraftingPage: React.FC = () => {
   const { userdetail } = useAppStore();
-  const { loaderData } = useMatch({
+
+  const translationMatch = useMatch({
     from: '/translation/$bookId/$chapterNumber',
+    shouldThrow: false,
   });
+
+  const viewMatch = useMatch({
+    from: '/view/$bookId/$chapterNumber',
+    shouldThrow: false,
+  });
+
+  const loaderData = translationMatch?.loaderData ?? viewMatch?.loaderData;
+  const isReadOnly = !!viewMatch;
 
   if (!loaderData || !userdetail) {
     return (
@@ -617,6 +643,7 @@ const DraftingPage: React.FC = () => {
   return (
     <DraftingUI
       projectItem={loaderData.projectItem}
+      readOnly={isReadOnly}
       sourceVerses={loaderData.sourceVerses}
       targetVerses={loaderData.targetVerses}
       userdetail={userdetail}
