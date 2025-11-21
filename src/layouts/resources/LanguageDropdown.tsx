@@ -62,7 +62,7 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
         value={hasSelectedLang ? selectedLanguage : ''}
         onValueChange={onSelect}
       >
-        <SelectTrigger className='w-full font-semibold'>
+        <SelectTrigger className='[&>svg]:text-foreground w-full font-semibold [&>svg]:opacity-100'>
           <SelectValue placeholder='Select a language'>
             <span className={availableLanguages.length === 0 ? 'text-gray-400' : ''}>
               {getDisplayValue()}

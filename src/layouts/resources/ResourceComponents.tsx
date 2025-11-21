@@ -28,7 +28,7 @@ export const ResourceDropdown = ({
   return (
     <div className='mt-2'>
       <Select disabled={disabled} value={selectedResource.name} onValueChange={handleValueChange}>
-        <SelectTrigger className='w-full font-semibold'>
+        <SelectTrigger className='[&>svg]:text-foreground w-full font-semibold [&>svg]:opacity-100'>
           <SelectValue placeholder='Select a resource' />
         </SelectTrigger>
         <SelectContent className='bg-background'>

@@ -10,6 +10,9 @@ export interface FetchResourceState {
 
 interface ResourceState {
   resources: {
+    bookCode: string;
+    chapterNumber: number;
+    verseNumber: number;
     activeResource: string;
     languageCode: string;
     tabStatus: boolean;
@@ -37,14 +40,12 @@ const fetchResourceState = async (
       },
     }
   );
-
   if (!response.ok) {
     if (response.status === 404) {
       return null;
     }
     throw new Error('Failed to fetch resource state');
   }
-
   return (await response.json()) as FetchResourceState | null;
 };
 

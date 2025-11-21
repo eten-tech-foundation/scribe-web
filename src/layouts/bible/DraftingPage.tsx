@@ -56,6 +56,9 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const isInitializedRef = useRef(false);
   const lastSavedStateRef = useRef<{
+    bookCode: string;
+    chapterNumber: number;
+    verseNumber: number;
     activeResource: string;
     languageCode: string;
     tabStatus: boolean;
@@ -85,39 +88,65 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         setCurrentResource(savedResource ?? RESOURCE_NAMES[0]);
       }
 
+      // Use saved language if available, otherwise use source language as default
       if (languageCode) {
         setCurrentLanguage(languageCode);
+      } else {
+        // Set default to source language only when no saved data
+        setCurrentLanguage(projectItem.sourceLangCode);
       }
 
       lastSavedStateRef.current = {
+        bookCode: projectItem.book,
+        chapterNumber: projectItem.chapterNumber,
+        verseNumber: activeVerseId,
         activeResource: activeResource || RESOURCE_NAMES[0].id,
-        languageCode: languageCode || '',
+        languageCode: languageCode || projectItem.sourceLangCode,
         tabStatus: typeof tabStatus === 'boolean' ? tabStatus : false,
       };
     } else {
+      // No saved data - use source language as default
+      setCurrentLanguage(projectItem.sourceLangCode);
+
       lastSavedStateRef.current = {
+        bookCode: projectItem.book,
+        chapterNumber: projectItem.chapterNumber,
+        verseNumber: activeVerseId,
         activeResource: RESOURCE_NAMES[0].id,
-        languageCode: '',
+        languageCode: projectItem.sourceLangCode,
         tabStatus: false,
       };
     }
 
     isInitializedRef.current = true;
-  }, [isFetched, savedResourceState]);
+  }, [
+    isFetched,
+    savedResourceState,
+    projectItem.sourceLangCode,
+    projectItem.book,
+    projectItem.chapterNumber,
+    activeVerseId,
+  ]);
 
   // Save resource state with debouncing (only after initialization)
   useEffect(() => {
     if (!isInitializedRef.current) return;
 
     const currentState = {
+      bookCode: projectItem.book,
+      chapterNumber: projectItem.chapterNumber,
+      verseNumber: activeVerseId,
       activeResource: currentResource.id,
-      languageCode: currentLanguage,
+      languageCode: currentLanguage || projectItem.sourceLangCode,
       tabStatus: showResources,
     };
 
     // Check if state actually changed
     if (lastSavedStateRef.current) {
       const hasChanged =
+        lastSavedStateRef.current.bookCode !== currentState.bookCode ||
+        lastSavedStateRef.current.chapterNumber !== currentState.chapterNumber ||
+        lastSavedStateRef.current.verseNumber !== currentState.verseNumber ||
         lastSavedStateRef.current.activeResource !== currentState.activeResource ||
         lastSavedStateRef.current.languageCode !== currentState.languageCode ||
         lastSavedStateRef.current.tabStatus !== currentState.tabStatus;
@@ -150,7 +179,11 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     currentResource.id,
     currentLanguage,
     showResources,
+    activeVerseId,
     projectItem.chapterAssignmentId,
+    projectItem.book,
+    projectItem.chapterNumber,
+    projectItem.sourceLangCode,
     userdetail.email,
     saveResourceStateMutation,
   ]);
