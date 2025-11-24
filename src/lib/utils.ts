@@ -35,5 +35,3 @@ export const getPublisherName = (grouping: GroupingData): string => {
   const match = grouping.name.match(/\(([^)]+)\)/);
   return match ? match[1] : '';
 };
-
-export const API_BASE_URL = '/api';

@@ -7,14 +7,18 @@ const envSchema = z.object({
   API_URL: z.string().url({
     message: 'API_URL must be a valid URL (include http:// or https://)',
   }),
-
+  AQUIFER_API_URL: z.string().url({
+    message: 'AQUIFER_API_URL must be a valid URL (include http:// or https://)',
+  }),
   ENVIRONMENT: z.enum(['local', 'development', 'staging', 'production'], {
     errorMap: () => ({
       message: 'ENVIRONMENT must be one of: local, development, staging, production',
     }),
   }),
-
   APPINSIGHTS_CONNECTION_STRING: z.string().optional(),
+  AQUIFER_API_KEY: z.string().min(1, {
+    message: 'AQUIFER_API_KEY is required',
+  }),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -24,8 +28,10 @@ type Env = z.infer<typeof envSchema>;
  */
 const processEnv = {
   API_URL: import.meta.env.VITE_API_URL as string,
+  AQUIFER_API_URL: import.meta.env.VITE_AQUIFER_API_URL as string,
   ENVIRONMENT: import.meta.env.VITE_ENVIRONMENT as string,
   APPINSIGHTS_CONNECTION_STRING: import.meta.env.VITE_APP_INSIGHTS_CONNECTION_STRING as string,
+  AQUIFER_API_KEY: import.meta.env.VITE_AQUIFER_API_KEY as string,
 };
 
 /**
@@ -58,8 +64,9 @@ const validatedEnv = validateEnv();
 export const config = {
   api: {
     url: validatedEnv.API_URL,
+    aquifer_url: validatedEnv.AQUIFER_API_URL,
+    aquifer_key: validatedEnv.AQUIFER_API_KEY,
   },
-
   environment: {
     current: validatedEnv.ENVIRONMENT,
     isDevelopment:
@@ -71,4 +78,11 @@ export const config = {
   monitoring: {
     appInsightsConnectionString: validatedEnv.APPINSIGHTS_CONNECTION_STRING,
   },
+};
+
+// Returns headers required for Aquifer API requests
+export const getApiHeaders = (): HeadersInit => {
+  return {
+    'api-key': config.api.aquifer_key,
+  };
 };
