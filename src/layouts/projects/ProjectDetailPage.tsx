@@ -27,6 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAssignChapters, useChapterAssignments } from '@/hooks/useChapterAssignment';
 import { useProjectUnitBooks } from '@/hooks/useProjectUnitBooks';
 import { useUsers } from '@/hooks/useUsers';
@@ -274,88 +275,116 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 </span>
               </div>
             ) : (
-              <div className='relative flex h-full flex-col overflow-y-auto'>
-                <Table>
-                  <TableHeader className='sticky top-0 z-10'>
-                    <TableRow className='hover:bg-transparent'>
-                      <TableHead className='w-12 px-6 py-3'>
-                        <></>
-                      </TableHead>
-                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
-                        Book
-                      </TableHead>
-                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
-                        Chapter
-                      </TableHead>
-                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
-                        Assigned
-                      </TableHead>
-                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
-                        Progress
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody className='divide-border divide-y'>
-                    {filteredAssignments.map(assignment => {
-                      const isUpdatingThisAssignment =
-                        isRefreshing && updatingAssignmentIds.includes(assignment.assignmentId);
+              <TooltipProvider delayDuration={300}>
+                <div className='relative flex h-full flex-col overflow-y-auto'>
+                  <Table>
+                    <TableHeader className='sticky top-0 z-10'>
+                      <TableRow className='hover:bg-transparent'>
+                        <TableHead className='w-12 px-6 py-3'>
+                          <></>
+                        </TableHead>
+                        <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
+                          Book
+                        </TableHead>
+                        <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
+                          Chapter
+                        </TableHead>
+                        <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
+                          Assigned
+                        </TableHead>
+                        <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
+                          Progress
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className='divide-border divide-y'>
+                      {filteredAssignments.map(assignment => {
+                        const isUpdatingThisAssignment =
+                          isRefreshing && updatingAssignmentIds.includes(assignment.assignmentId);
 
-                      return (
-                        <TableRow
-                          key={assignment.assignmentId}
-                          className='align-center cursor-pointer border-b transition-colors hover:bg-gray-50'
-                        >
-                          <TableCell className='w-12 px-6 py-4'>
-                            <Checkbox
-                              checked={selectedAssignments.includes(assignment.assignmentId)}
-                              disabled={isLoadingData}
-                              onCheckedChange={checked =>
-                                handleCheckboxChange(assignment.assignmentId, !!checked)
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
-                            <div className='truncate' title={assignment.bookNameEng}>
-                              {assignment.bookNameEng}
-                            </div>
-                          </TableCell>
-                          <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base whitespace-nowrap'>
-                            {assignment.chapterNumber}
-                          </TableCell>
-                          <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
-                            <div className='flex items-center gap-2'>
+                        return (
+                          <TableRow
+                            key={assignment.assignmentId}
+                            className='align-center cursor-pointer border-b transition-colors hover:bg-gray-50'
+                          >
+                            <TableCell className='w-12 px-6 py-4'>
+                              <Checkbox
+                                checked={selectedAssignments.includes(assignment.assignmentId)}
+                                disabled={isLoadingData}
+                                onCheckedChange={checked =>
+                                  handleCheckboxChange(assignment.assignmentId, !!checked)
+                                }
+                              />
+                            </TableCell>
+                            <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className='truncate'>{assignment.bookNameEng}</div>
+                                </TooltipTrigger>
+                                <TooltipContent
+                                  align='start'
+                                  className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+                                  side='top'
+                                >
+                                  {assignment.bookNameEng}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base whitespace-nowrap'>
+                              {assignment.chapterNumber}
+                            </TableCell>
+                            <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
                               {isUpdatingThisAssignment ? (
-                                <>
+                                <div className='flex items-center gap-2'>
                                   <span className='text-gray-500'>Loading...</span>
                                   <Loader2 className='h-4 w-4 animate-spin text-gray-500' />
-                                </>
-                              ) : (
-                                <div
-                                  className='truncate'
-                                  title={`${assignment.assignedUser?.displayName}`}
-                                >
-                                  {assignment.assignedUser?.displayName}{' '}
                                 </div>
+                              ) : (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className='truncate'>
+                                      {assignment.assignedUser?.displayName}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    align='start'
+                                    className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+                                    side='top'
+                                  >
+                                    {assignment.assignedUser?.displayName}
+                                  </TooltipContent>
+                                </Tooltip>
                               )}
-                            </div>
-                          </TableCell>
-                          <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
-                            <div
-                              className='truncate'
-                              title={formatProgress(
-                                assignment.completedVerses,
-                                assignment.totalVerses
-                              )}
-                            >
-                              {formatProgress(assignment.completedVerses, assignment.totalVerses)}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+                            </TableCell>
+                            <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className='truncate'>
+                                    {formatProgress(
+                                      assignment.completedVerses,
+                                      assignment.totalVerses
+                                    )}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent
+                                  align='start'
+                                  className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+                                  side='top'
+                                >
+                                  {formatProgress(
+                                    assignment.completedVerses,
+                                    assignment.totalVerses
+                                  )}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </TooltipProvider>
             )}
           </div>
         </div>

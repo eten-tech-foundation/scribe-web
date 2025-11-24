@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { getRoleLabel } from '@/lib/constants/roles';
 import { type User } from '@/lib/types';
 
@@ -54,56 +55,74 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
             <span className='text-gray-500'>No Users Found</span>
           </div>
         ) : (
-          <div className='flex h-full flex-col overflow-y-auto'>
-            <Table className='table-fixed'>
-              <TableHeader className='sticky top-0 z-10'>
-                <TableRow className='bg-accent'>
-                  <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                    {t(`name`)}
-                  </TableHead>
-                  <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                    {t(`role`)}
-                  </TableHead>
-                  <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                    {t(`email`)}
-                  </TableHead>
-                  <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                    {t(`status`)}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className='divide-border divide-y bg-white'>
-                {sortedUsers.map(user => (
-                  <TableRow
-                    key={user.id}
-                    className='cursor-pointer transition-colors hover:bg-gray-50'
-                    onClick={() => onEditUser(user)}
-                  >
-                    <TableCell
-                      className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
-                      title={user.username}
-                    >
-                      {user.username}
-                    </TableCell>
-                    <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                      {getRoleLabel(user.role)}
-                    </TableCell>
-                    <TableCell
-                      className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
-                      title={user.email}
-                    >
-                      {user.email}
-                    </TableCell>
-                    <TableCell className='px-6 py-4 whitespace-nowrap'>
-                      <Badge variant={getStatusVariant(user.status as 'invited' | 'verified')}>
-                        {user.status}
-                      </Badge>
-                    </TableCell>
+          <TooltipProvider delayDuration={300}>
+            <div className='flex h-full flex-col overflow-y-auto'>
+              <Table className='table-fixed'>
+                <TableHeader className='sticky top-0 z-10'>
+                  <TableRow className='bg-accent'>
+                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                      {t(`name`)}
+                    </TableHead>
+                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                      {t(`role`)}
+                    </TableHead>
+                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                      {t(`email`)}
+                    </TableHead>
+                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                      {t(`status`)}
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody className='divide-border divide-y bg-white'>
+                  {sortedUsers.map(user => (
+                    <TableRow
+                      key={user.id}
+                      className='cursor-pointer transition-colors hover:bg-gray-50'
+                      onClick={() => onEditUser(user)}
+                    >
+                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className='truncate'>{user.username}</div>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            align='start'
+                            className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+                            side='top'
+                          >
+                            {user.username}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                        {getRoleLabel(user.role)}
+                      </TableCell>
+                      <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className='truncate'>{user.email}</div>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            align='start'
+                            className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+                            side='top'
+                          >
+                            {user.email}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className='px-6 py-4 whitespace-nowrap'>
+                        <Badge variant={getStatusVariant(user.status as 'invited' | 'verified')}>
+                          {user.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TooltipProvider>
         )}
       </div>
     </div>
