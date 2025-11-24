@@ -508,15 +508,27 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                 )}
                 {hasAnyError && <span className='text-sm text-red-500'>Auto-save failed</span>}
               </div>
-              <Button
-                aria-pressed={showResources}
-                className='bg-primary flex cursor-pointer items-center gap-2'
-                title={showResources ? 'Hide Resources' : 'Show Resources'}
-                type='button'
-                onClick={toggleResources}
-              >
-                <BookText color='#ffffff' />
-              </Button>
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      aria-pressed={showResources}
+                      className='bg-primary flex cursor-pointer items-center gap-2'
+                      type='button'
+                      onClick={toggleResources}
+                    >
+                      <BookText color='#ffffff' />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    align='start'
+                    className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+                    side='top'
+                  >
+                    {showResources ? 'Hide Resources' : 'Show Resources'}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <div className='bg-input rounded-lg border sm:w-40 md:w-50 lg:w-76 xl:w-105'>
                 <div className='h-4 overflow-hidden rounded-full'>
                   <div
@@ -641,18 +653,30 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
               {!readOnly && revealedVerses.size < totalSourceVerses && (
                 <div className='absolute right-4 z-10' style={{ top: buttonTop }}>
-                  <Button
-                    className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
-                      lastRevealedVerseHasContent
-                        ? 'hover:bg-primary-hover cursor-pointer text-white'
-                        : 'cursor-not-allowed bg-gray-300 text-gray-500'
-                    }`}
-                    disabled={!lastRevealedVerseHasContent}
-                    title='Next Verse'
-                    onClick={revealNextVerse}
-                  >
-                    Next Verse
-                  </Button>
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
+                            lastRevealedVerseHasContent
+                              ? 'hover:bg-primary-hover cursor-pointer text-white'
+                              : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                          }`}
+                          disabled={!lastRevealedVerseHasContent}
+                          onClick={revealNextVerse}
+                        >
+                          Next Verse
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        align='start'
+                        className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+                        side='top'
+                      >
+                        Next Verse (Enter)
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               )}
             </div>
