@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { config, getApiHeaders } from '@/lib/config';
 import type { GuideContent, ItemWithUrl } from '@/lib/types';
-import { API_BASE_URL } from '@/lib/utils';
+
+const API_BASE_URL = config.api.aquifer_url;
 
 // Types
 export interface Language {
@@ -66,6 +68,7 @@ const fetchAllLanguages = async (): Promise<Language[]> => {
   const response = await fetch(`${API_BASE_URL}/languages`, {
     method: 'GET',
     mode: 'cors',
+    headers: getApiHeaders(),
   });
 
   if (!response.ok) throw new Error('Failed to fetch languages');
@@ -76,6 +79,7 @@ const fetchResourceCollection = async (resourceId: string): Promise<ResourceColl
   const response = await fetch(`${API_BASE_URL}/resources/collections/${resourceId}`, {
     method: 'GET',
     mode: 'cors',
+    headers: getApiHeaders(),
   });
 
   if (!response.ok) throw new Error('Failed to fetch resource collection');
@@ -94,6 +98,7 @@ const fetchAvailableResources = async (
     {
       method: 'GET',
       mode: 'cors',
+      headers: getApiHeaders(),
     }
   );
 
@@ -137,6 +142,7 @@ const fetchResourcesByVerse = async (params: {
   const response = await fetch(url, {
     method: 'GET',
     mode: 'cors',
+    headers: getApiHeaders(),
   });
 
   if (!response.ok) throw new Error('Failed to fetch resources');
@@ -147,6 +153,7 @@ const fetchResourceDetails = async (resourceId: number): Promise<ResourceDetails
   const response = await fetch(`${API_BASE_URL}/resources/${resourceId}`, {
     method: 'GET',
     mode: 'cors',
+    headers: getApiHeaders(),
   });
 
   if (!response.ok) throw new Error('Failed to fetch resource details');
@@ -157,6 +164,7 @@ const fetchGuideContent = async (resourceId: number): Promise<GuideContent> => {
   const response = await fetch(`${API_BASE_URL}/resources/${resourceId}`, {
     method: 'GET',
     mode: 'cors',
+    headers: getApiHeaders(),
   });
 
   if (!response.ok) throw new Error('Failed to fetch guide content');
@@ -169,6 +177,7 @@ const fetchResourceAssociations = async (
   const response = await fetch(`${API_BASE_URL}/resources/${parentResourceId}/associations`, {
     method: 'GET',
     mode: 'cors',
+    headers: getApiHeaders(),
   });
 
   if (!response.ok) throw new Error('Failed to fetch resource associations');
@@ -183,6 +192,7 @@ const fetchImageUrls = async (items: unknown[]): Promise<ItemWithUrl[]> => {
         const response = await fetch(`${API_BASE_URL}/resources/${resourceItem.id}`, {
           method: 'GET',
           mode: 'cors',
+          headers: getApiHeaders(),
         });
 
         if (!response.ok) throw new Error('Failed to fetch content URL');

@@ -2,13 +2,12 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const isAnalyze = mode === 'analyze';
-  const env = loadEnv(mode, process.cwd(), '');
 
   return {
     plugins: [
@@ -23,6 +22,7 @@ export default defineConfig(({ mode }) => {
           brotliSize: true,
         }),
     ].filter(Boolean),
+
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
@@ -34,6 +34,7 @@ export default defineConfig(({ mode }) => {
         '@/lib/ui/utils': path.resolve(__dirname, './src/lib/ui/utils'),
       },
     },
+
     build: {
       sourcemap: !isAnalyze,
       rollupOptions: {
@@ -51,20 +52,9 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+
     test: {
       environment: 'jsdom',
-    },
-    server: {
-      proxy: {
-        '/api': {
-          target: 'https://api.aquifer.bible',
-          changeOrigin: true,
-          rewrite: path => path.replace(/^\/api/, ''),
-          headers: {
-            'api-key': env.VITE_AQUIFER_API_KEY,
-          },
-        },
-      },
     },
   };
 });
