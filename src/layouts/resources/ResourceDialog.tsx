@@ -171,7 +171,7 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
         showCloseButton={false}
       >
         <DialogHeader
-          className={`sticky top-0 z-20 flex items-center justify-between px-6 py-2 ${
+          className={`sticky top-0 z-20 flex items-center justify-between py-2 pr-3 pl-6 ${
             isRTL ? 'flex-row-reverse' : 'flex-row'
           }`}
           style={{

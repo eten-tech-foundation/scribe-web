@@ -503,7 +503,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
               >
                 <BookText color='#ffffff' />
               </Button>
-              <div className='bg-input rounded-lg border md:w-50 lg:w-76 xl:w-105'>
+              <div className='bg-input rounded-lg border sm:w-40 md:w-50 lg:w-76 xl:w-105'>
                 <div className='h-4 overflow-hidden rounded-full'>
                   <div
                     className='bg-primary h-full rounded-full transition-all duration-300'
