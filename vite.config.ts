@@ -22,6 +22,7 @@ export default defineConfig(({ mode }) => {
           brotliSize: true,
         }),
     ].filter(Boolean),
+
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
@@ -33,6 +34,7 @@ export default defineConfig(({ mode }) => {
         '@/lib/ui/utils': path.resolve(__dirname, './src/lib/ui/utils'),
       },
     },
+
     build: {
       sourcemap: !isAnalyze,
       rollupOptions: {
@@ -50,6 +52,7 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+
     test: {
       environment: 'jsdom',
     },

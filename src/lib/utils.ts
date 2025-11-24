@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+import { type GroupingData } from '@/lib/types';
+
 /**
  * Combines multiple class names into a single string, handling Tailwind class conflicts
  */
@@ -27,3 +29,9 @@ export const isClient = typeof window !== 'undefined';
  * Returns true if the current code is running on the server
  */
 export const isServer = !isClient;
+
+export const getPublisherName = (grouping: GroupingData): string => {
+  if (!grouping.name) return '';
+  const match = grouping.name.match(/\(([^)]+)\)/);
+  return match ? match[1] : '';
+};
