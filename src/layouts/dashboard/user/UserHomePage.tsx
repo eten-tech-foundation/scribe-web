@@ -159,7 +159,7 @@ export function UserHomePage() {
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm'>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div className='flex min-w-0 items-center gap-2'>
+                                <div className='inline-flex max-w-full items-center gap-2'>
                                   {isNavigating && (
                                     <Loader2 className='h-4 w-4 flex-shrink-0 animate-spin text-[var(--primary)]' />
                                   )}
@@ -167,7 +167,7 @@ export function UserHomePage() {
                                 </div>
                               </TooltipTrigger>
                               <TooltipContent
-                                align='start'
+                                align='center'
                                 className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
                                 side='top'
                               >

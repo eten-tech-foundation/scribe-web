@@ -319,10 +319,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                             <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <div className='truncate'>{assignment.bookNameEng}</div>
+                                  <div className='w-fit truncate'>{assignment.bookNameEng}</div>
                                 </TooltipTrigger>
                                 <TooltipContent
-                                  align='start'
+                                  align='center'
                                   className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
                                   side='top'
                                 >
@@ -342,12 +342,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                               ) : (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <div className='truncate'>
+                                    <div className='w-fit truncate'>
                                       {assignment.assignedUser?.displayName}
                                     </div>
                                   </TooltipTrigger>
                                   <TooltipContent
-                                    align='start'
+                                    align='center'
                                     className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
                                     side='top'
                                   >
@@ -359,7 +359,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                             <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <div className='truncate'>
+                                  <div className='w-fit truncate'>
                                     {formatProgress(
                                       assignment.completedVerses,
                                       assignment.totalVerses
@@ -367,7 +367,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent
-                                  align='start'
+                                  align='center'
                                   className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
                                   side='top'
                                 >

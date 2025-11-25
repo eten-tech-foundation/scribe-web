@@ -669,11 +669,18 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent
-                        align='start'
+                        align='center'
                         className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
                         side='top'
+                        sideOffset={8}
                       >
-                        Next Verse (Enter)
+                        {/* Next Verse (Enter) */}
+                        <div className='flex items-center gap-2'>
+                          <span>Next Verse</span>
+                          <span className='bg-muted text-muted-foreground flex h-5 items-center rounded border px-1.5 font-mono text-[10px]'>
+                            Enter ↵
+                          </span>
+                        </div>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

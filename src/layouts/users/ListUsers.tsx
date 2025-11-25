@@ -84,10 +84,10 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
                       <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className='truncate'>{user.username}</div>
+                            <div className='w-fit truncate'>{user.username}</div>
                           </TooltipTrigger>
                           <TooltipContent
-                            align='start'
+                            align='center'
                             className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
                             side='top'
                           >
@@ -101,10 +101,10 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
                       <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className='truncate'>{user.email}</div>
+                            <div className='w-fit truncate'>{user.email}</div>
                           </TooltipTrigger>
                           <TooltipContent
-                            align='start'
+                            align='center'
                             className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
                             side='top'
                           >
