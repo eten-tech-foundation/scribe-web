@@ -4,6 +4,7 @@ import { useMatch, useNavigate } from '@tanstack/react-router';
 import { BookText, ChevronLeft, Loader } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
 import { useBibleTextDebounce } from '@/hooks/useBibleTextDebounce';
 import { useResourceState, useSaveResourceState } from '@/hooks/useResourceStatePersistence';
@@ -473,14 +474,27 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         <div className='flex items-center justify-between px-6 py-4'>
           <div className='flex flex-shrink-0 items-center gap-4'>
             {readOnly && (
-              <span title='Back'>
-                <ChevronLeft
-                  className='flex-shrink-0 cursor-pointer'
-                  size={'24px'}
-                  strokeWidth={'2px'}
-                  onClick={handleBack}
-                />
-              </span>
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <ChevronLeft
+                        className='flex-shrink-0 cursor-pointer'
+                        size={'24px'}
+                        strokeWidth={'2px'}
+                        onClick={handleBack}
+                      />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    align='start'
+                    className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+                    side='top'
+                  >
+                    Back
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             <h2 className='text-3xl font-bold text-gray-900'>
               {projectItem.book} {projectItem.chapterNumber}
@@ -494,15 +508,27 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                 )}
                 {hasAnyError && <span className='text-sm text-red-500'>Auto-save failed</span>}
               </div>
-              <Button
-                aria-pressed={showResources}
-                className='bg-primary flex cursor-pointer items-center gap-2'
-                title={showResources ? 'Hide Resources' : 'Show Resources'}
-                type='button'
-                onClick={toggleResources}
-              >
-                <BookText color='#ffffff' />
-              </Button>
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      aria-pressed={showResources}
+                      className='bg-primary flex cursor-pointer items-center gap-2'
+                      type='button'
+                      onClick={toggleResources}
+                    >
+                      <BookText color='#ffffff' />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    align='start'
+                    className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+                    side='top'
+                  >
+                    {showResources ? 'Hide Resources' : 'Show Resources'}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <div className='bg-input rounded-lg border sm:w-40 md:w-50 lg:w-76 xl:w-105'>
                 <div className='h-4 overflow-hidden rounded-full'>
                   <div
@@ -627,18 +653,37 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
               {!readOnly && revealedVerses.size < totalSourceVerses && (
                 <div className='absolute right-4 z-10' style={{ top: buttonTop }}>
-                  <Button
-                    className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
-                      lastRevealedVerseHasContent
-                        ? 'hover:bg-primary-hover cursor-pointer text-white'
-                        : 'cursor-not-allowed bg-gray-300 text-gray-500'
-                    }`}
-                    disabled={!lastRevealedVerseHasContent}
-                    title='Next Verse'
-                    onClick={revealNextVerse}
-                  >
-                    Next Verse
-                  </Button>
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
+                            lastRevealedVerseHasContent
+                              ? 'hover:bg-primary-hover cursor-pointer text-white'
+                              : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                          }`}
+                          disabled={!lastRevealedVerseHasContent}
+                          onClick={revealNextVerse}
+                        >
+                          Next Verse
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        align='center'
+                        className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+                        side='top'
+                        sideOffset={8}
+                      >
+                        {/* Next Verse (Enter) */}
+                        <div className='flex items-center gap-2'>
+                          <span>Next Verse</span>
+                          <span className='bg-muted text-muted-foreground flex h-5 items-center rounded border px-1.5 font-mono text-[10px]'>
+                            Enter ↵
+                          </span>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               )}
             </div>

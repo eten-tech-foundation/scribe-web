@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useChapterAssignments } from '@/hooks/useProjects';
 import type { ProjectItem, User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
@@ -118,73 +119,83 @@ export function UserHomePage() {
             <span className='text-muted-foreground'>Loading...</span>
           </div>
         ) : (
-          <div className='flex h-full flex-col overflow-y-auto'>
-            <Table className='table-fixed'>
-              <TableHeader className='sticky top-0 z-10'>
-                <TableRow className='bg-accent'>
-                  <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                    Project
-                  </TableHead>
-                  <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                    Book
-                  </TableHead>
-                  <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                    Chapter
-                  </TableHead>
-                  <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                    {isHistory ? 'Submitted Date' : 'Status'}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className='divide-border divide-y bg-white'>
-                {currentData.length === 0 ? (
-                  <TableRow>
-                    <TableCell className='p-8 text-center text-gray-500' colSpan={4}>
-                      {emptyMessage}
-                    </TableCell>
+          <TooltipProvider delayDuration={300}>
+            <div className='flex h-full flex-col overflow-y-auto'>
+              <Table className='table-fixed'>
+                <TableHeader className='sticky top-0 z-10'>
+                  <TableRow className='bg-accent'>
+                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                      Project
+                    </TableHead>
+                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                      Book
+                    </TableHead>
+                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                      Chapter
+                    </TableHead>
+                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                      {isHistory ? 'Submitted Date' : 'Status'}
+                    </TableHead>
                   </TableRow>
-                ) : (
-                  currentData.map(item => {
-                    const projectKey = `${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`;
-                    const isNavigating = navigatingToProject === projectKey;
+                </TableHeader>
+                <TableBody className='divide-border divide-y bg-white'>
+                  {currentData.length === 0 ? (
+                    <TableRow>
+                      <TableCell className='p-8 text-center text-gray-500' colSpan={4}>
+                        {emptyMessage}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    currentData.map(item => {
+                      const projectKey = `${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`;
+                      const isNavigating = navigatingToProject === projectKey;
 
-                    return (
-                      <TableRow
-                        key={projectKey}
-                        className='cursor-pointer transition-colors hover:bg-gray-50'
-                        onClick={() => handleRowClick(item, isHistory)}
-                      >
-                        <TableCell
-                          className='text-popover-foreground px-6 py-4 text-sm'
-                          title={item.projectName}
+                      return (
+                        <TableRow
+                          key={projectKey}
+                          className='cursor-pointer transition-colors hover:bg-gray-50'
+                          onClick={() => handleRowClick(item, isHistory)}
                         >
-                          <div className='flex min-w-0 items-center gap-2'>
-                            {isNavigating && (
-                              <Loader2 className='h-4 w-4 flex-shrink-0 animate-spin text-[var(--primary)]' />
-                            )}
-                            <span className='truncate'>{item.projectName}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                          {item.book}
-                        </TableCell>
-                        <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                          {item.chapterNumber}
-                        </TableCell>
-                        <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                          {isHistory
-                            ? item.submittedTime
-                              ? formatDate(item.submittedTime)
-                              : 'N/A'
-                            : getStatusText(item)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                          <TableCell className='text-popover-foreground px-6 py-4 text-sm'>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className='inline-flex max-w-full items-center gap-2'>
+                                  {isNavigating && (
+                                    <Loader2 className='h-4 w-4 flex-shrink-0 animate-spin text-[var(--primary)]' />
+                                  )}
+                                  <span className='truncate'>{item.projectName}</span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                align='center'
+                                className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+                                side='top'
+                              >
+                                {item.projectName}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                            {item.book}
+                          </TableCell>
+                          <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                            {item.chapterNumber}
+                          </TableCell>
+                          <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                            {isHistory
+                              ? item.submittedTime
+                                ? formatDate(item.submittedTime)
+                                : 'N/A'
+                              : getStatusText(item)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </TooltipProvider>
         )}
       </div>
     </div>
