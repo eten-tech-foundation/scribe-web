@@ -39,13 +39,17 @@ export const ImageGrid = ({
     }
   };
 
+  const collator = new Intl.Collator(undefined, { sensitivity: 'base' });
+
+  const sortedItems = [...items].sort((a, b) => collator.compare(a.localizedName, b.localizedName));
+
   return (
     <>
       <span className='px-1 text-xl font-semibold'>
         {sourceData.book} {sourceData.chapterNumber}:{activeVerseId}
       </span>
       <div className='grid grid-cols-1 gap-3 py-4 lg:grid-cols-2'>
-        {items.map(item => (
+        {sortedItems.map(item => (
           <div
             key={item.id}
             className='cursor-pointer overflow-hidden rounded-lg border border-gray-200 hover:shadow-lg'
