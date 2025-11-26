@@ -568,18 +568,18 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
           </div>
         )}
 
-        <div className={`mx-auto ${showResources ? '' : 'max-w-7xl'} flex-1 overflow-hidden`}>
-          <div className='grid h-full grid-cols-2' style={{ gridTemplateRows: '4rem 1fr' }}>
-            <div className='bg-background sticky top-0 z-10 ml-8 px-6 py-4'>
+        <div className={`mx-auto ${showResources ? 'ml-2' : 'max-w-7xl'} flex-1 overflow-hidden`}>
+          <div className='grid h-full grid-cols-2' style={{ gridTemplateRows: '3.25rem 1fr' }}>
+            <div className='sticky top-0 z-10 ml-8 h-12 px-6 pt-4'>
               <h3 className='text-xl font-bold text-gray-800'>{projectItem.bibleName}</h3>
             </div>
-            <div className='bg-background sticky top-0 z-10 py-4'>
+            <div className='sticky top-0 z-10 h-12 pt-4 pr-6'>
               <h3 className='text-xl font-bold text-gray-800'>{projectItem.targetLanguage}</h3>
             </div>
 
             <div
               ref={targetScrollRef}
-              className='relative col-span-2 flex h-full flex-col overflow-y-auto'
+              className={`relative col-span-2 flex h-full flex-col overflow-y-auto ${showResources ? 'rounded-md border' : ''}`}
               style={{ scrollbarGutter: 'stable' }}
               onScroll={() => !readOnly && updateButtonPosition()}
             >
