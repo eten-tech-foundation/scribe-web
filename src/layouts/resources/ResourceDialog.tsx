@@ -171,7 +171,7 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
         showCloseButton={false}
       >
         <DialogHeader
-          className={`sticky top-0 z-20 flex items-center justify-between py-2 pr-3 pl-6 ${
+          className={`sticky top-0 z-20 flex items-center justify-between px-6 py-2 ${
             isRTL ? 'flex-row-reverse' : 'flex-row'
           }`}
           style={{
@@ -201,7 +201,7 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
           )}
         </DialogHeader>
 
-        <div className='flex-1 overflow-y-auto px-6 py-2' dir={dirAttr}>
+        <div className='mb-2 flex-1 overflow-y-auto px-6 py-2' dir={dirAttr}>
           {loading ? (
             <div className='flex items-center justify-center py-8'>
               <Loader2 className='h-8 w-8 animate-spin text-blue-600' />
