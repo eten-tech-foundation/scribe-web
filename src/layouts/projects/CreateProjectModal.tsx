@@ -102,11 +102,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const isFormValid = (): boolean => {
     return Boolean(
       formData.title.trim() &&
-        formData.title.trim().length <= 100 &&
-        formData.targetLanguage &&
-        formData.sourceLanguage &&
-        formData.sourceBible &&
-        formData.books.length > 0
+      formData.title.trim().length <= 100 &&
+      formData.targetLanguage &&
+      formData.sourceLanguage &&
+      formData.sourceBible &&
+      formData.books.length > 0
     );
   };
 

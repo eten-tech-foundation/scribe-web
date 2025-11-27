@@ -7,8 +7,7 @@ import { buttonVariants } from '@/lib/ui/button-variants';
 import { cn } from '@/lib/ui/utils';
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 
