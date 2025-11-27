@@ -36,7 +36,7 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
 }) => {
   const [selectedResource, setSelectedResource] = useState(initialResource ?? resourceNames[0]);
   const [selectedImage, setSelectedImage] = useState<ItemWithUrl | null>(null);
-  const [openItem, setOpenItem] = useState<string | null>(null);
+  const [openItem, setOpenItem] = useState<string[]>([]);
 
   const isLanguageInitializedRef = useRef(false);
   const hasAutoSelectedRef = useRef(false);
@@ -139,11 +139,12 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
     handleLanguageChange(languageCode);
   };
 
-  const handleAccordionChange = async (value: string | undefined) => {
-    setOpenItem(value ?? null);
-
-    if (value) {
-      const itemId = parseInt(value);
+  const handleAccordionChange = async (value: string[]) => {
+    setOpenItem(value);
+    const newlyOpenedItems = value.filter(v => !openItem.includes(v));
+    // Fetch content for newly opened items
+    for (const itemValue of newlyOpenedItems) {
+      const itemId = parseInt(itemValue);
       if (!(itemId in guideContents)) {
         await fetchGuideContent(itemId);
       }
@@ -165,10 +166,10 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
   useEffect(() => {
     if (localizeRefName.length > 0 && shouldFetchResources) {
       const firstItemId = localizeRefName[0].id.toString();
-      setOpenItem(firstItemId);
-      void handleAccordionChange(firstItemId);
+      setOpenItem([firstItemId]);
+      void handleAccordionChange([firstItemId]);
     } else {
-      setOpenItem(null);
+      setOpenItem([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localizeRefName, shouldFetchResources]);
