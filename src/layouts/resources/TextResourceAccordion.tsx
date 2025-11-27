@@ -21,9 +21,9 @@ interface TextResourceAccordionProps {
   loadingGuides: Record<number, boolean>;
   relatedAudioIds: Record<number, number | null>;
   direction?: 'LTR' | 'RTL';
-  onAccordionChange: (value: string | undefined) => void;
+  onAccordionChange: (value: string[]) => void;
   onResourceClick: (resourceId: number, parentResourceId?: number | null) => void;
-  openItem: string | null;
+  openItem: string[];
 }
 
 const isAudioContent = (content: GuideContent['content']): content is AudioContent => {
@@ -53,12 +53,7 @@ export const TextResourceAccordion: React.FC<TextResourceAccordionProps> = ({
 
   return (
     <div className='h-full space-y-2' dir={dirAttr}>
-      <Accordion
-        collapsible
-        type='single'
-        value={openItem ?? undefined}
-        onValueChange={onAccordionChange}
-      >
+      <Accordion type='multiple' value={openItem} onValueChange={onAccordionChange}>
         {resources.map(sv => {
           const relatedAudioId = relatedAudioIds[sv.id];
           const audioContent = relatedAudioId ? guideContents[relatedAudioId] : null;

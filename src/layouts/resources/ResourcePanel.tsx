@@ -36,7 +36,7 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
 }) => {
   const [selectedResource, setSelectedResource] = useState(initialResource ?? resourceNames[0]);
   const [selectedImage, setSelectedImage] = useState<ItemWithUrl | null>(null);
-  const [openItem, setOpenItem] = useState<string | null>(null);
+  const [openItem, setOpenItem] = useState<string[]>([]);
 
   const isLanguageInitializedRef = useRef(false);
   const hasAutoSelectedRef = useRef(false);
@@ -139,11 +139,12 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
     handleLanguageChange(languageCode);
   };
 
-  const handleAccordionChange = async (value: string | undefined) => {
-    setOpenItem(value ?? null);
-
-    if (value) {
-      const itemId = parseInt(value);
+  const handleAccordionChange = async (value: string[]) => {
+    setOpenItem(value);
+    const newlyOpenedItems = value.filter(v => !openItem.includes(v));
+    // Fetch content for newly opened items
+    for (const itemValue of newlyOpenedItems) {
+      const itemId = parseInt(itemValue);
       if (!(itemId in guideContents)) {
         await fetchGuideContent(itemId);
       }
@@ -165,10 +166,10 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
   useEffect(() => {
     if (localizeRefName.length > 0 && shouldFetchResources) {
       const firstItemId = localizeRefName[0].id.toString();
-      setOpenItem(firstItemId);
-      void handleAccordionChange(firstItemId);
+      setOpenItem([firstItemId]);
+      void handleAccordionChange([firstItemId]);
     } else {
-      setOpenItem(null);
+      setOpenItem([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localizeRefName, shouldFetchResources]);
@@ -200,39 +201,40 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
           />
         )}
       </div>
-
-      <div className='flex-1 overflow-y-auto rounded-md border px-4 pt-2'>
-        {isInitializing || loadingImages ? (
-          <div className='flex h-full items-center justify-center'>
-            <Loader2 className='h-8 w-8 animate-spin text-blue-600' />
-          </div>
-        ) : !shouldFetchResources && isLanguageDropdownEnabled ? (
-          <div className='flex h-full items-center justify-center'>
-            <p className='text-sm text-gray-500'>Select a language to view resources</p>
-          </div>
-        ) : imageItems.length > 0 ? (
-          <ImageGrid
-            activeVerseId={activeVerseId}
-            items={imageItems}
-            sourceData={sourceData}
-            onImageClick={setSelectedImage}
-          />
-        ) : localizeRefName.length > 0 ? (
-          <TextResourceAccordion
-            direction={currentLanguageDirection}
-            guideContents={guideContents}
-            loadingGuides={loadingGuides}
-            openItem={openItem}
-            relatedAudioIds={relatedAudioIds}
-            resources={localizeRefName}
-            onAccordionChange={handleAccordionChange}
-            onResourceClick={handleResourceClick}
-          />
-        ) : (
-          <div className='flex h-full items-center justify-center'>
-            <p className='text-sm text-gray-500'>No resources available</p>
-          </div>
-        )}
+      <div className='flex flex-1 flex-col overflow-hidden rounded-md border p-2'>
+        <div className='flex-1 overflow-y-auto px-4 pt-2'>
+          {isInitializing || loadingImages ? (
+            <div className='flex h-full items-center justify-center'>
+              <Loader2 className='h-8 w-8 animate-spin text-blue-600' />
+            </div>
+          ) : !shouldFetchResources && isLanguageDropdownEnabled ? (
+            <div className='flex h-full items-center justify-center'>
+              <p className='text-sm text-gray-500'>Select a language to view resources</p>
+            </div>
+          ) : imageItems.length > 0 ? (
+            <ImageGrid
+              activeVerseId={activeVerseId}
+              items={imageItems}
+              sourceData={sourceData}
+              onImageClick={setSelectedImage}
+            />
+          ) : localizeRefName.length > 0 ? (
+            <TextResourceAccordion
+              direction={currentLanguageDirection}
+              guideContents={guideContents}
+              loadingGuides={loadingGuides}
+              openItem={openItem}
+              relatedAudioIds={relatedAudioIds}
+              resources={localizeRefName}
+              onAccordionChange={handleAccordionChange}
+              onResourceClick={handleResourceClick}
+            />
+          ) : (
+            <div className='flex h-full items-center justify-center'>
+              <p className='text-sm text-gray-500'>No resources available</p>
+            </div>
+          )}
+        </div>
       </div>
 
       <ImageDialog image={selectedImage} onClose={() => setSelectedImage(null)} />
