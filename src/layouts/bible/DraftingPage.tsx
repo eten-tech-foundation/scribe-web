@@ -357,7 +357,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
           </div>
         )}
 
-        <div className={`mx-auto ${showResources ? '' : 'max-w-7xl'} flex-1 overflow-hidden`}>
+        <div className={`mx-auto ${showResources ? 'ml-2' : 'max-w-7xl'} flex-1 overflow-hidden`}>
           <div className='grid h-full grid-cols-2' style={{ gridTemplateRows: '3.25rem 1fr' }}>
             <div className='sticky top-0 z-10 ml-8 h-12 px-6 pt-4'>
               <h3 className='text-xl font-bold text-gray-800'>{projectItem.bibleName}</h3>
@@ -365,118 +365,115 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
             <div className='sticky top-0 z-10 h-12 pt-4 pr-6'>
               <h3 className='text-xl font-bold text-gray-800'>{projectItem.targetLanguage}</h3>
             </div>
+
             <div
-              className={`col-span-2 flex flex-col overflow-hidden ${showResources ? 'ml-2 rounded-md border' : ''}`}
+              ref={targetScrollRef}
+              className={`relative col-span-2 flex h-full flex-col overflow-y-auto ${showResources ? 'rounded-md border' : ''}`}
+              style={{ scrollbarGutter: 'stable' }}
+              onScroll={() => !readOnly && updateButtonPosition()}
             >
-              <div
-                ref={targetScrollRef}
-                className='relative flex h-full flex-col overflow-y-auto'
-                style={{ scrollbarGutter: 'stable' }}
-                onScroll={() => !readOnly && updateButtonPosition()}
-              >
-                {sourceVerses.map(verse => {
-                  const isActive = !readOnly && activeVerseId === verse.verseNumber;
-                  const currentTargetVerse = verses.find(v => v.verseNumber === verse.verseNumber);
-                  const shouldShowTarget =
-                    readOnly || isActive || revealedVerses.has(verse.verseNumber);
+              {sourceVerses.map(verse => {
+                const isActive = !readOnly && activeVerseId === verse.verseNumber;
+                const currentTargetVerse = verses.find(v => v.verseNumber === verse.verseNumber);
+                const shouldShowTarget =
+                  readOnly || isActive || revealedVerses.has(verse.verseNumber);
 
-                  return (
-                    <div
-                      key={verse.verseNumber}
-                      ref={el => (verseRefs.current[verse.verseNumber] = el)}
-                      className='grid grid-cols-2 gap-4 px-6 py-4'
-                    >
-                      {/* Source verse */}
-                      <div className='col-1 flex items-start transition-all'>
-                        <div className='w-8 flex-shrink-0'>
-                          <span className='text-lg font-medium text-gray-700'>
-                            {verse.verseNumber}
-                          </span>
-                        </div>
-                        <div className='flex-1'>
-                          <div
-                            className={`bg-card rounded-lg border-2 px-4 py-1 shadow-sm transition-all ${
-                              isActive ? 'border-primary' : ''
-                            }`}
-                          >
-                            <p className='min-h-12 content-center overflow-hidden text-base leading-relaxed text-gray-800 outline-none'>
-                              {verse.text}
-                            </p>
-                          </div>
-                        </div>
+                return (
+                  <div
+                    key={verse.verseNumber}
+                    ref={el => (verseRefs.current[verse.verseNumber] = el)}
+                    className='grid grid-cols-2 gap-4 px-6 py-4'
+                  >
+                    {/* Source verse */}
+                    <div className='col-1 flex items-start transition-all'>
+                      <div className='w-8 flex-shrink-0'>
+                        <span className='text-lg font-medium text-gray-700'>
+                          {verse.verseNumber}
+                        </span>
                       </div>
-
-                      {/* Target verse */}
-                      <div
-                        className={`col-2 flex transition-all ${shouldShowTarget ? '' : 'hidden'}`}
-                      >
-                        {readOnly ? (
-                          <div className='bg-card flex-1 rounded-lg border-2 px-4 py-3 shadow-sm'>
-                            <p className='min-h-12 text-base leading-snug text-gray-800'>
-                              {currentTargetVerse?.content ?? ''}
-                            </p>
-                          </div>
-                        ) : (
-                          <div
-                            className={`flex-1 cursor-pointer rounded-lg border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''} ${currentTargetVerse?.content.trim() !== '' && !isActive ? 'bg-card' : ''}`}
-                            onClick={() => handleActiveVerseChange(verse.verseNumber)}
-                          >
-                            <textarea
-                              ref={el => (textareaRefs.current[verse.verseNumber] = el)}
-                              aria-label={`Translation for verse ${verse.verseNumber}`}
-                              autoCapitalize='sentences'
-                              autoCorrect='on'
-                              className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-snug text-gray-800 outline-none'
-                              id={`verse-${verse.verseNumber}`}
-                              placeholder='Enter translation...'
-                              spellCheck={true}
-                              value={currentTargetVerse?.content ?? ''}
-                              onChange={e => handleTextChange(verse.verseNumber, e.target.value)}
-                              onFocus={() => handleActiveVerseChange(verse.verseNumber)}
-                              onKeyDown={handleKeyDown}
-                            />
-                          </div>
-                        )}
+                      <div className='flex-1'>
+                        <div
+                          className={`bg-card rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${
+                            isActive ? 'border-primary' : ''
+                          }`}
+                        >
+                          <p className='min-h-12 content-center overflow-hidden text-base leading-relaxed text-gray-800 outline-none'>
+                            {verse.text}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  );
-                })}
 
-                {!readOnly && revealedVerses.size < totalSourceVerses && (
-                  <div className='absolute right-4 z-10' style={{ top: buttonTop }}>
-                    <TooltipProvider delayDuration={300}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
-                              lastRevealedVerseHasContent
-                                ? 'hover:bg-primary-hover cursor-pointer text-white'
-                                : 'cursor-not-allowed bg-gray-300 text-gray-500'
-                            }`}
-                            disabled={!lastRevealedVerseHasContent}
-                            onClick={revealNextVerse}
-                          >
-                            Next Verse
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent
-                          align='center'
-                          className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
-                          side='top'
-                          sideOffset={8}
+                    {/* Target verse */}
+                    <div
+                      className={`col-2 flex transition-all ${shouldShowTarget ? '' : 'hidden'}`}
+                    >
+                      {readOnly ? (
+                        <div className='bg-card flex-1 rounded-lg border-2 px-4 py-3 shadow-sm'>
+                          <p className='min-h-12 text-base leading-snug text-gray-800'>
+                            {currentTargetVerse?.content ?? ''}
+                          </p>
+                        </div>
+                      ) : (
+                        <div
+                          className={`flex-1 cursor-pointer rounded-lg border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''} ${currentTargetVerse?.content.trim() !== '' && !isActive ? 'bg-card' : ''}`}
+                          onClick={() => handleActiveVerseChange(verse.verseNumber)}
                         >
-                          <div className='flex items-center gap-2'>
-                            <span>Next Verse</span>
-                            <span className='bg-muted text-muted-foreground flex h-5 items-center rounded border px-1.5 font-mono text-[10px]'>
-                              Enter ↵
-                            </span>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                          <textarea
+                            ref={el => (textareaRefs.current[verse.verseNumber] = el)}
+                            aria-label={`Translation for verse ${verse.verseNumber}`}
+                            autoCapitalize='sentences'
+                            autoCorrect='on'
+                            className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-snug text-gray-800 outline-none'
+                            id={`verse-${verse.verseNumber}`}
+                            placeholder='Enter translation...'
+                            spellCheck={true}
+                            value={currentTargetVerse?.content ?? ''}
+                            onChange={e => handleTextChange(verse.verseNumber, e.target.value)}
+                            onFocus={() => handleActiveVerseChange(verse.verseNumber)}
+                            onKeyDown={handleKeyDown}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
+                );
+              })}
+
+              {!readOnly && revealedVerses.size < totalSourceVerses && (
+                <div className='absolute right-4 z-10' style={{ top: buttonTop }}>
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          className={`bg-primary flex items-center gap-2 px-6 py-2 font-medium shadow-lg transition-all ${
+                            lastRevealedVerseHasContent
+                              ? 'hover:bg-primary-hover cursor-pointer text-white'
+                              : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                          }`}
+                          disabled={!lastRevealedVerseHasContent}
+                          onClick={revealNextVerse}
+                        >
+                          Next Verse
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        align='center'
+                        className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+                        side='top'
+                        sideOffset={8}
+                      >
+                        <div className='flex items-center gap-2'>
+                          <span>Next Verse</span>
+                          <span className='bg-muted text-muted-foreground flex h-5 items-center rounded border px-1.5 font-mono text-[10px]'>
+                            Enter ↵
+                          </span>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
             </div>
           </div>
         </div>
