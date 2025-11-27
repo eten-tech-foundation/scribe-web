@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useMatch, useNavigate } from '@tanstack/react-router';
 import { BookText, ChevronLeft, Loader } from 'lucide-react';
@@ -6,15 +6,10 @@ import { BookText, ChevronLeft, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
-import { useBibleTextDebounce } from '@/hooks/useBibleTextDebounce';
+import { useDrafting } from '@/hooks/useDrafting';
 import { useResourceState, useSaveResourceState } from '@/hooks/useResourceStatePersistence';
 import { ResourcePanel } from '@/layouts/resources/ResourcePanel';
-import {
-  type DraftingUIProps,
-  type ResourceName,
-  type Source,
-  type TargetVerse,
-} from '@/lib/types';
+import { type DraftingUIProps, type ResourceName, type Source } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 const RESOURCE_NAMES: ResourceName[] = [
@@ -33,21 +28,10 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const submitChapterMutation = useSubmitChapter();
   const navigate = useNavigate();
 
-  const [verses, setVerses] = useState<TargetVerse[]>(targetVerses);
-  const [activeVerseId, setActiveVerseId] = useState(1);
-  const [previousActiveVerseId, setPreviousActiveVerseId] = useState<number | null>(null);
-  const [revealedVerses, setRevealedVerses] = useState<Set<number>>(new Set());
-
-  const targetScrollRef = useRef<HTMLDivElement>(null);
-  const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({});
-  const verseRefs = useRef<Record<number, HTMLDivElement | null>>({});
-  const [buttonTop, setButtonTop] = useState<number>(0);
-
   const [showResources, setShowResources] = useState(false);
   const [currentResource, setCurrentResource] = useState<ResourceName>(RESOURCE_NAMES[0]);
   const [currentLanguage, setCurrentLanguage] = useState('');
 
-  // Fetch saved resource state
   const { data: savedResourceState, isFetched } = useResourceState(
     projectItem.chapterAssignmentId,
     userdetail.email
@@ -66,18 +50,60 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   } | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Memoize auto-resize function
-  const autoResizeTextarea = useCallback((textarea: HTMLTextAreaElement) => {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.max(20, textarea.scrollHeight) + 'px';
-  }, []);
+  const saveVerse = useCallback(
+    async (verse: number, text: string) => {
+      const sourceVerse = sourceVerses.find((v: Source) => v.verseNumber === verse);
+      const trimmedText = text.trim();
 
-  // Initialize resource state from saved data (runs once)
+      await addVerseMutation.mutateAsync({
+        verseData: {
+          projectUnitId: projectItem.projectUnitId,
+          content: trimmedText,
+          bibleTextId: (sourceVerse as Source).id,
+          assignedUserId: userdetail.id,
+        },
+        email: userdetail.email,
+      });
+    },
+    [addVerseMutation, projectItem.projectUnitId, sourceVerses, userdetail]
+  );
+
+  // Use the custom hook
+  const {
+    verses,
+    activeVerseId,
+    revealedVerses,
+    buttonTop,
+    lastRevealedVerseHasContent,
+    targetScrollRef,
+    textareaRefs,
+    verseRefs,
+    getSaveStatus,
+    saveImmediately,
+    handleTextChange,
+    handleActiveVerseChange,
+    moveToNextVerse,
+    revealNextVerse,
+    updateButtonPosition,
+  } = useDrafting({
+    sourceVerses,
+    targetVerses,
+    readOnly,
+    onSave: saveVerse,
+  });
+
+  const { setUserDashboardTab } = useAppStore();
+
+  const handleBack = () => {
+    setUserDashboardTab('my-history');
+    void navigate({ to: '/' });
+  };
+
+  // Initialize resource state from saved data
   useEffect(() => {
     if (!isFetched || isInitializedRef.current) return;
 
     if (savedResourceState) {
-      // Restore saved state
       const { activeResource, languageCode, tabStatus } = savedResourceState;
 
       if (typeof tabStatus === 'boolean') {
@@ -89,11 +115,9 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         setCurrentResource(savedResource ?? RESOURCE_NAMES[0]);
       }
 
-      // Use saved language if available, otherwise use source language as default
       if (languageCode) {
         setCurrentLanguage(languageCode);
       } else {
-        // Set default to source language only when no saved data
         setCurrentLanguage(projectItem.sourceLangCode);
       }
 
@@ -106,7 +130,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         tabStatus: typeof tabStatus === 'boolean' ? tabStatus : false,
       };
     } else {
-      // No saved data - use source language as default
       setCurrentLanguage(projectItem.sourceLangCode);
 
       lastSavedStateRef.current = {
@@ -129,7 +152,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     activeVerseId,
   ]);
 
-  // Save resource state with debouncing (only after initialization)
+  // Save resource state with debouncing
   useEffect(() => {
     if (!isInitializedRef.current) return;
 
@@ -142,7 +165,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       tabStatus: showResources,
     };
 
-    // Check if state actually changed
     if (lastSavedStateRef.current) {
       const hasChanged =
         lastSavedStateRef.current.bookCode !== currentState.bookCode ||
@@ -161,7 +183,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       clearTimeout(saveTimeoutRef.current);
     }
 
-    // Debounce save by 500ms
     saveTimeoutRef.current = setTimeout(() => {
       saveResourceStateMutation.mutate({
         chapterAssignmentId: projectItem.chapterAssignmentId,
@@ -189,166 +210,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     saveResourceStateMutation,
   ]);
 
-  const lastRevealedVerseNumber = useMemo(
-    () => (revealedVerses.size > 0 ? Math.max(...Array.from(revealedVerses)) : 1),
-    [revealedVerses]
-  );
-
-  const lastRevealedVerse = useMemo(
-    () => verses.find(v => v.verseNumber === lastRevealedVerseNumber),
-    [verses, lastRevealedVerseNumber]
-  );
-
-  const lastRevealedVerseHasContent = useMemo(
-    () => Boolean(lastRevealedVerse?.content.trim()),
-    [lastRevealedVerse]
-  );
-
-  const saveVerse = useCallback(
-    async (verse: number, text: string) => {
-      const sourceVerse = sourceVerses.find((v: Source) => v.verseNumber === verse);
-      const trimmedText = text.trim();
-
-      await addVerseMutation.mutateAsync({
-        verseData: {
-          projectUnitId: projectItem.projectUnitId,
-          content: trimmedText,
-          bibleTextId: (sourceVerse as Source).id,
-          assignedUserId: userdetail.id,
-        },
-        email: userdetail.email,
-      });
-    },
-    [addVerseMutation, projectItem.projectUnitId, sourceVerses, userdetail]
-  );
-
-  const { setUserDashboardTab } = useAppStore();
-
-  const handleBack = () => {
-    setUserDashboardTab('my-history');
-    void navigate({ to: '/' });
-  };
-
-  const { debouncedSave, saveImmediately, getSaveStatus, setInitialContent } = useBibleTextDebounce(
-    {
-      onSave: saveVerse,
-      debounceMs: 2000,
-      retryDelayMs: 10000,
-    }
-  );
-
-  useEffect(() => {
-    if (targetVerses.length === 0) return;
-
-    targetVerses.forEach(verse => {
-      setInitialContent(verse.verseNumber, verse.content);
-    });
-
-    const allVersesCompleted = sourceVerses.every(sourceVerse => {
-      const targetVerse = targetVerses.find(tv => tv.verseNumber === sourceVerse.verseNumber);
-      return targetVerse && targetVerse.content.trim() !== '';
-    });
-
-    let mostRecentlyEditedVerseNumber = 1;
-
-    if (!allVersesCompleted) {
-      const firstEmptyVerse = targetVerses.find(v => v.content.trim() === '') ?? targetVerses[0];
-      mostRecentlyEditedVerseNumber = firstEmptyVerse.verseNumber;
-      setActiveVerseId(mostRecentlyEditedVerseNumber);
-
-      if (mostRecentlyEditedVerseNumber > 1) {
-        const verseDiv = verseRefs.current[mostRecentlyEditedVerseNumber];
-        if (verseDiv) {
-          verseDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-    }
-
-    const lastVerseWithContent = (() => {
-      for (let i = targetVerses.length - 1; i >= 0; i--) {
-        if (targetVerses[i].content.trim() !== '') return targetVerses[i];
-      }
-      return targetVerses[0];
-    })();
-
-    const initiallyRevealed = new Set<number>();
-    targetVerses.forEach(v => {
-      if (v.verseNumber <= lastVerseWithContent.verseNumber) initiallyRevealed.add(v.verseNumber);
-    });
-    initiallyRevealed.add(mostRecentlyEditedVerseNumber);
-    setRevealedVerses(initiallyRevealed);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
-
-  useEffect(() => {
-    setRevealedVerses(prev => {
-      if (prev.has(activeVerseId)) return prev;
-      const next = new Set(prev);
-      next.add(activeVerseId);
-      return next;
-    });
-  }, [activeVerseId]);
-
-  useEffect(() => {
-    revealedVerses.forEach(verseNumber => {
-      const textarea = textareaRefs.current[verseNumber];
-      if (textarea) autoResizeTextarea(textarea);
-    });
-  }, [revealedVerses, autoResizeTextarea]);
-
-  useEffect(() => {
-    if (verses.length === 0) {
-      setVerses([
-        {
-          verseNumber: 1,
-          content: '',
-        },
-      ]);
-    } else {
-      verses.forEach(verse => {
-        const textarea = textareaRefs.current[verse.verseNumber];
-        if (textarea && verse.content) {
-          autoResizeTextarea(textarea);
-        }
-      });
-    }
-  }, [setVerses, verses, autoResizeTextarea]);
-
-  const updateButtonPosition = useCallback(() => {
-    const container = targetScrollRef.current;
-    const lastRevealedVerseDiv = verseRefs.current[lastRevealedVerseNumber];
-    if (!container || !lastRevealedVerseDiv) return;
-
-    const containerRect = container.getBoundingClientRect();
-    const verseRect = lastRevealedVerseDiv.getBoundingClientRect();
-    const top = container.scrollTop + (verseRect.bottom - containerRect.top);
-    setButtonTop(top);
-  }, [lastRevealedVerseNumber]);
-
-  const scrollVerseToTop = useCallback((verseNumber: number) => {
-    const container = targetScrollRef.current;
-    const row = verseRefs.current[verseNumber];
-    if (!container || !row) return;
-
-    const containerRect = container.getBoundingClientRect();
-    const rowRect = row.getBoundingClientRect();
-    const newScrollTop = container.scrollTop + (rowRect.top - containerRect.top);
-    container.scrollTo({ top: newScrollTop, behavior: 'smooth' });
-  }, []);
-
-  useLayoutEffect(() => {
-    const textarea = textareaRefs.current[activeVerseId];
-    if (textarea) {
-      textarea.focus();
-      const len = textarea.value.length;
-      try {
-        textarea.setSelectionRange(len, len);
-      } catch {}
-      autoResizeTextarea(textarea);
-    }
-    updateButtonPosition();
-  }, [activeVerseId, verses, revealedVerses, updateButtonPosition, autoResizeTextarea]);
-
   const totalSourceVerses = sourceVerses.length;
   const versesWithText = verses.filter(v => v.content.trim() !== '').length;
   const progressPercentage = (versesWithText / totalSourceVerses) * 100;
@@ -356,87 +217,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const isAnythingSaving = !readOnly && verses.some(v => getSaveStatus(v.verseNumber).showLoader);
   const hasAnyError = !readOnly && verses.some(v => getSaveStatus(v.verseNumber).hasRetryScheduled);
-
-  const handleTextChange = useCallback(
-    (verseId: number, text: string) => {
-      setVerses(currentVerses =>
-        currentVerses.map(verse =>
-          verse.verseNumber === verseId ? { ...verse, content: text } : verse
-        )
-      );
-      debouncedSave(verseId, text);
-
-      const textarea = textareaRefs.current[verseId];
-      if (textarea) autoResizeTextarea(textarea);
-      updateButtonPosition();
-    },
-    [debouncedSave, autoResizeTextarea, updateButtonPosition]
-  );
-
-  const handleActiveVerseChange = useCallback(
-    async (newVerseId: number) => {
-      if (previousActiveVerseId !== null && previousActiveVerseId !== newVerseId) {
-        const previousVerse = verses.find(v => v.verseNumber === previousActiveVerseId);
-        if (previousVerse) {
-          const status = getSaveStatus(previousActiveVerseId);
-          if (status.hasUnsavedChanges) {
-            await saveImmediately(previousActiveVerseId, previousVerse.content);
-          }
-        }
-      }
-
-      setPreviousActiveVerseId(activeVerseId);
-      setActiveVerseId(newVerseId);
-      const prevId = Math.max(1, newVerseId - 1);
-      requestAnimationFrame(() => scrollVerseToTop(prevId));
-    },
-    [previousActiveVerseId, verses, getSaveStatus, saveImmediately, activeVerseId, scrollVerseToTop]
-  );
-
-  const advanceToVerse = useCallback(
-    async (nextVerseId: number, verseToSave?: { verseNumber: number; content: string }) => {
-      if (nextVerseId > totalSourceVerses) return;
-
-      const nextVerseExists = verses.find(v => v.verseNumber === nextVerseId);
-      if (!nextVerseExists) {
-        setVerses(prev => [...prev, { verseNumber: nextVerseId, content: '' }]);
-        setInitialContent(nextVerseId, '');
-      }
-
-      if (verseToSave) {
-        const status = getSaveStatus(verseToSave.verseNumber);
-        if (status.hasUnsavedChanges) {
-          await saveImmediately(verseToSave.verseNumber, verseToSave.content);
-        }
-      }
-
-      setPreviousActiveVerseId(activeVerseId);
-      setActiveVerseId(nextVerseId);
-
-      const prevId = Math.max(1, nextVerseId - 1);
-      requestAnimationFrame(() => scrollVerseToTop(prevId));
-    },
-    [
-      activeVerseId,
-      verses,
-      totalSourceVerses,
-      saveImmediately,
-      setInitialContent,
-      getSaveStatus,
-      scrollVerseToTop,
-    ]
-  );
-
-  const moveToNextVerse = useCallback(async () => {
-    const currentVerse = verses.find(v => v.verseNumber === activeVerseId);
-    if (!currentVerse || currentVerse.content.trim() === '') return;
-    await advanceToVerse(activeVerseId + 1, currentVerse);
-  }, [activeVerseId, verses, advanceToVerse]);
-
-  const revealNextVerse = useCallback(async () => {
-    if (!lastRevealedVerseHasContent || !lastRevealedVerse) return;
-    await advanceToVerse(lastRevealedVerseNumber + 1, lastRevealedVerse);
-  }, [lastRevealedVerseNumber, lastRevealedVerseHasContent, lastRevealedVerse, advanceToVerse]);
 
   const handleSubmit = useCallback(async () => {
     if (!isTranslationComplete) return;
@@ -683,7 +463,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                         side='top'
                         sideOffset={8}
                       >
-                        {/* Next Verse (Enter) */}
                         <div className='flex items-center gap-2'>
                           <span>Next Verse</span>
                           <span className='bg-muted text-muted-foreground flex h-5 items-center rounded border px-1.5 font-mono text-[10px]'>
