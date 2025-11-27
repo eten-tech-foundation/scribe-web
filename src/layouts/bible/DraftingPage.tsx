@@ -395,7 +395,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                         </div>
                         <div className='flex-1'>
                           <div
-                            className={`bg-card rounded-lg border border-2 px-4 py-1 shadow-sm transition-all ${
+                            className={`bg-card rounded-lg border-2 px-4 py-1 shadow-sm transition-all ${
                               isActive ? 'border-primary' : ''
                             }`}
                           >
