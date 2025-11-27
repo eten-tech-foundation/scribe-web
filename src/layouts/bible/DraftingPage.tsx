@@ -297,13 +297,22 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   }, [revealedVerses, autoResizeTextarea]);
 
   useEffect(() => {
-    verses.forEach(verse => {
-      const textarea = textareaRefs.current[verse.verseNumber];
-      if (textarea && verse.content) {
-        autoResizeTextarea(textarea);
-      }
-    });
-  }, [verses, autoResizeTextarea]);
+    if (verses.length === 0) {
+      setVerses([
+        {
+          verseNumber: 1,
+          content: '',
+        },
+      ]);
+    } else {
+      verses.forEach(verse => {
+        const textarea = textareaRefs.current[verse.verseNumber];
+        if (textarea && verse.content) {
+          autoResizeTextarea(textarea);
+        }
+      });
+    }
+  }, [setVerses, verses, autoResizeTextarea]);
 
   const updateButtonPosition = useCallback(() => {
     const container = targetScrollRef.current;
