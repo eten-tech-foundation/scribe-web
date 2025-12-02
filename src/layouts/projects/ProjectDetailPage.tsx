@@ -317,7 +317,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             ) : (
               <TooltipProvider delayDuration={300}>
                 <div className='relative flex h-full flex-col overflow-y-auto'>
-                  <Table>
+                  <Table className='w-full table-fixed'>
                     <TableHeader className='sticky top-0 z-10'>
                       <TableRow className='hover:bg-transparent'>
                         <TableHead className='w-12 px-6 py-3'>
