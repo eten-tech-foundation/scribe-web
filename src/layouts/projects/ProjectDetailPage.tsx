@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { Loader2 } from 'lucide-react';
 
@@ -45,6 +45,46 @@ interface ProjectDetailPageProps {
   projectSource: string;
   onBack?: () => void;
 }
+
+const TruncatedTableText = ({ text }: { text: string }) => {
+  const textRef = useRef<HTMLDivElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useLayoutEffect(() => {
+    const checkTruncation = () => {
+      if (textRef.current) {
+        setIsTruncated(textRef.current.scrollWidth > textRef.current.clientWidth);
+      }
+    };
+
+    checkTruncation();
+    window.addEventListener('resize', checkTruncation);
+    return () => window.removeEventListener('resize', checkTruncation);
+  }, [text]);
+
+  const content = (
+    <div ref={textRef} className='max-w-full cursor-default truncate' title=''>
+      {text}
+    </div>
+  );
+
+  if (!isTruncated) return content;
+
+  return (
+    <TooltipProvider delayDuration={300}>
+      <Tooltip>
+        <TooltipTrigger asChild>{content}</TooltipTrigger>
+        <TooltipContent
+          align='center'
+          className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+          side='top'
+        >
+          {text}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
 
 export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   projectId,
@@ -317,18 +357,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                               />
                             </TableCell>
                             <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className='w-fit truncate'>{assignment.bookNameEng}</div>
-                                </TooltipTrigger>
-                                <TooltipContent
-                                  align='center'
-                                  className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
-                                  side='top'
-                                >
-                                  {assignment.bookNameEng}
-                                </TooltipContent>
-                              </Tooltip>
+                              <TruncatedTableText text={assignment.bookNameEng} />
                             </TableCell>
                             <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base whitespace-nowrap'>
                               {assignment.chapterNumber}
@@ -340,43 +369,18 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                                   <Loader2 className='h-4 w-4 animate-spin text-gray-500' />
                                 </div>
                               ) : (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div className='w-fit truncate'>
-                                      {assignment.assignedUser?.displayName}
-                                    </div>
-                                  </TooltipTrigger>
-                                  <TooltipContent
-                                    align='center'
-                                    className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
-                                    side='top'
-                                  >
-                                    {assignment.assignedUser?.displayName}
-                                  </TooltipContent>
-                                </Tooltip>
+                                <TruncatedTableText
+                                  text={assignment.assignedUser?.displayName ?? ''}
+                                />
                               )}
                             </TableCell>
                             <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className='w-fit truncate'>
-                                    {formatProgress(
-                                      assignment.completedVerses,
-                                      assignment.totalVerses
-                                    )}
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent
-                                  align='center'
-                                  className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
-                                  side='top'
-                                >
-                                  {formatProgress(
-                                    assignment.completedVerses,
-                                    assignment.totalVerses
-                                  )}
-                                </TooltipContent>
-                              </Tooltip>
+                              <TruncatedTableText
+                                text={formatProgress(
+                                  assignment.completedVerses,
+                                  assignment.totalVerses
+                                )}
+                              />
                             </TableCell>
                           </TableRow>
                         );
