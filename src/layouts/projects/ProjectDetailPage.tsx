@@ -86,6 +86,46 @@ const TruncatedTableText = ({ text }: { text: string }) => {
   );
 };
 
+const TruncatedDropdownText = ({ text, className }: { text: string; className?: string }) => {
+  const textRef = useRef<HTMLDivElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useLayoutEffect(() => {
+    const checkTruncation = () => {
+      if (textRef.current) {
+        setIsTruncated(textRef.current.scrollWidth > textRef.current.clientWidth);
+      }
+    };
+
+    checkTruncation();
+    window.addEventListener('resize', checkTruncation);
+    return () => window.removeEventListener('resize', checkTruncation);
+  }, [text]);
+
+  const content = (
+    <div ref={textRef} className={`cursor-default truncate ${className ?? ''}`}>
+      {text}
+    </div>
+  );
+
+  if (!isTruncated) return content;
+
+  return (
+    <TooltipProvider delayDuration={300}>
+      <Tooltip>
+        <TooltipTrigger asChild>{content}</TooltipTrigger>
+        <TooltipContent
+          align='center'
+          className='bg-popover text-popover-foreground border-border max-w-[350px] rounded-md border text-center text-sm font-semibold break-words shadow-lg'
+          side='top'
+        >
+          {text}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
 export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   projectId,
   projectTitle,
@@ -401,14 +441,29 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           </DialogHeader>
           <Select value={selectedUser} onValueChange={setSelectedUser}>
             <SelectTrigger className='w-full bg-white'>
-              <SelectValue placeholder={usersLoading ? 'Loading users...' : 'Select a User'} />
+              <SelectValue placeholder={usersLoading ? 'Loading users...' : 'Select a User'}>
+                {selectedUser ? (
+                  <div className='flex w-full'>
+                    <TruncatedDropdownText
+                      className='w-full max-w-[280px] text-left sm:max-w-[350px]'
+                      text={users?.find(u => u.id.toString() === selectedUser)?.username ?? ''}
+                    />
+                  </div>
+                ) : (
+                  <span className='text-muted-foreground'>
+                    {usersLoading ? 'Loading users...' : 'Select a User'}
+                  </span>
+                )}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {users
                 ?.filter((user: User) => user.role === 2)
                 .map((user: User) => (
                   <SelectItem key={user.id} value={user.id.toString()}>
-                    {user.username}
+                    <div className='w-[250px] sm:w-[350px]'>
+                      <TruncatedDropdownText text={user.username} />
+                    </div>
                   </SelectItem>
                 ))}
             </SelectContent>
