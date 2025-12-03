@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +23,44 @@ interface UsersPageProps {
   onAddUser: () => void;
   onEditUser: (user: User) => void;
 }
+
+const TruncatedTextCell = ({ text }: { text: string }) => {
+  const textRef = useRef<HTMLDivElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useLayoutEffect(() => {
+    const checkTruncation = () => {
+      if (textRef.current) {
+        setIsTruncated(textRef.current.scrollWidth > textRef.current.clientWidth);
+      }
+    };
+    checkTruncation();
+    window.addEventListener('resize', checkTruncation);
+    return () => window.removeEventListener('resize', checkTruncation);
+  }, [text]);
+
+  const content = (
+    <div ref={textRef} className='truncate' title=''>
+      {text}
+    </div>
+  );
+
+  if (!isTruncated) return content;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{content}</TooltipTrigger>
+      <TooltipContent
+        align='center'
+        className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+        side='top'
+      >
+        {text}
+      </TooltipContent>
+    </Tooltip>
+  );
+};
+// -----------------------------------------------------------
 
 export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser, onEditUser }) => {
   const { t } = useTranslation();
@@ -82,35 +120,13 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
                       onClick={() => onEditUser(user)}
                     >
                       <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className='w-fit truncate'>{user.username}</div>
-                          </TooltipTrigger>
-                          <TooltipContent
-                            align='center'
-                            className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
-                            side='top'
-                          >
-                            {user.username}
-                          </TooltipContent>
-                        </Tooltip>
+                        <TruncatedTextCell text={user.username} />
                       </TableCell>
                       <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
                         {getRoleLabel(user.role)}
                       </TableCell>
                       <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className='w-fit truncate'>{user.email}</div>
-                          </TooltipTrigger>
-                          <TooltipContent
-                            align='center'
-                            className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
-                            side='top'
-                          >
-                            {user.email}
-                          </TooltipContent>
-                        </Tooltip>
+                        <TruncatedTextCell text={user.email} />
                       </TableCell>
                       <TableCell className='px-6 py-4 whitespace-nowrap'>
                         <Badge variant={getStatusVariant(user.status as 'invited' | 'verified')}>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 import { useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
@@ -15,6 +15,85 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useChapterAssignments } from '@/hooks/useProjects';
 import type { ProjectItem, User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
+
+const TruncatedProjectCell = ({ text, isNavigating }: { text: string; isNavigating: boolean }) => {
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useLayoutEffect(() => {
+    const checkTruncation = () => {
+      if (textRef.current) {
+        setIsTruncated(textRef.current.scrollWidth > textRef.current.clientWidth);
+      }
+    };
+    checkTruncation();
+    window.addEventListener('resize', checkTruncation);
+    return () => window.removeEventListener('resize', checkTruncation);
+  }, [text]);
+
+  const content = (
+    <div className='inline-flex max-w-full items-center gap-2'>
+      {isNavigating && (
+        <Loader2 className='h-4 w-4 flex-shrink-0 animate-spin text-[var(--primary)]' />
+      )}
+      <span ref={textRef} className='truncate'>
+        {text}
+      </span>
+    </div>
+  );
+
+  if (!isTruncated) return content;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{content}</TooltipTrigger>
+      <TooltipContent
+        align='center'
+        className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+        side='top'
+      >
+        {text}
+      </TooltipContent>
+    </Tooltip>
+  );
+};
+
+const TruncatedTextCell = ({ text }: { text: string }) => {
+  const textRef = useRef<HTMLDivElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useLayoutEffect(() => {
+    const checkTruncation = () => {
+      if (textRef.current) {
+        setIsTruncated(textRef.current.scrollWidth > textRef.current.clientWidth);
+      }
+    };
+    checkTruncation();
+    window.addEventListener('resize', checkTruncation);
+    return () => window.removeEventListener('resize', checkTruncation);
+  }, [text]);
+
+  const content = (
+    <div ref={textRef} className='truncate' title=''>
+      {text}
+    </div>
+  );
+
+  if (!isTruncated) return content;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{content}</TooltipTrigger>
+      <TooltipContent
+        align='center'
+        className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+        side='top'
+      >
+        {text}
+      </TooltipContent>
+    </Tooltip>
+  );
+};
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -157,36 +236,27 @@ export function UserHomePage() {
                           onClick={() => handleRowClick(item, isHistory)}
                         >
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm'>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className='inline-flex max-w-full items-center gap-2'>
-                                  {isNavigating && (
-                                    <Loader2 className='h-4 w-4 flex-shrink-0 animate-spin text-[var(--primary)]' />
-                                  )}
-                                  <span className='truncate'>{item.projectName}</span>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent
-                                align='center'
-                                className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
-                                side='top'
-                              >
-                                {item.projectName}
-                              </TooltipContent>
-                            </Tooltip>
+                            <TruncatedProjectCell
+                              isNavigating={isNavigating}
+                              text={item.projectName}
+                            />
                           </TableCell>
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                            {item.book}
+                            <TruncatedTextCell text={item.book} />
                           </TableCell>
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
                             {item.chapterNumber}
                           </TableCell>
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                            {isHistory
-                              ? item.submittedTime
-                                ? formatDate(item.submittedTime)
-                                : 'N/A'
-                              : getStatusText(item)}
+                            <TruncatedTextCell
+                              text={
+                                isHistory
+                                  ? item.submittedTime
+                                    ? formatDate(item.submittedTime)
+                                    : 'N/A'
+                                  : getStatusText(item)
+                              }
+                            />
                           </TableCell>
                         </TableRow>
                       );
