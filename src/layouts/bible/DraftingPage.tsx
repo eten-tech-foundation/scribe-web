@@ -358,10 +358,14 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         )}
         <div className={`mx-auto ${showResources ? '' : 'max-w-7xl'} flex-1 overflow-hidden`}>
           <div
-            className='ml-2 grid h-full'
-            style={{ gridTemplateColumns: '2rem 1fr 1fr', scrollbarGutter: 'stable' }}
+            className='ml-2 grid h-full content-start'
+            style={{
+              gridTemplateColumns: '2rem 1fr 1fr',
+              gridTemplateRows: 'auto 1fr',
+              scrollbarGutter: 'stable',
+            }}
           >
-            <div className='sticky top-0 z-10 w-8 bg-white px-4 py-3'></div>
+            <div className='sticky top-0 z-10 w-8 px-4 py-3'></div>
             <div className='sticky top-0 z-10 px-6 py-3'>
               <h3 className='text-xl font-bold text-gray-800'>{projectItem.bibleName}</h3>
             </div>
@@ -369,7 +373,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
               <h3 className='text-xl font-bold text-gray-800'>{projectItem.targetLanguage}</h3>
             </div>
             <div
-              className={`col-span-3 flex flex-col overflow-hidden ${showResources ? 'rounded-md border' : ''}`}
+              className={`col-span-3 flex flex-col overflow-hidden ${showResources ? 'h-full rounded-md border' : ''}`}
             >
               <div
                 ref={targetScrollRef}
