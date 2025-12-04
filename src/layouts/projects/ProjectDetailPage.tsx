@@ -46,6 +46,49 @@ interface ProjectDetailPageProps {
   onBack?: () => void;
 }
 
+const TruncatedCardText = ({ text }: { text: string }) => {
+  const textRef = useRef<HTMLDivElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useLayoutEffect(() => {
+    const checkTruncation = () => {
+      if (textRef.current) {
+        setIsTruncated(textRef.current.scrollWidth > textRef.current.clientWidth);
+      }
+    };
+    checkTruncation();
+    window.addEventListener('resize', checkTruncation);
+    return () => window.removeEventListener('resize', checkTruncation);
+  }, [text]);
+
+  const content = (
+    <div
+      ref={textRef}
+      className='max-w-full cursor-default truncate text-base font-medium text-gray-600'
+    >
+      {text}
+    </div>
+  );
+
+  if (!isTruncated) return content;
+
+  return (
+    <TooltipProvider delayDuration={300}>
+      <Tooltip>
+        <TooltipTrigger asChild>{content}</TooltipTrigger>
+        <TooltipContent
+          align='start'
+          className='bg-popover text-popover-foreground border-border max-w-[150px] rounded-md border px-4 py-2.5 text-sm font-semibold break-all shadow-lg lg:max-w-[160px] xl:max-w-[205px]'
+          side='bottom'
+          sideOffset={2}
+        >
+          {text}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
 const TruncatedTableText = ({ text }: { text: string }) => {
   const textRef = useRef<HTMLDivElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
@@ -291,9 +334,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             <CardContent className='space-y-4 py-4'>
               <div className='grid grid-cols-2 gap-2'>
                 <label className='text-base font-bold'>Title</label>
-                <p className='max-w-full text-base font-medium break-all text-gray-600'>
-                  {projectTitle}
-                </p>
+                <TruncatedCardText text={projectTitle} />
                 <label className='text-base font-bold'>Target Language</label>
                 <p className='text-base font-medium text-gray-600'>{projectTargetLanguageName}</p>
 

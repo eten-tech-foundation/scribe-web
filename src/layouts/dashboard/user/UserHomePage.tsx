@@ -48,7 +48,7 @@ const TruncatedProjectCell = ({ text, isNavigating }: { text: string; isNavigati
     <Tooltip>
       <TooltipTrigger asChild>{content}</TooltipTrigger>
       <TooltipContent
-        align='center'
+        align='start'
         className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
         side='top'
       >
