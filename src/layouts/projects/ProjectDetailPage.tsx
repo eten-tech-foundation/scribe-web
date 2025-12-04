@@ -77,10 +77,9 @@ const TruncatedCardText = ({ text }: { text: string }) => {
       <Tooltip>
         <TooltipTrigger asChild>{content}</TooltipTrigger>
         <TooltipContent
-          align='start'
-          className='bg-popover text-popover-foreground border-border max-w-[150px] rounded-md border px-4 py-2.5 text-sm font-semibold break-all shadow-lg lg:max-w-[160px] xl:max-w-[205px]'
+          align='center'
+          className='bg-popover text-popover-foreground border-border max-w-[350px] rounded-md border px-4 py-2.5 text-sm font-semibold break-all shadow-lg'
           side='bottom'
-          sideOffset={2}
         >
           {text}
         </TooltipContent>
