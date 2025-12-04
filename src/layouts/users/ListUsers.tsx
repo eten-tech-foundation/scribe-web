@@ -24,7 +24,13 @@ interface UsersPageProps {
   onEditUser: (user: User) => void;
 }
 
-const TruncatedTextCell = ({ text }: { text: string }) => {
+const TruncatedTextCell = ({
+  text,
+  align = 'start',
+}: {
+  text: string;
+  align?: 'center' | 'end' | 'start';
+}) => {
   const textRef = useRef<HTMLDivElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
 
@@ -49,9 +55,13 @@ const TruncatedTextCell = ({ text }: { text: string }) => {
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>{content}</TooltipTrigger>
+      <TooltipTrigger asChild>
+        <div ref={textRef} className='truncate'>
+          {text}
+        </div>
+      </TooltipTrigger>
       <TooltipContent
-        align='center'
+        align={align}
         className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
         side='top'
       >
@@ -126,7 +136,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
                         {getRoleLabel(user.role)}
                       </TableCell>
                       <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
-                        <TruncatedTextCell text={user.email} />
+                        <TruncatedTextCell align='center' text={user.email} />
                       </TableCell>
                       <TableCell className='px-6 py-4 whitespace-nowrap'>
                         <Badge variant={getStatusVariant(user.status as 'invited' | 'verified')}>
