@@ -260,7 +260,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   return (
     <div className='flex h-full flex-col overflow-hidden'>
       <div className='flex-shrink-0'>
-        <div className='flex items-center justify-between px-6 py-4'>
+        <div className='flex items-center justify-between py-4 pr-6'>
           <div className='flex flex-shrink-0 items-center gap-4'>
             {readOnly && (
               <TooltipProvider delayDuration={300}>
@@ -356,17 +356,24 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
             />
           </div>
         )}
-
         <div className={`mx-auto ${showResources ? '' : 'max-w-7xl'} flex-1 overflow-hidden`}>
-          <div className='grid h-full grid-cols-2' style={{ gridTemplateRows: '3.25rem 1fr' }}>
-            <div className='sticky top-0 z-10 ml-8 h-12 px-6 pt-4'>
+          <div
+            className='ml-2 grid h-full content-start'
+            style={{
+              gridTemplateColumns: '2rem 1fr 1fr',
+              gridTemplateRows: 'auto 1fr',
+              scrollbarGutter: 'stable',
+            }}
+          >
+            <div className='sticky top-0 z-10 w-8 px-4 py-3'></div>
+            <div className='sticky top-0 z-10 px-6 py-3'>
               <h3 className='text-xl font-bold text-gray-800'>{projectItem.bibleName}</h3>
             </div>
-            <div className='sticky top-0 z-10 h-12 pt-4 pr-6'>
+            <div className='sticky top-0 z-10 px-6 py-3'>
               <h3 className='text-xl font-bold text-gray-800'>{projectItem.targetLanguage}</h3>
             </div>
             <div
-              className={`col-span-2 flex flex-col overflow-hidden ${showResources ? 'ml-2 rounded-md border' : ''}`}
+              className={`col-span-3 flex flex-col overflow-hidden ${showResources ? 'h-full rounded-md border' : ''}`}
             >
               <div
                 ref={targetScrollRef}
@@ -384,41 +391,36 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                     <div
                       key={verse.verseNumber}
                       ref={el => (verseRefs.current[verse.verseNumber] = el)}
-                      className='grid grid-cols-2 gap-4 px-6 py-4'
+                      className='grid items-start py-4'
+                      style={{ gridTemplateColumns: '2rem 1fr 1fr' }}
                     >
-                      {/* Source verse */}
-                      <div className='col-1 flex items-start transition-all'>
-                        <div className='w-8 flex-shrink-0'>
-                          <span className='text-lg font-medium text-gray-700'>
-                            {verse.verseNumber}
-                          </span>
-                        </div>
-                        <div className='flex-1'>
-                          <div
-                            className={`bg-card rounded-lg border-2 px-4 py-1 shadow-sm transition-all ${
-                              isActive ? 'border-primary' : ''
-                            }`}
-                          >
-                            <p className='min-h-12 content-center overflow-hidden text-base leading-relaxed text-gray-800 outline-none'>
-                              {verse.text}
-                            </p>
-                          </div>
+                      <div className='flex w-8 items-start px-4'>
+                        <span className='text-lg font-medium text-gray-700'>
+                          {verse.verseNumber}
+                        </span>
+                      </div>
+                      <div className='flex flex-col px-6'>
+                        <div
+                          className={`bg-card rounded-lg border-2 px-4 py-1 shadow-sm transition-all ${
+                            isActive ? 'border-primary' : ''
+                          }`}
+                        >
+                          <p className='min-h-12 leading-relaxed text-gray-800'>{verse.text}</p>
                         </div>
                       </div>
 
-                      {/* Target verse */}
-                      <div
-                        className={`col-2 flex transition-all ${shouldShowTarget ? '' : 'hidden'}`}
-                      >
+                      <div className={`px-6 ${shouldShowTarget ? 'flex' : 'hidden'}`}>
                         {readOnly ? (
                           <div className='bg-card flex-1 rounded-lg border-2 px-4 py-3 shadow-sm'>
-                            <p className='min-h-12 text-base leading-snug text-gray-800'>
+                            <p className='min-h-12 leading-snug text-gray-800'>
                               {currentTargetVerse?.content ?? ''}
                             </p>
                           </div>
                         ) : (
                           <div
-                            className={`flex-1 cursor-pointer rounded-lg border-2 px-4 py-1 shadow-sm transition-all ${isActive ? 'border-primary' : ''} ${currentTargetVerse?.content.trim() !== '' && !isActive ? 'bg-card' : ''}`}
+                            className={`flex-1 rounded-lg border-2 px-4 py-1 shadow-sm transition-all ${
+                              isActive ? 'border-primary' : ''
+                            } ${currentTargetVerse?.content.trim() !== '' && !isActive ? 'bg-card' : ''}`}
                             onClick={() => handleActiveVerseChange(verse.verseNumber)}
                           >
                             <textarea
@@ -426,8 +428,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                               aria-label={`Translation for verse ${verse.verseNumber}`}
                               autoCapitalize='sentences'
                               autoCorrect='on'
-                              className='h-auto min-h-3 w-full resize-none content-center overflow-hidden border-none bg-transparent text-base leading-snug text-gray-800 outline-none'
-                              id={`verse-${verse.verseNumber}`}
+                              className='w-full resize-none border-none bg-transparent text-base leading-snug text-gray-800 outline-none'
                               placeholder='Enter translation...'
                               spellCheck={true}
                               value={currentTargetVerse?.content ?? ''}
