@@ -30,12 +30,25 @@ const toTargetVerse = (verse: TargetVerseData): TargetVerse => ({
 });
 
 export const translationLoader = async ({ location }: LoaderFnContext) => {
-  const { projectItem } = location.state as { projectItem: ProjectItem };
-  const { userdetail } = useAppStore.getState();
+  let retries = 0;
+  const maxRetries = 10;
+  while (!useAppStore.getState()._hasHydrated && retries < maxRetries) {
+    await new Promise(resolve => setTimeout(resolve, 50));
+    retries++;
+  }
+  const { userdetail, currentProjectItem, setCurrentProjectItem } = useAppStore.getState();
 
   if (!userdetail) {
     throw new Error('User details are missing.');
   }
+  let projectItem =
+    (location.state as { projectItem?: ProjectItem }).projectItem ??
+    currentProjectItem ??
+    undefined;
+  if (!projectItem) {
+    throw new Error('Project item is missing. Please navigate from the project list.');
+  }
+  setCurrentProjectItem(projectItem);
 
   const search = location.search as { t?: string };
   const cacheParam = search.t ?? Date.now().toString();
