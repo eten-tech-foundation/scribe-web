@@ -94,8 +94,22 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const { setUserDashboardTab } = useAppStore();
 
+  useEffect(() => {
+    // Store the projectItem when component mounts
+    const { setCurrentProjectItem } = useAppStore.getState();
+    setCurrentProjectItem(projectItem);
+
+    // Optional: Clear when component unmounts (if you want to clean up)
+    return () => {
+      // Uncomment if you want to clear on unmount
+      // setCurrentProjectItem(null);
+    };
+  }, [projectItem]);
+
   const handleBack = () => {
     setUserDashboardTab('my-history');
+    const { clearCurrentProjectItem } = useAppStore.getState();
+    clearCurrentProjectItem();
     void navigate({ to: '/' });
   };
 
@@ -231,6 +245,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       chapterAssignmentId: projectItem.chapterAssignmentId,
       email: userdetail.email,
     });
+    const { clearCurrentProjectItem } = useAppStore.getState();
+    clearCurrentProjectItem();
     await navigate({ to: '/' });
   }, [
     isTranslationComplete,
