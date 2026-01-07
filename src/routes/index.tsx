@@ -5,9 +5,11 @@ import { type ProjectItem } from '@/lib/types';
 import {
   appInsightsTestRoute,
   indexRoute,
+  privacyPolicyRoute,
   projectsRoute,
   rootRoute,
   tailwindTestRoute,
+  termsOfUseRoute,
   translationRoute,
   userListRoute,
   viewResourceRoute,
@@ -21,6 +23,8 @@ const routeTree = rootRoute.addChildren([
   projectsRoute,
   translationRoute,
   viewResourceRoute,
+  privacyPolicyRoute,
+  termsOfUseRoute,
 ]);
 
 export const router = new Router({ routeTree });
