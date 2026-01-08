@@ -18,18 +18,13 @@ export const TermsOfUsePage = () => {
           </p>
 
           <p>By using these features, you acknowledge that:</p>
-          <ul className='pl-6'>
-            <li className='relative'>
-              <span className='absolute -left-4'>•</span>
+          <ul className='list-disc space-y-2 pl-6'>
+            <li>
               AI-generated drafts may contain factual or linguistic errors, omissions, or cultural
               inaccuracies.
             </li>
-            <li className='relative'>
-              <span className='absolute -left-4'>•</span>
-              All final translation responsibility rests with the user or translation team.
-            </li>
-            <li className='relative'>
-              <span className='absolute -left-4'>•</span>
+            <li>All final translation responsibility rests with the user or translation team.</li>
+            <li>
               AI outputs are generated automatically and are not endorsed by Fluent or its
               affiliated organizations.
             </li>
