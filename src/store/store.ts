@@ -15,6 +15,10 @@ interface AppState {
   clearCurrentProjectItem: () => void;
   setHasHydrated: (state: boolean) => void;
 }
+let hydrationResolve: (() => void) | null = null;
+export const hydrationPromise = new Promise<void>(resolve => {
+  hydrationResolve = resolve;
+});
 
 export const useAppStore = create<AppState>()(
   persist(
@@ -36,6 +40,10 @@ export const useAppStore = create<AppState>()(
       name: 'app-store',
       onRehydrateStorage: () => state => {
         state?.setHasHydrated(true);
+        if (hydrationResolve) {
+          hydrationResolve();
+          hydrationResolve = null;
+        }
       },
     }
   )

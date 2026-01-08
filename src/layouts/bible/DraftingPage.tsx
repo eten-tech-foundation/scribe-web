@@ -49,6 +49,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     tabStatus: boolean;
   } | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const setUserDashboardTab = useAppStore(state => state.setUserDashboardTab);
+  const clearCurrentProjectItem = useAppStore(state => state.clearCurrentProjectItem);
 
   const saveVerse = useCallback(
     async (verse: number, text: string) => {
@@ -68,7 +70,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     [addVerseMutation, projectItem.projectUnitId, sourceVerses, userdetail]
   );
 
-  // Use the custom hook
   const {
     verses,
     activeVerseId,
@@ -92,23 +93,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     onSave: saveVerse,
   });
 
-  const { setUserDashboardTab } = useAppStore();
-
-  useEffect(() => {
-    // Store the projectItem when component mounts
-    const { setCurrentProjectItem } = useAppStore.getState();
-    setCurrentProjectItem(projectItem);
-
-    // Optional: Clear when component unmounts (if you want to clean up)
-    return () => {
-      // Uncomment if you want to clear on unmount
-      // setCurrentProjectItem(null);
-    };
-  }, [projectItem]);
-
   const handleBack = () => {
     setUserDashboardTab('my-history');
-    const { clearCurrentProjectItem } = useAppStore.getState();
     clearCurrentProjectItem();
     void navigate({ to: '/' });
   };
@@ -245,7 +231,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       chapterAssignmentId: projectItem.chapterAssignmentId,
       email: userdetail.email,
     });
-    const { clearCurrentProjectItem } = useAppStore.getState();
     clearCurrentProjectItem();
     await navigate({ to: '/' });
   }, [
@@ -256,6 +241,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     submitChapterMutation,
     projectItem.chapterAssignmentId,
     userdetail.email,
+    clearCurrentProjectItem,
     navigate,
   ]);
 

@@ -3,7 +3,7 @@ import { type LoaderFnContext } from '@tanstack/react-router';
 import { fetchTargetText } from '@/hooks/useBibleTarget';
 import { fetchBibleText } from '@/hooks/useBibleText';
 import { type ProjectItem, type Source, type TargetVerse } from '@/lib/types';
-import { useAppStore } from '@/store/store';
+import { hydrationPromise, useAppStore } from '@/store/store';
 
 interface SourceVerseData {
   id: number;
@@ -30,12 +30,7 @@ const toTargetVerse = (verse: TargetVerseData): TargetVerse => ({
 });
 
 export const translationLoader = async ({ location }: LoaderFnContext) => {
-  let retries = 0;
-  const maxRetries = 10;
-  while (!useAppStore.getState()._hasHydrated && retries < maxRetries) {
-    await new Promise(resolve => setTimeout(resolve, 50));
-    retries++;
-  }
+  await hydrationPromise;
   const { userdetail, currentProjectItem, setCurrentProjectItem } = useAppStore.getState();
 
   if (!userdetail) {
