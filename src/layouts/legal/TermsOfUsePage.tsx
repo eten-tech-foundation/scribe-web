@@ -1,10 +1,9 @@
 export const TermsOfUsePage = () => {
   return (
-    <div className='h-full w-full overflow-y-auto bg-white'>
-      <div className='container mx-auto max-w-6xl px-6 py-6'>
+    <div className='bg-background h-full w-full overflow-y-auto'>
+      <div className='container mx-auto max-w-3xl px-6 py-6'>
         <h1 className='mb-8 text-3xl font-bold text-gray-900'>Terms of Use</h1>
-
-        <div className='space-y-6 pb-10 text-lg text-gray-700'>
+        <div className='mx-auto max-w-3xl text-base leading-relaxed text-gray-700'>
           <p>
             Fluent provides optional tools that use artificial intelligence (“AI”) to generate
             initial translation drafts or text suggestions. These drafts are provided solely to
@@ -19,14 +18,18 @@ export const TermsOfUsePage = () => {
           </p>
 
           <p>By using these features, you acknowledge that:</p>
-
-          <ul className='list-disc space-y-2 pl-6'>
-            <li>
+          <ul className='pl-6'>
+            <li className='relative'>
+              <span className='absolute -left-4'>•</span>
               AI-generated drafts may contain factual or linguistic errors, omissions, or cultural
               inaccuracies.
             </li>
-            <li>All final translation responsibility rests with the user or translation team.</li>
-            <li>
+            <li className='relative'>
+              <span className='absolute -left-4'>•</span>
+              All final translation responsibility rests with the user or translation team.
+            </li>
+            <li className='relative'>
+              <span className='absolute -left-4'>•</span>
               AI outputs are generated automatically and are not endorsed by Fluent or its
               affiliated organizations.
             </li>
