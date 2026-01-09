@@ -49,6 +49,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     tabStatus: boolean;
   } | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const setUserDashboardTab = useAppStore(state => state.setUserDashboardTab);
+  const clearCurrentProjectItem = useAppStore(state => state.clearCurrentProjectItem);
 
   const saveVerse = useCallback(
     async (verse: number, text: string) => {
@@ -68,7 +70,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     [addVerseMutation, projectItem.projectUnitId, sourceVerses, userdetail]
   );
 
-  // Use the custom hook
   const {
     verses,
     activeVerseId,
@@ -92,10 +93,9 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     onSave: saveVerse,
   });
 
-  const { setUserDashboardTab } = useAppStore();
-
   const handleBack = () => {
     setUserDashboardTab('my-history');
+    clearCurrentProjectItem();
     void navigate({ to: '/' });
   };
 
@@ -231,6 +231,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       chapterAssignmentId: projectItem.chapterAssignmentId,
       email: userdetail.email,
     });
+    clearCurrentProjectItem();
     await navigate({ to: '/' });
   }, [
     isTranslationComplete,
@@ -240,6 +241,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     submitChapterMutation,
     projectItem.chapterAssignmentId,
     userdetail.email,
+    clearCurrentProjectItem,
     navigate,
   ]);
 

@@ -3,7 +3,7 @@ import { type LoaderFnContext } from '@tanstack/react-router';
 import { fetchTargetText } from '@/hooks/useBibleTarget';
 import { fetchBibleText } from '@/hooks/useBibleText';
 import { type ProjectItem, type Source, type TargetVerse } from '@/lib/types';
-import { useAppStore } from '@/store/store';
+import { hydrationPromise, useAppStore } from '@/store/store';
 
 interface SourceVerseData {
   id: number;
@@ -30,12 +30,20 @@ const toTargetVerse = (verse: TargetVerseData): TargetVerse => ({
 });
 
 export const translationLoader = async ({ location }: LoaderFnContext) => {
-  const { projectItem } = location.state as { projectItem: ProjectItem };
-  const { userdetail } = useAppStore.getState();
+  await hydrationPromise;
+  const { userdetail, currentProjectItem, setCurrentProjectItem } = useAppStore.getState();
 
   if (!userdetail) {
     throw new Error('User details are missing.');
   }
+  let projectItem =
+    (location.state as { projectItem?: ProjectItem }).projectItem ??
+    currentProjectItem ??
+    undefined;
+  if (!projectItem) {
+    throw new Error('Project item is missing. Please navigate from the project list.');
+  }
+  setCurrentProjectItem(projectItem);
 
   const search = location.search as { t?: string };
   const cacheParam = search.t ?? Date.now().toString();
