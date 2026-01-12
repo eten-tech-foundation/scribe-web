@@ -117,6 +117,8 @@
   --popover-hover: #d4dbe7;
   --popover-foreground: #1a1a1a;
 
+  --text-primary: #1a1a1a;
+
   --primary: #0b50d0;
   --primary-foreground: #ffffff;
   --primary-hover: #0940a8;
@@ -206,7 +208,8 @@
   --primary-foreground: #ffffff;
   --primary-hover: #336ad6;
 
-  --text-Primary: #f1f1f1 --text-Disabled: #666667;
+  --text-primary: #f1f1f1;
+  --text-disabled: #666667;
 
   --muted: #202630;
   --muted-foreground: #9da6b5;

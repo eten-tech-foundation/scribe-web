@@ -26,13 +26,13 @@ const MenuItem: React.FC<MenuItemProps> = ({
     <Button
       className={`h-10 w-full cursor-pointer justify-start px-4 py-2 transition-colors duration-150 ${
         isActive
-          ? 'hover:bg-popover-hover border-white bg-white text-gray-700'
-          : 'hover:bg-popover-hover text-gray-700'
+          ? 'hover:bg-popover-hover text-text-primary dark:bg-background border-white bg-white'
+          : 'hover:bg-popover-hover text-text-primary'
       }`}
       variant='ghost'
       onClick={handleClick}
     >
-      <span className='mr-3 text-gray-500'>{icon}</span>
+      <span className='text-text-primary mr-3'>{icon}</span>
       <span className='text-sm font-medium'>{text}</span>
     </Button>
   );
