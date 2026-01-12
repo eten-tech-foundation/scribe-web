@@ -34,11 +34,11 @@ export const TipTapRenderer: React.FC<TipTapRendererProps> = ({
         const level = node.attrs?.level ?? 1;
         const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
         const headingClasses: Record<number, string> = {
-          1: 'text-2xl font-bold text-gray-900 mb-3',
-          2: 'text-xl font-semibold text-gray-800 mb-2 mt-4',
-          3: 'text-lg font-semibold text-gray-800 mb-2',
-          4: 'text-base font-semibold text-gray-800 mb-2',
-          5: 'text-sm font-semibold text-gray-800 mb-2',
+          1: 'text-2xl font-bold  mb-3',
+          2: 'text-xl font-semibold  mb-2 mt-4',
+          3: 'text-lg font-semibold  mb-2',
+          4: 'text-base font-semibold  mb-2',
+          5: 'text-sm font-semibold  mb-2',
         };
         return (
           <HeadingTag
@@ -56,7 +56,7 @@ export const TipTapRenderer: React.FC<TipTapRendererProps> = ({
         return (
           <p
             key={index}
-            className={`mb-2 leading-relaxed text-gray-700 ${alignClass} ${indentClass}`}
+            className={`mb-2 leading-relaxed ${alignClass} ${indentClass}`}
             dir={dirAttr}
           >
             {node.content?.map((child, i) => renderNode(child, i))}
@@ -99,7 +99,7 @@ export const TipTapRenderer: React.FC<TipTapRendererProps> = ({
 
       case 'listItem':
         return (
-          <li key={index} className={`text-gray-700 ${alignClass}`} dir={dirAttr}>
+          <li key={index} className={` ${alignClass}`} dir={dirAttr}>
             {node.content?.map((child, i) => renderNode(child, i))}
           </li>
         );
@@ -112,7 +112,7 @@ export const TipTapRenderer: React.FC<TipTapRendererProps> = ({
         return (
           <blockquote
             key={index}
-            className={`my-3 ${borderClass} border-gray-300 text-gray-600 italic ${blockquoteIndent} ${alignClass}`}
+            className={`my-3 ${borderClass} border-gray-300 italic ${blockquoteIndent} ${alignClass}`}
             dir={dirAttr}
           >
             {node.content?.map((child, i) => renderNode(child, i))}
@@ -205,7 +205,7 @@ export const TipTapRenderer: React.FC<TipTapRendererProps> = ({
             } else if (mark.type === 'underline') {
               element = <span className='underline'>{element}</span>;
             } else if (mark.type === 'implied') {
-              element = <span className='text-gray-500 italic'>[{element}]</span>;
+              element = <span className='italic'>[{element}]</span>;
             } else if (mark.type === 'bibleReference') {
               element = <span className=''>{element}</span>;
             } else if (mark.type === 'resourceReference') {

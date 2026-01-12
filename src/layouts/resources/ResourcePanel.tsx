@@ -209,7 +209,7 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
             </div>
           ) : !shouldFetchResources && isLanguageDropdownEnabled ? (
             <div className='flex h-full items-center justify-center'>
-              <p className='text-sm text-gray-500'>Select a language to view resources</p>
+              <p className='text-sm'>Select a language to view resources</p>
             </div>
           ) : imageItems.length > 0 ? (
             <ImageGrid
@@ -231,7 +231,7 @@ export const ResourcePanel: React.FC<ResourcePanelProps> = ({
             />
           ) : (
             <div className='flex h-full items-center justify-center'>
-              <p className='text-sm text-gray-500'>No resources available</p>
+              <p className='text-sm'>No resources available</p>
             </div>
           )}
         </div>

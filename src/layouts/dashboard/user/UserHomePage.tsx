@@ -217,10 +217,10 @@ export function UserHomePage() {
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody className='divide-border divide-y bg-white'>
+                <TableBody className='divide-border bg-background divide-y'>
                   {currentData.length === 0 ? (
                     <TableRow>
-                      <TableCell className='p-8 text-center text-gray-500' colSpan={4}>
+                      <TableCell className='p-8 text-center' colSpan={4}>
                         {emptyMessage}
                       </TableCell>
                     </TableRow>
@@ -232,7 +232,7 @@ export function UserHomePage() {
                       return (
                         <TableRow
                           key={projectKey}
-                          className='cursor-pointer transition-colors hover:bg-gray-50'
+                          className='cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
                           onClick={() => handleRowClick(item, isHistory)}
                         >
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm'>

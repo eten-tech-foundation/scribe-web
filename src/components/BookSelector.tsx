@@ -82,7 +82,7 @@ export function BibleBookMultiSelectPopover({
   if (disabled) {
     return (
       <div ref={wrapperRef} className='w-full'>
-        <div className='box-border flex w-full cursor-not-allowed items-center justify-between rounded-md border bg-gray-50 px-3 py-2 text-left text-sm text-gray-400'>
+        <div className='box-border flex w-full cursor-not-allowed items-center justify-between rounded-md border px-3 py-2 text-left text-sm'>
           <span className='truncate'>
             {books.length === 0 ? 'No books available' : 'Select a bible first'}
           </span>
@@ -95,7 +95,7 @@ export function BibleBookMultiSelectPopover({
   return (
     <div ref={wrapperRef} className='w-full'>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger className='box-border flex w-full items-center justify-between rounded-md border bg-white px-3 py-2 text-left text-sm hover:bg-gray-50'>
+        <PopoverTrigger className='box-border flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800'>
           <span
             className={selectedLabels.length === 0 ? 'text-muted-foreground truncate' : 'truncate'}
           >
@@ -106,7 +106,7 @@ export function BibleBookMultiSelectPopover({
 
         <PopoverContent
           align='start'
-          className='text-popover-foreground pointer-events-auto rounded-md border bg-white p-0 shadow-md'
+          className='text-popover-foreground pointer-events-auto rounded-md border p-0 shadow-md'
           side='top'
           style={{
             width: wrapperWidth ? `${Math.round(wrapperWidth)}px` : undefined,
@@ -121,7 +121,7 @@ export function BibleBookMultiSelectPopover({
             onWheel={e => e.stopPropagation()}
           >
             {books.length === 0 ? (
-              <div className='px-3 py-2 text-sm text-gray-500'>No books available</div>
+              <div className='px-3 py-2 text-sm'>No books available</div>
             ) : (
               books.map(book => {
                 const checked = value.includes(book.book.id);

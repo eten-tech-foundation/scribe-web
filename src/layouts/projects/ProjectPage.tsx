@@ -143,7 +143,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                     {sortedProjects.map(project => (
                       <TableRow
                         key={project.id}
-                        className='cursor-pointer border-b transition-colors hover:bg-gray-50'
+                        className='cursor-pointer border-b transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
                         onClick={() =>
                           handleRowClick(
                             project.id,
