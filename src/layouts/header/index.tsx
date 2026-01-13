@@ -5,10 +5,12 @@ import { Menu, SquareUserRound } from 'lucide-react';
 
 import MainMenu from '@/components/header/MainMenu';
 import UserMenu from '@/components/header/UserMenu';
+import { SettingsModal } from '@/components/SettingsModal';
 import { EditProfile } from '@/layouts/profile/EditProfile';
 
 const Header: React.FC = () => {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const navigate = useNavigate();
 
   const onNavigateToDashboard = () => {
@@ -31,6 +33,10 @@ const Header: React.FC = () => {
     setIsEditProfileOpen(false);
   };
 
+  const handleToggleSettings = () => {
+    setIsSettingsOpen(!isSettingsOpen);
+  };
+
   return (
     <>
       <header className='bg-primary relative flex h-[56px] items-center'>
@@ -44,9 +50,9 @@ const Header: React.FC = () => {
               >
                 <button
                   aria-label='User menu'
-                  className='hover:bg-hover flex h-[40px] w-[40px] cursor-pointer items-center justify-center rounded-md bg-gray-100 p-1.5 transition-colors duration-150'
+                  className='hover:bg-hover bg-background flex h-[40px] w-[40px] cursor-pointer items-center justify-center rounded-md p-1.5 transition-colors duration-150'
                 >
-                  <Menu className='text-gray-600' size={35} strokeWidth={2.5} />
+                  <Menu className='text-foreground' size={35} strokeWidth={2.5} />
                 </button>
               </MainMenu>
             </div>
@@ -68,12 +74,12 @@ const Header: React.FC = () => {
           </div>
 
           <div className='relative pr-[18px]'>
-            <UserMenu onEditProfile={handleEditProfile}>
+            <UserMenu onEditProfile={handleEditProfile} onToggleSettings={handleToggleSettings}>
               <button
                 aria-label='User menu'
-                className='hover:bg-hover flex h-[40px] w-[40px] cursor-pointer items-center justify-center rounded-md bg-gray-100 p-1.5 transition-colors duration-150'
+                className='hover:bg-hover bg-background flex h-[40px] w-[40px] cursor-pointer items-center justify-center rounded-md p-1.5 transition-colors duration-150'
               >
-                <SquareUserRound className='text-gray-600' size={35} strokeWidth={2.5} />
+                <SquareUserRound className='text-foreground' size={35} strokeWidth={2.5} />
               </button>
             </UserMenu>
           </div>
@@ -81,6 +87,8 @@ const Header: React.FC = () => {
       </header>
       {/* Edit Profile Modal */}
       {isEditProfileOpen && <EditProfile isOpen={isEditProfileOpen} onClose={closeEditProfile} />}
+      {/* Settings Modal - Placeholder */}
+      {isSettingsOpen && <SettingsModal isOpen={isSettingsOpen} onClose={handleToggleSettings} />}
     </>
   );
 };

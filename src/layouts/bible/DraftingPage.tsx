@@ -287,7 +287,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                 </Tooltip>
               </TooltipProvider>
             )}
-            <h2 className='text-3xl font-bold text-gray-900'>
+            <h2 className='text-3xl font-bold'>
               {projectItem.book} {projectItem.chapterNumber}
             </h2>
           </div>
@@ -369,10 +369,10 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
           >
             <div className='sticky top-0 z-10 w-8 px-4 py-3'></div>
             <div className='sticky top-0 z-10 px-6 py-3'>
-              <h3 className='text-xl font-bold text-gray-800'>{projectItem.bibleName}</h3>
+              <h3 className='text-xl font-semibold'>{projectItem.bibleName}</h3>
             </div>
             <div className='sticky top-0 z-10 px-6 py-3'>
-              <h3 className='text-xl font-bold text-gray-800'>{projectItem.targetLanguage}</h3>
+              <h3 className='text-xl font-semibold'>{projectItem.targetLanguage}</h3>
             </div>
             <div
               className={`col-span-3 flex flex-col overflow-hidden ${showResources ? 'h-full rounded-md border' : ''}`}
@@ -397,9 +397,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                       style={{ gridTemplateColumns: '2rem 1fr 1fr' }}
                     >
                       <div className='flex w-8 items-start px-4'>
-                        <span className='text-lg font-medium text-gray-700'>
-                          {verse.verseNumber}
-                        </span>
+                        <span className='text-lg font-medium'>{verse.verseNumber}</span>
                       </div>
                       <div className='flex flex-col px-6'>
                         <div
@@ -407,14 +405,14 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                             isActive ? 'border-primary' : ''
                           }`}
                         >
-                          <p className='min-h-12 leading-relaxed text-gray-800'>{verse.text}</p>
+                          <p className='min-h-12 leading-relaxed'>{verse.text}</p>
                         </div>
                       </div>
 
                       <div className={`px-6 ${shouldShowTarget ? 'flex' : 'hidden'}`}>
                         {readOnly ? (
                           <div className='bg-card flex-1 rounded-lg border-2 px-4 py-3 shadow-sm'>
-                            <p className='min-h-12 leading-snug text-gray-800'>
+                            <p className='min-h-12 leading-snug'>
                               {currentTargetVerse?.content ?? ''}
                             </p>
                           </div>
@@ -430,7 +428,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                               aria-label={`Translation for verse ${verse.verseNumber}`}
                               autoCapitalize='sentences'
                               autoCorrect='on'
-                              className='w-full resize-none border-none bg-transparent text-base leading-snug text-gray-800 outline-none'
+                              className='w-full resize-none border-none bg-transparent text-base leading-snug outline-none'
                               placeholder='Enter translation...'
                               spellCheck={true}
                               value={currentTargetVerse?.content ?? ''}

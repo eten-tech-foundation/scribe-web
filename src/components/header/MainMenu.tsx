@@ -37,7 +37,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
       <PopoverContent
         hideWhenDetached
         align='start'
-        className='w-56 border-gray-200 bg-[#E9EFF3] p-2'
+        className='w-56 border p-2'
         side='bottom'
         sideOffset={5}
       >

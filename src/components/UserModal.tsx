@@ -137,7 +137,7 @@ export const UserModal: React.FC<UserModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className='sm:max-w-[500px]' onInteractOutside={e => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle className='text-gray-800'>{modalTitle}</DialogTitle>
+          <DialogTitle>{modalTitle}</DialogTitle>
         </DialogHeader>
 
         <div className='grid gap-4'>

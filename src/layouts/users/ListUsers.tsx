@@ -92,15 +92,15 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
         </Button>
       </div>
 
-      <div className='flex flex-1 flex-col overflow-hidden rounded-lg border bg-white shadow'>
+      <div className='flex flex-1 flex-col overflow-hidden rounded-lg border shadow'>
         {loading ? (
           <div className='flex items-center justify-center gap-2 py-8'>
-            <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
-            <span className='text-gray-500'>Loading...</span>
+            <Loader2 className='h-5 w-5 animate-spin' />
+            <span>Loading...</span>
           </div>
         ) : sortedUsers.length === 0 ? (
           <div className='flex items-center justify-center py-8'>
-            <span className='text-gray-500'>No Users Found</span>
+            <span>No Users Found</span>
           </div>
         ) : (
           <TooltipProvider delayDuration={300}>
@@ -122,11 +122,11 @@ export const UsersPage: React.FC<UsersPageProps> = ({ loading, users, onAddUser,
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody className='divide-border divide-y bg-white'>
+                <TableBody className='divide-border divide-y'>
                   {sortedUsers.map(user => (
                     <TableRow
                       key={user.id}
-                      className='cursor-pointer transition-colors hover:bg-gray-50'
+                      className='cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
                       onClick={() => onEditUser(user)}
                     >
                       <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>

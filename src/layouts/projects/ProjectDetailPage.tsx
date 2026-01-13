@@ -64,7 +64,7 @@ const TruncatedCardText = ({ text }: { text: string }) => {
   const content = (
     <div
       ref={textRef}
-      className='max-w-full cursor-default truncate text-base font-medium text-gray-600'
+      className='max-w-full cursor-default truncate text-base font-medium text-gray-600 dark:text-gray-400'
     >
       {text}
     </div>
@@ -291,7 +291,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   if (!projectId) {
     return (
       <div className='flex h-full items-center justify-center'>
-        <span className='text-gray-500'>Project not found</span>
+        <span>Project not found</span>
       </div>
     );
   }
@@ -335,13 +335,19 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 <label className='text-base font-bold'>Title</label>
                 <TruncatedCardText text={projectTitle} />
                 <label className='text-base font-bold'>Target Language</label>
-                <p className='text-base font-medium text-gray-600'>{projectTargetLanguageName}</p>
+                <p className='text-base font-medium text-gray-600 dark:text-gray-400'>
+                  {projectTargetLanguageName}
+                </p>
 
                 <label className='text-base font-bold'>Source Language</label>
-                <p className='text-base font-medium text-gray-600'>{projectSourceLanguageName}</p>
+                <p className='text-base font-medium text-gray-600 dark:text-gray-400'>
+                  {projectSourceLanguageName}
+                </p>
 
                 <label className='text-base font-bold'>Source Bible</label>
-                <p className='text-base font-medium text-gray-600'>{projectSource}</p>
+                <p className='text-base font-medium text-gray-600 dark:text-gray-400'>
+                  {projectSource}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -388,7 +394,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               </div>
             ) : filteredAssignments.length === 0 ? (
               <div className='flex items-center justify-center py-8'>
-                <span className='text-gray-500'>
+                <span>
                   {selectedBook && selectedBook !== 'all'
                     ? 'No assignments found for selected book'
                     : 'No assignments found'}
@@ -425,7 +431,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                         return (
                           <TableRow
                             key={assignment.assignmentId}
-                            className='align-center cursor-pointer border-b transition-colors hover:bg-gray-50'
+                            className='align-center cursor-pointer border-b transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
                           >
                             <TableCell className='w-12 px-6 py-4'>
                               <Checkbox
@@ -445,8 +451,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                             <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
                               {isUpdatingThisAssignment ? (
                                 <div className='flex items-center gap-2'>
-                                  <span className='text-gray-500'>Loading...</span>
-                                  <Loader2 className='h-4 w-4 animate-spin text-gray-500' />
+                                  <span>Loading...</span>
+                                  <Loader2 className='h-4 w-4 animate-spin' />
                                 </div>
                               ) : (
                                 <TruncatedTableText

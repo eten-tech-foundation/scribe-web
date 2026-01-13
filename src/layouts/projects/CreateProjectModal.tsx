@@ -265,7 +265,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 value={formData.targetLanguage?.toString() ?? ''}
                 onValueChange={value => updateFormData('targetLanguage', parseInt(value))}
               >
-                <SelectTrigger className='w-full bg-white'>
+                <SelectTrigger className='w-full'>
                   <SelectValue
                     placeholder={
                       languagesLoading ? 'Loading languages...' : 'Select Target Language'

@@ -107,7 +107,7 @@ export const TextResourceAccordion: React.FC<TextResourceAccordionProps> = ({
 
                               {audioStep && (
                                 <div className='mt-4 border-t border-gray-200 pt-3'>
-                                  <div className={`mb-2 text-xs text-gray-600 ${alignClass}`}>
+                                  <div className={`mb-2 text-xs ${alignClass}`}>
                                     Audio for Step {stepNumber}
                                   </div>
                                   <audio controls className='w-full'>
@@ -124,13 +124,11 @@ export const TextResourceAccordion: React.FC<TextResourceAccordionProps> = ({
                         })}
                       </div>
                     ) : !isAudioContent(guideContents[sv.id].content) ? (
-                      <p className={`text-sm text-gray-500 ${alignClass}`}>
-                        No text content available
-                      </p>
+                      <p className={`text-sm ${alignClass}`}>No text content available</p>
                     ) : null}
                   </div>
                 ) : (
-                  <p className={`text-sm text-gray-500 ${alignClass}`}>Failed to load content</p>
+                  <p className={`text-sm ${alignClass}`}>Failed to load content</p>
                 )}
               </AccordionContent>
             </AccordionItem>

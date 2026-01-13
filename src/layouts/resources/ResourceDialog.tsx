@@ -35,7 +35,7 @@ export const ImageGrid = ({
     const target = e.currentTarget;
     target.style.display = 'none';
     if (target.parentElement) {
-      target.parentElement.innerHTML = '<div class="text-gray-400 text-sm">No preview</div>';
+      target.parentElement.innerHTML = '<div class=" text-sm">No preview</div>';
     }
   };
 
@@ -55,7 +55,7 @@ export const ImageGrid = ({
             className='cursor-pointer overflow-hidden rounded-lg border border-gray-200 hover:shadow-lg'
             onClick={() => onImageClick(item)}
           >
-            <div className='flex aspect-video items-center justify-center bg-gray-100'>
+            <div className='flex aspect-video items-center justify-center'>
               <img
                 alt={item.localizedName}
                 className='h-full w-full object-contain'
