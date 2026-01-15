@@ -15,7 +15,7 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className='sm:max-w-[500px]' onInteractOutside={e => e.preventDefault()}>
+      <DialogContent className='sm:max-w-[500px]'>
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
