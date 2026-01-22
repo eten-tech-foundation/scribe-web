@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
@@ -12,8 +12,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useChapterAssignments } from '@/hooks/useProjects';
-import type { ProjectItem, User } from '@/lib/types';
+import { useChapterAssignmentsByUserId } from '@/hooks/useChapterAssignment';
+import type { User, UserChapterAssignment } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 const TruncatedProjectCell = ({ text, isNavigating }: { text: string; isNavigating: boolean }) => {
@@ -103,7 +103,7 @@ const formatDate = (dateString: string) => {
   });
 };
 
-const getStatusText = (item: ProjectItem) => {
+const getStatusText = (item: UserChapterAssignment) => {
   return `${item.completedVerses} of ${item.totalVerses}`;
 };
 
@@ -111,11 +111,18 @@ export function UserHomePage() {
   const [navigatingToProject, setNavigatingToProject] = useState<string | null>(null);
   const { userdetail, userDashboardTab, setUserDashboardTab } = useAppStore();
   const navigate = useNavigate();
-  const { data: projectData = [], isLoading: loading } = useChapterAssignments(userdetail as User);
+  const { data: chapterAssignmentsData, isLoading: loading } = useChapterAssignmentsByUserId(
+    (userdetail as User)?.id,
+    (userdetail as User)?.email
+  );
 
-  const myWorkData: ProjectItem[] = projectData
-    .filter(item => item.submittedTime === null)
-    .sort((a, b) => {
+  const myWorkData: UserChapterAssignment[] = useMemo(() => {
+    if (!chapterAssignmentsData) return [];
+    const unsubmittedAssigned = chapterAssignmentsData.assignedChapters.filter(
+      item => item.submittedTime === null
+    );
+    const allPeerCheck = chapterAssignmentsData.peerCheckChapters;
+    return [...unsubmittedAssigned, ...allPeerCheck].sort((a, b) => {
       const aHasCompleted = a.completedVerses > 0;
       const bHasCompleted = b.completedVerses > 0;
 
@@ -126,16 +133,22 @@ export function UserHomePage() {
 
       return a.chapterNumber - b.chapterNumber;
     });
+  }, [chapterAssignmentsData]);
 
-  const historyData: ProjectItem[] = projectData
-    .filter(item => item.submittedTime !== null && item.submittedTime.trim() !== '')
-    .sort((a, b) => {
-      const dateA = a.submittedTime ? new Date(a.submittedTime).getTime() : 0;
-      const dateB = b.submittedTime ? new Date(b.submittedTime).getTime() : 0;
-      return dateB - dateA;
-    });
+  const historyData: UserChapterAssignment[] = useMemo(() => {
+    if (!chapterAssignmentsData) return [];
+    return chapterAssignmentsData.assignedChapters
+      .filter(item => {
+        return item.submittedTime !== null && item.submittedTime.trim() !== '';
+      })
+      .sort((a, b) => {
+        const dateA = a.submittedTime ? new Date(a.submittedTime).getTime() : 0;
+        const dateB = b.submittedTime ? new Date(b.submittedTime).getTime() : 0;
+        return dateB - dateA;
+      });
+  }, [chapterAssignmentsData]);
 
-  const handleRowClick = async (item: ProjectItem, isHistory: boolean) => {
+  const handleRowClick = async (item: UserChapterAssignment, isHistory: boolean) => {
     const projectKey = `${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`;
     setNavigatingToProject(projectKey);
 

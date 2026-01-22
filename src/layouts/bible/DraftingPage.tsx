@@ -218,6 +218,12 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const isAnythingSaving = !readOnly && verses.some(v => getSaveStatus(v.verseNumber).showLoader);
   const hasAnyError = !readOnly && verses.some(v => getSaveStatus(v.verseNumber).hasRetryScheduled);
 
+  const getButtonText = () => {
+    if (projectItem.chapterStatus === 'draft') return 'Send to Peer Checking';
+    if (projectItem.chapterStatus === 'peer_check') return 'Send to Community Review';
+    return 'Submit';
+  };
+
   const handleSubmit = useCallback(async () => {
     if (!isTranslationComplete) return;
 
@@ -337,7 +343,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                 disabled={!isTranslationComplete}
                 onClick={handleSubmit}
               >
-                Submit
+                {getButtonText()}
               </Button>
             </div>
           )}

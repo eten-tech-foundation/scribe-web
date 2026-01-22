@@ -1,11 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { config } from '@/lib/config';
-import { type ChapterAssignmentProgress } from '@/lib/types';
+import { type ChapterAssignmentProgress, type UserChapterAssignment } from '@/lib/types';
 
 export interface AssignChapterPayload {
   chapterAssignmentId: number[];
   userId: number;
+  peerCheckerId?: number;
+}
+
+export interface ChapterAssignmentsByUser {
+  assignedChapters: UserChapterAssignment[];
+  peerCheckChapters: UserChapterAssignment[];
 }
 
 const fetchChapterAssignments = async (
@@ -22,20 +28,36 @@ const fetchChapterAssignments = async (
 
   if (!res.ok) throw new Error('Failed to fetch chapter assignments');
 
-  const data = (await res.json()) as ChapterAssignmentProgress[];
-  return data;
+  return (await res.json()) as ChapterAssignmentProgress[];
+};
+const fetchChapterAssignmentsByUserId = async (
+  userId: number,
+  email: string
+): Promise<ChapterAssignmentsByUser> => {
+  const res = await fetch(`${config.api.url}/users/${userId}/chapter-assignments`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-user-email': email,
+    },
+  });
+
+  if (!res.ok) throw new Error('Failed to fetch user chapter assignments');
+
+  return (await res.json()) as ChapterAssignmentsByUser;
 };
 
 export interface AssignChaptersResponse {
   success: boolean;
   message?: string;
   assignedUser?: string;
+  peerChecker?: string;
 }
 
 const assignChaptersToUser = async (
   payload: AssignChapterPayload & { email: string }
-): Promise<AssignChaptersResponse> => {
-  const { email, userId, chapterAssignmentId } = payload;
+): Promise<number[]> => {
+  const { email, userId, chapterAssignmentId, peerCheckerId } = payload;
 
   const response = await fetch(`${config.api.url}/users/${userId}/chapter-assignments`, {
     method: 'PATCH',
@@ -43,14 +65,17 @@ const assignChaptersToUser = async (
       'Content-Type': 'application/json',
       'x-user-email': email,
     },
-    body: JSON.stringify({ chapterAssignmentIds: chapterAssignmentId }),
+    body: JSON.stringify({
+      chapterAssignmentIds: chapterAssignmentId,
+      peerCheckerId: peerCheckerId,
+    }),
   });
 
   if (!response.ok) {
     throw new Error('Failed to assign chapters');
   }
 
-  return (await response.json()) as AssignChaptersResponse;
+  return (await response.json()) as number[];
 };
 
 export const useChapterAssignments = (projectId: string, email: string) => {
@@ -61,7 +86,20 @@ export const useChapterAssignments = (projectId: string, email: string) => {
   });
 };
 
-export const useAssignChapters = (projectId: string, email: string, assignedUserName?: string) => {
+export const useChapterAssignmentsByUserId = (userId: number, email: string) => {
+  return useQuery<ChapterAssignmentsByUser>({
+    queryKey: ['userChapterAssignments', userId, email],
+    queryFn: () => fetchChapterAssignmentsByUserId(userId, email),
+    enabled: !!userId && !!email,
+  });
+};
+
+export const useAssignChapters = (
+  projectId: string,
+  email: string,
+  assignedUserName?: string,
+  peerCheckerName?: string
+) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -77,12 +115,13 @@ export const useAssignChapters = (projectId: string, email: string, assignedUser
         email,
       ]);
 
-      if (previousAssignments && assignedUserName) {
+      if (previousAssignments && (assignedUserName || peerCheckerName)) {
         const updatedAssignments = previousAssignments.map(assignment => {
           if (variables.chapterAssignmentId.includes(assignment.assignmentId)) {
             return {
               ...assignment,
-              assigned_user: assignedUserName,
+              ...(assignedUserName && { assigned_user: assignedUserName }),
+              ...(peerCheckerName && { peer_checker: peerCheckerName }),
               total_verses: assignment.totalVerses,
               completed_verses: assignment.completedVerses,
             };
@@ -104,10 +143,13 @@ export const useAssignChapters = (projectId: string, email: string, assignedUser
         );
       }
     },
-    onSuccess: () => {
-      // Force refetch to get fresh data from server
-      void queryClient.refetchQueries({
+    onSuccess: (_data, variables) => {
+      void queryClient.invalidateQueries({
         queryKey: ['chapterAssignments', projectId, email],
+      });
+
+      void queryClient.invalidateQueries({
+        queryKey: ['userChapterAssignments', variables.userId],
       });
     },
   });
