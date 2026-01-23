@@ -2,8 +2,8 @@ export const TermsOfUsePage = () => {
   return (
     <div className='bg-background h-full w-full overflow-y-auto'>
       <div className='container mx-auto max-w-3xl px-6 py-6'>
-        <h1 className='mb-8 text-3xl font-bold text-gray-900'>Terms of Use</h1>
-        <div className='mx-auto max-w-3xl text-base leading-relaxed text-gray-700'>
+        <h1 className='mb-8 text-3xl font-bold'>Terms of Use</h1>
+        <div className='mx-auto max-w-3xl text-base leading-relaxed'>
           <p>
             Fluent provides optional tools that use artificial intelligence (“AI”) to generate
             initial translation drafts or text suggestions. These drafts are provided solely to

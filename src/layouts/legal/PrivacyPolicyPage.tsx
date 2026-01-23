@@ -2,8 +2,8 @@ export const PrivacyPolicyPage = () => {
   return (
     <div className='bg-background h-full w-full overflow-y-auto'>
       <div className='container mx-auto max-w-3xl px-6 py-6'>
-        <h1 className='mb-8 text-3xl font-bold text-gray-900'>Privacy Policy</h1>
-        <div className='mx-auto max-w-3xl text-base leading-relaxed text-gray-700'>
+        <h1 className='mb-8 text-3xl font-bold'>Privacy Policy</h1>
+        <div className='mx-auto max-w-3xl text-base leading-relaxed'>
           <p>
             Fluent offers an AI-generated draft feature to help you create initial translations more
             efficiently. This system may send your translated verses and related translation
