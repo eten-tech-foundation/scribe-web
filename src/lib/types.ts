@@ -217,3 +217,14 @@ export interface UserChapterAssignment {
   completedVerses: number;
   submittedTime: string | null;
 }
+
+export enum ChapterAssignmentStatus {
+  NOT_STARTED = 'not_started',
+  DRAFT = 'draft',
+  PEER_CHECK = 'peer_check',
+  COMMUNITY_REVIEW = 'community_review',
+}
+export enum UserRole {
+  PROJECT_MANAGER = 1,
+  TRANSLATOR = 2,
+}

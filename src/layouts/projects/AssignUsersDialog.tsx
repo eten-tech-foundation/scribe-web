@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import type { User } from '@/lib/types';
+import { ChapterAssignmentStatus, UserRole, type User } from '@/lib/types';
 
 interface AssignUsersDialogProps {
   isOpen: boolean;
@@ -90,10 +90,10 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
   selectedAssignmentsStatuses,
 }) => {
   const hasPeerCheckStatus = selectedAssignmentsStatuses.some(
-    status => status === 'Peer Check' || status === 'peer_check'
+    status => status === ChapterAssignmentStatus.PEER_CHECK
   );
   const hasCommunityReviewStatus = selectedAssignmentsStatuses.some(
-    status => status === 'Community Review' || status === 'community_review'
+    status => status === ChapterAssignmentStatus.COMMUNITY_REVIEW
   );
 
   const isDrafterDisabled = hasPeerCheckStatus || hasCommunityReviewStatus;
@@ -138,7 +138,7 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
             </SelectTrigger>
             <SelectContent>
               {users
-                ?.filter((user: User) => user.role === 2)
+                ?.filter((user: User) => user.role === UserRole.TRANSLATOR)
                 .map((user: User) => (
                   <SelectItem key={user.id} value={user.id.toString()}>
                     <div className='w-[250px] sm:w-[350px]'>
