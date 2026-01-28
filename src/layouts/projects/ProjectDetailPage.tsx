@@ -1,17 +1,10 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -35,6 +28,7 @@ import { ViewPageHeader } from '@/layouts/projects/ViewPageHeader';
 import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
+import { AssignUsersDialog } from './AssignUsersDialog';
 import { ExportProjectDialog } from './ExportProjectDialog';
 
 interface ProjectDetailPageProps {
@@ -56,9 +50,18 @@ const TruncatedCardText = ({ text }: { text: string }) => {
         setIsTruncated(textRef.current.scrollWidth > textRef.current.clientWidth);
       }
     };
+
     checkTruncation();
-    window.addEventListener('resize', checkTruncation);
-    return () => window.removeEventListener('resize', checkTruncation);
+    let timeoutId: NodeJS.Timeout;
+    const debouncedCheck = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(checkTruncation, 150);
+    };
+    window.addEventListener('resize', debouncedCheck);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', debouncedCheck);
+    };
   }, [text]);
 
   const content = (
@@ -100,8 +103,16 @@ const TruncatedTableText = ({ text }: { text: string }) => {
     };
 
     checkTruncation();
-    window.addEventListener('resize', checkTruncation);
-    return () => window.removeEventListener('resize', checkTruncation);
+    let timeoutId: NodeJS.Timeout;
+    const debouncedCheck = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(checkTruncation, 150);
+    };
+    window.addEventListener('resize', debouncedCheck);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', debouncedCheck);
+    };
   }, [text]);
 
   const content = (
@@ -128,46 +139,6 @@ const TruncatedTableText = ({ text }: { text: string }) => {
   );
 };
 
-const TruncatedDropdownText = ({ text, className }: { text: string; className?: string }) => {
-  const textRef = useRef<HTMLDivElement>(null);
-  const [isTruncated, setIsTruncated] = useState(false);
-
-  useLayoutEffect(() => {
-    const checkTruncation = () => {
-      if (textRef.current) {
-        setIsTruncated(textRef.current.scrollWidth > textRef.current.clientWidth);
-      }
-    };
-
-    checkTruncation();
-    window.addEventListener('resize', checkTruncation);
-    return () => window.removeEventListener('resize', checkTruncation);
-  }, [text]);
-
-  const content = (
-    <div ref={textRef} className={`cursor-default truncate ${className ?? ''}`}>
-      {text}
-    </div>
-  );
-
-  if (!isTruncated) return content;
-
-  return (
-    <TooltipProvider delayDuration={300}>
-      <Tooltip>
-        <TooltipTrigger asChild>{content}</TooltipTrigger>
-        <TooltipContent
-          align='center'
-          className='bg-popover text-popover-foreground border-border max-w-[350px] rounded-md border text-center text-sm font-semibold break-words shadow-lg'
-          side='top'
-        >
-          {text}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-
 export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   projectId,
   projectTitle,
@@ -180,8 +151,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
   const [selectedBook, setSelectedBook] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<string>('');
+  const [selectedDrafter, setSelectedDrafter] = useState<string>('');
+  const [selectedPeerChecker, setSelectedPeerChecker] = useState<string>('');
   const [selectedAssignments, setSelectedAssignments] = useState<number[]>([]);
+  const [selectedAssignmentsStatuses, setSelectedAssignmentsStatuses] = useState<string[]>([]);
   const [isRefreshingAfterAssignment, setIsRefreshingAfterAssignment] = useState(false);
   const [updatingAssignmentIds, setUpdatingAssignmentIds] = useState<number[]>([]);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
@@ -203,16 +176,19 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
   const { data: users, isLoading: usersLoading } = useUsers(userdetail?.email ?? '');
 
-  const getSelectedUserFullName = () => {
-    if (!selectedUser || !users) return '';
-    const user = users.find((u: User) => u.id.toString() === selectedUser);
-    return user ? `${user.firstName} ${user.lastName}` : '';
-  };
+  const getSelectedUserFullName = useCallback(
+    (userId: string) => {
+      if (!userId || !users) return '';
+      const user = users.find((u: User) => u.id.toString() === userId);
+      return user ? `${user.firstName} ${user.lastName}` : '';
+    },
+    [users]
+  );
 
   const assignChapterMutation = useAssignChapters(
     projectId ? projectId.toString() : '0',
     userdetail?.email ?? '',
-    getSelectedUserFullName()
+    getSelectedUserFullName(selectedDrafter)
   );
 
   const filteredAssignments = useMemo(() => {
@@ -249,30 +225,56 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
     });
   }, [books, chapterAssignments]);
 
-  const formatProgress = (completedVerses: number, totalVerses: number) => {
+  const formatProgress = useCallback((completedVerses: number, totalVerses: number) => {
     return `${completedVerses} of ${totalVerses}`;
-  };
+  }, []);
 
-  const handleAddBook = () => {
+  const handleAddBook = useCallback(() => {
     if (selectedAssignments.length > 0) {
+      const firstSelectedAssignment = chapterAssignments?.find(
+        assignment => assignment.assignmentId === selectedAssignments[0]
+      );
+
+      const statuses =
+        chapterAssignments
+          ?.filter(assignment => selectedAssignments.includes(assignment.assignmentId))
+          .map(assignment => assignment.status) ?? [];
+
+      setSelectedAssignmentsStatuses(statuses);
+
+      if (firstSelectedAssignment) {
+        const drafterUser = users?.find(
+          (u: User) => u.username === firstSelectedAssignment.assignedUser?.displayName
+        );
+        const peerCheckerUser = users?.find(
+          (u: User) => u.username === firstSelectedAssignment.peerChecker?.displayName
+        );
+
+        setSelectedDrafter(drafterUser ? drafterUser.id.toString() : '');
+        setSelectedPeerChecker(peerCheckerUser ? peerCheckerUser.id.toString() : '');
+      }
+
       setIsDialogOpen(true);
     }
-  };
+  }, [selectedAssignments, chapterAssignments, users]);
 
-  const handleAssignUser = async () => {
-    if (selectedUser && selectedAssignments.length > 0 && userdetail?.email) {
+  const handleAssignUser = useCallback(async () => {
+    if (selectedDrafter && selectedAssignments.length > 0 && userdetail?.email) {
       try {
         setUpdatingAssignmentIds(selectedAssignments);
         await assignChapterMutation.mutateAsync({
           chapterAssignmentId: selectedAssignments,
-          userId: parseInt(selectedUser),
+          userId: parseInt(selectedDrafter),
+          peerCheckerId: parseInt(selectedPeerChecker),
           email: userdetail.email,
         });
 
         setIsRefreshingAfterAssignment(true);
 
-        setSelectedUser('');
+        setSelectedDrafter('');
+        setSelectedPeerChecker('');
         setSelectedAssignments([]);
+        setSelectedAssignmentsStatuses([]);
         setIsDialogOpen(false);
       } catch (error) {
         console.error('Error assigning chapters:', error);
@@ -280,13 +282,24 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         setIsRefreshingAfterAssignment(false);
       }
     }
-  };
+  }, [
+    selectedDrafter,
+    selectedPeerChecker,
+    selectedAssignments,
+    userdetail?.email,
+    assignChapterMutation,
+  ]);
 
-  const handleCheckboxChange = (assignmentId: number, checked: boolean) => {
+  const handleCheckboxChange = useCallback((assignmentId: number, checked: boolean) => {
     setSelectedAssignments(prev =>
       checked ? [...prev, assignmentId] : prev.filter(id => id !== assignmentId)
     );
-  };
+  }, []);
+
+  const availablePeerCheckers = useMemo(() => {
+    if (!users) return [];
+    return users.filter((user: User) => user.role === 2 && user.id.toString() !== selectedDrafter);
+  }, [users, selectedDrafter]);
 
   if (!projectId) {
     return (
@@ -480,58 +493,20 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         </div>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className='sm:max-w-md' onInteractOutside={e => e.preventDefault()}>
-          <DialogHeader>
-            <DialogTitle>Assign User</DialogTitle>
-          </DialogHeader>
-          <Select value={selectedUser} onValueChange={setSelectedUser}>
-            <SelectTrigger className='w-full bg-white'>
-              <SelectValue placeholder={usersLoading ? 'Loading users...' : 'Select a User'}>
-                {selectedUser ? (
-                  <div className='flex w-full'>
-                    <TruncatedDropdownText
-                      className='w-full max-w-[280px] text-left sm:max-w-[350px]'
-                      text={users?.find(u => u.id.toString() === selectedUser)?.username ?? ''}
-                    />
-                  </div>
-                ) : (
-                  <span className='text-muted-foreground'>
-                    {usersLoading ? 'Loading users...' : 'Select a User'}
-                  </span>
-                )}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {users
-                ?.filter((user: User) => user.role === 2)
-                .map((user: User) => (
-                  <SelectItem key={user.id} value={user.id.toString()}>
-                    <div className='w-[250px] sm:w-[350px]'>
-                      <TruncatedDropdownText text={user.username} />
-                    </div>
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-
-          <DialogFooter className='flex gap-2'>
-            <Button
-              disabled={!selectedUser || usersLoading || assignChapterMutation.isPending}
-              onClick={handleAssignUser}
-            >
-              {assignChapterMutation.isPending ? (
-                <>
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                  Assigning...
-                </>
-              ) : (
-                'Assign User'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AssignUsersDialog
+        availablePeerCheckers={availablePeerCheckers}
+        isAssigning={assignChapterMutation.isPending}
+        isOpen={isDialogOpen}
+        selectedAssignmentsStatuses={selectedAssignmentsStatuses}
+        selectedDrafter={selectedDrafter}
+        selectedPeerChecker={selectedPeerChecker}
+        users={users}
+        usersLoading={usersLoading}
+        onAssign={handleAssignUser}
+        onClose={() => setIsDialogOpen(false)}
+        onDrafterChange={setSelectedDrafter}
+        onPeerCheckerChange={setSelectedPeerChecker}
+      />
 
       <ExportProjectDialog
         books={exportBooks}

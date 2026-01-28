@@ -51,6 +51,8 @@ export interface ChapterAssignmentProgress {
   bookNameEng: string;
   chapterNumber: number;
   assignedUser: User | null;
+  peerChecker: User | null;
+  status: string;
   projectUnitId: number;
   assignmentId: number;
   totalVerses: number;
@@ -76,6 +78,7 @@ export interface ProjectItem {
   targetLanguage: string;
   bookId: number;
   book: string;
+  chapterStatus: string;
   chapterNumber: number;
   totalVerses: number;
   completedVerses: number;
@@ -195,4 +198,33 @@ export interface DraftingUIProps {
   targetVerses: TargetVerse[];
   userdetail: User;
   readOnly?: boolean;
+}
+
+export interface UserChapterAssignment {
+  chapterAssignmentId: number;
+  projectName: string;
+  projectUnitId: number;
+  bibleId: number;
+  bibleName: string;
+  chapterStatus: string;
+  targetLanguage: string;
+  sourceLangCode: string;
+  bookCode: string;
+  bookId: number;
+  book: string;
+  chapterNumber: number;
+  totalVerses: number;
+  completedVerses: number;
+  submittedTime: string | null;
+}
+
+export enum ChapterAssignmentStatus {
+  NOT_STARTED = 'not_started',
+  DRAFT = 'draft',
+  PEER_CHECK = 'peer_check',
+  COMMUNITY_REVIEW = 'community_review',
+}
+export enum UserRole {
+  PROJECT_MANAGER = 1,
+  TRANSLATOR = 2,
 }
