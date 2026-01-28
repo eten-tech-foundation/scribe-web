@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { Outlet } from '@tanstack/react-router';
+import { Outlet, useLocation } from '@tanstack/react-router';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,7 +10,11 @@ import { Logger } from '@/lib/services/logger';
 import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
+// Define public routes that don't require authentication
+const PUBLIC_ROUTES = ['/legal/privacy', '/legal/terms'];
+
 export function App() {
+  const location = useLocation();
   const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth();
   const { mutate: fetchUserDetails, isPending: isFetchingUserDetails } =
     useGetUserDetailsMutation();
@@ -19,6 +23,8 @@ export function App() {
 
   const [userDetailsFetched, setUserDetailsFetched] = useState(false);
   const [fetchInitiated, setFetchInitiated] = useState(false);
+
+  const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
 
   useEffect(() => {
     Logger.logEvent('AppStarted', {
@@ -55,6 +61,11 @@ export function App() {
 
   // Handle authentication redirect
   useEffect(() => {
+    // Skip authentication for public routes
+    if (isPublicRoute) {
+      return;
+    }
+
     if (!isLoading && !isAuthenticated) {
       // Log the authentication attempt
       Logger.logEvent('AuthenticationRequired', {
@@ -131,7 +142,22 @@ export function App() {
     setUserDetail,
     fetchInitiated,
     updateUserMutation,
+    isPublicRoute,
   ]);
+
+  // Allow public routes to render without authentication
+  if (isPublicRoute) {
+    return (
+      <ErrorBoundary>
+        <div className='flex h-screen flex-col overflow-hidden'>
+          <Header />
+          <main className='flex-1 overflow-hidden p-4'>
+            <Outlet />
+          </main>
+        </div>
+      </ErrorBoundary>
+    );
+  }
 
   if (isLoading) {
     return LoadingScreen('Loading...');

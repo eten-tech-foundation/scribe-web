@@ -5,6 +5,7 @@ import { Home, Kanban, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useAuth } from '@/hooks/useAuth';
 import { useAppStore } from '@/store/store';
 
 import MenuItem from './MenuItem';
@@ -22,11 +23,14 @@ const MainMenu: React.FC<MainMenuProps> = ({
   onUsersClick,
   onProjectsClick,
 }) => {
+  const { user, isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const { userdetail } = useAppStore();
   const [open, setOpen] = React.useState(false);
   const location = useLocation();
-
+  if (!isAuthenticated || !user) {
+    return null;
+  }
   const isDashboardActive = location.pathname === '/';
   const isUsersActive = location.pathname === '/user-list';
   const isProjectsActive = location.pathname === '/projects';
