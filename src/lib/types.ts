@@ -228,3 +228,14 @@ export enum UserRole {
   PROJECT_MANAGER = 1,
   TRANSLATOR = 2,
 }
+
+export const ChapterAssignmentStatusDisplay: Record<ChapterAssignmentStatus, string> = {
+  [ChapterAssignmentStatus.NOT_STARTED]: 'Not Started',
+  [ChapterAssignmentStatus.DRAFT]: 'Draft',
+  [ChapterAssignmentStatus.PEER_CHECK]: 'Peer Check',
+  [ChapterAssignmentStatus.COMMUNITY_REVIEW]: 'Community Review',
+};
+
+export const getStatusDisplay = (status: ChapterAssignmentStatus): string => {
+  return ChapterAssignmentStatusDisplay[status] || status;
+};

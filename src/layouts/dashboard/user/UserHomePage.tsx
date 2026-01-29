@@ -13,7 +13,12 @@ import {
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useChapterAssignmentsByUserId } from '@/hooks/useChapterAssignment';
-import type { User, UserChapterAssignment } from '@/lib/types';
+import {
+  type ChapterAssignmentStatus,
+  getStatusDisplay,
+  type User,
+  type UserChapterAssignment,
+} from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 const TruncatedProjectCell = ({ text, isNavigating }: { text: string; isNavigating: boolean }) => {
@@ -226,7 +231,10 @@ export function UserHomePage() {
                       Chapter
                     </TableHead>
                     <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                      {isHistory ? 'Submitted Date' : 'Status'}
+                      Status
+                    </TableHead>
+                    <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                      {isHistory ? 'Submitted Date' : 'Progress'}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -260,6 +268,10 @@ export function UserHomePage() {
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
                             {item.chapterNumber}
                           </TableCell>
+                          <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
+                            {getStatusDisplay(item.chapterStatus as ChapterAssignmentStatus)}
+                          </TableCell>
+
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
                             <TruncatedTextCell
                               text={
