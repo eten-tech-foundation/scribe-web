@@ -8,6 +8,7 @@ import { translationLoader } from '@/layouts/bible/TranslationLoader';
 import { PrivacyPolicyPage } from '@/layouts/legal/PrivacyPolicyPage';
 import { TermsOfUsePage } from '@/layouts/legal/TermsOfUsePage';
 import { ProjectsWrapper } from '@/layouts/projects';
+import { ProjectDetailWrapper } from '@/layouts/projects/ProjectDetailWrapper';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 import { UsersWrapper } from '@/layouts/users/UsersWrapper';
 
@@ -35,7 +36,7 @@ export const appInsightsTestRoute = createRoute({
 
 export const userListRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/user-list',
+  path: '/users',
   component: UsersWrapper,
 });
 
@@ -43,6 +44,12 @@ export const projectsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/projects',
   component: ProjectsWrapper,
+});
+
+export const projectDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/projects/$projectId',
+  component: ProjectDetailWrapper,
 });
 
 export const translationRoute = createRoute({
