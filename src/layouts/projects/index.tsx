@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 
+import { useNavigate } from '@tanstack/react-router';
+
 import { useCreateProject, useProjects } from '@/hooks/useProjects';
 import { CreateProjectModal, type CreateProjectData } from '@/layouts/projects/CreateProjectModal';
-import { ProjectDetailPage } from '@/layouts/projects/ProjectDetailPage';
 import { ProjectsPage } from '@/layouts/projects/ProjectPage';
 import { Logger } from '@/lib/services/logger';
 import { type CreateProject } from '@/lib/types';
@@ -10,19 +11,13 @@ import { useAppStore } from '@/store/store';
 
 export const ProjectsWrapper: React.FC = () => {
   const { userdetail } = useAppStore();
+  const navigate = useNavigate();
   const { data: projects = [], isLoading } = useProjects(userdetail ? userdetail.email : '');
   const createProjectMutation = useCreateProject();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectError, setProjectError] = useState<string | null>(null);
 
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
-  const [selectProjectTitle, setSelectProjectTitle] = useState<string>('');
-  const [selectedProjectSource, setSelectedProjectSource] = useState<string>('');
-  const [selectedProjectSourceLang, setSelectedProjectSourceLang] = useState<string>('');
-  const [selectedProjectTargetLang, setSelectedProjectTargetLang] = useState<string>('');
-
-  const [showProjectDetail, setShowProjectDetail] = useState(false);
   const handleSaveProject = async (projectData: CreateProjectData) => {
     try {
       setProjectError(null);
@@ -68,31 +63,17 @@ export const ProjectsWrapper: React.FC = () => {
     sourceLang: string,
     targetLang: string
   ) => {
-    setSelectedProjectId(projectId);
-    setSelectProjectTitle(title);
-    setSelectedProjectSource(source);
-    setSelectedProjectSourceLang(sourceLang);
-    setSelectedProjectTargetLang(targetLang);
-    setShowProjectDetail(true);
+    void navigate({
+      to: '/projects/$projectId',
+      params: { projectId: projectId.toString() },
+      search: {
+        title,
+        source,
+        sourceLang,
+        targetLang,
+      },
+    });
   };
-
-  const handleBackToProjects = () => {
-    setShowProjectDetail(false);
-    setSelectedProjectId(null);
-  };
-
-  if (showProjectDetail) {
-    return (
-      <ProjectDetailPage
-        projectId={selectedProjectId ?? null}
-        projectSource={selectedProjectSource}
-        projectSourceLanguageName={selectedProjectSourceLang}
-        projectTargetLanguageName={selectedProjectTargetLang}
-        projectTitle={selectProjectTitle}
-        onBack={handleBackToProjects}
-      />
-    );
-  }
 
   return (
     <>

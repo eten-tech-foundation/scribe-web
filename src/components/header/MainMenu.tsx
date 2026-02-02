@@ -32,7 +32,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
     return null;
   }
   const isDashboardActive = location.pathname === '/';
-  const isUsersActive = location.pathname === '/user-list';
+  const isUsersActive = location.pathname === '/users';
   const isProjectsActive = location.pathname === '/projects';
 
   return (

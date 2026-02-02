@@ -22,9 +22,9 @@ interface ProjectsPageProps {
   onProjectSelect: (
     projectId: number,
     projectTitle: string,
+    projectSource: string,
     projectSourceLanguageName: string,
-    projectTargetLanguageName: string,
-    projectSource: string
+    projectTargetLanguageName: string
   ) => void;
 }
 
@@ -83,19 +83,13 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
     return [...projects].sort((a, b) => a.name.localeCompare(b.name));
   }, [projects]);
 
-  const handleRowClick = (
-    projectId: number,
-    projectTitle: string,
-    projectSourceLanguageName: string,
-    projectTargetLanguageName: string,
-    projectSource: string
-  ) => {
+  const handleRowClick = (project: Project) => {
     onProjectSelect(
-      projectId,
-      projectTitle,
-      projectSourceLanguageName,
-      projectTargetLanguageName,
-      projectSource
+      project.id,
+      project.name,
+      project.sourceName,
+      project.sourceLanguageName,
+      project.targetLanguageName
     );
   };
 
@@ -144,15 +138,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                       <TableRow
                         key={project.id}
                         className='cursor-pointer border-b transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
-                        onClick={() =>
-                          handleRowClick(
-                            project.id,
-                            project.name,
-                            project.sourceName,
-                            project.sourceLanguageName,
-                            project.targetLanguageName
-                          )
-                        }
+                        onClick={() => handleRowClick(project)}
                       >
                         <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
                           <TruncatedText text={project.name} />

@@ -18,7 +18,7 @@ const Header: React.FC = () => {
   };
 
   const onNavigateToUsers = () => {
-    void navigate({ to: '/user-list' });
+    void navigate({ to: '/users' });
   };
 
   const onNavigateToProjects = () => {
