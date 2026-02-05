@@ -174,7 +174,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
     userdetail?.email ?? ''
   );
 
-  const { data: users, isLoading: usersLoading } = useUsers(userdetail?.email ?? '');
+  const { data: users, isLoading: usersLoading } = useUsers(
+    userdetail?.email ?? '',
+    userdetail?.role === 1
+  );
 
   const getSelectedUserFullName = useCallback(
     (userId: string) => {
@@ -384,17 +387,19 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 </SelectContent>
               </Select>
 
-              <Button
-                className='flex items-center gap-2'
-                disabled={selectedAssignments.length === 0 || booksLoading || isLoadingData}
-                size='sm'
-                onClick={handleAddBook}
-              >
-                {assignChapterMutation.isPending && (
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                )}
-                Assign
-              </Button>
+              {userdetail?.role === 1 && (
+                <Button
+                  className='flex items-center gap-2'
+                  disabled={selectedAssignments.length === 0 || booksLoading || isLoadingData}
+                  size='sm'
+                  onClick={handleAddBook}
+                >
+                  {assignChapterMutation.isPending && (
+                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  )}
+                  Assign
+                </Button>
+              )}
             </div>
           </div>
 
@@ -447,13 +452,15 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                             className='align-center cursor-pointer border-b transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
                           >
                             <TableCell className='w-12 px-6 py-4'>
-                              <Checkbox
-                                checked={selectedAssignments.includes(assignment.assignmentId)}
-                                disabled={isLoadingData}
-                                onCheckedChange={checked =>
-                                  handleCheckboxChange(assignment.assignmentId, !!checked)
-                                }
-                              />
+                              {userdetail?.role === 1 && (
+                                <Checkbox
+                                  checked={selectedAssignments.includes(assignment.assignmentId)}
+                                  disabled={isLoadingData}
+                                  onCheckedChange={checked =>
+                                    handleCheckboxChange(assignment.assignmentId, !!checked)
+                                  }
+                                />
+                              )}
                             </TableCell>
                             <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
                               <TruncatedTableText text={assignment.bookNameEng} />

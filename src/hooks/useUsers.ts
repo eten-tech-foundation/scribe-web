@@ -98,11 +98,11 @@ const getUserDetails = async (email: string): Promise<User> => {
   return data;
 };
 
-export const useUsers = (email: string) => {
+export const useUsers = (email: string, enabled: boolean = true) => {
   return useQuery<User[]>({
     queryKey: ['users', email],
     queryFn: () => fetchUsers(email),
-    enabled: !!email,
+    enabled: enabled && !!email,
   });
 };
 
