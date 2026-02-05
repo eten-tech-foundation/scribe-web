@@ -271,7 +271,6 @@ export function UserHomePage() {
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
                             {getStatusDisplay(item.chapterStatus as ChapterAssignmentStatus)}
                           </TableCell>
-
                           <TableCell className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'>
                             <TruncatedTextCell
                               text={
