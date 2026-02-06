@@ -236,6 +236,6 @@ export const ChapterAssignmentStatusDisplay: Record<ChapterAssignmentStatus, str
   [ChapterAssignmentStatus.COMMUNITY_REVIEW]: 'Community Review',
 };
 
-export const getStatusDisplay = (status: ChapterAssignmentStatus): string => {
-  return ChapterAssignmentStatusDisplay[status] || status;
-};
+// export const getStatusDisplay = (status: ChapterAssignmentStatus): string => {
+//   return ChapterAssignmentStatusDisplay[status] || status;
+// };

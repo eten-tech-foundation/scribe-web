@@ -13,12 +13,8 @@ import {
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useChapterAssignmentsByUserId } from '@/hooks/useChapterAssignment';
-import {
-  type ChapterAssignmentStatus,
-  getStatusDisplay,
-  type User,
-  type UserChapterAssignment,
-} from '@/lib/types';
+import { getStatusDisplay } from '@/lib/formatters';
+import { type ChapterAssignmentStatus, type User, type UserChapterAssignment } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 const TruncatedProjectCell = ({ text, isNavigating }: { text: string; isNavigating: boolean }) => {
@@ -241,7 +237,7 @@ export function UserHomePage() {
                 <TableBody className='divide-border bg-background divide-y'>
                   {currentData.length === 0 ? (
                     <TableRow>
-                      <TableCell className='p-8 text-center' colSpan={4}>
+                      <TableCell className='p-8 text-center' colSpan={5}>
                         {emptyMessage}
                       </TableCell>
                     </TableRow>
