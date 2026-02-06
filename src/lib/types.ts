@@ -235,7 +235,3 @@ export const ChapterAssignmentStatusDisplay: Record<ChapterAssignmentStatus, str
   [ChapterAssignmentStatus.PEER_CHECK]: 'Peer Check',
   [ChapterAssignmentStatus.COMMUNITY_REVIEW]: 'Community Review',
 };
-
-// export const getStatusDisplay = (status: ChapterAssignmentStatus): string => {
-//   return ChapterAssignmentStatusDisplay[status] || status;
-// };
