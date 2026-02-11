@@ -5,6 +5,13 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -13,7 +20,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { type Project } from '@/lib/types';
+import { type Project, type SortOption } from '@/lib/types';
 
 interface ProjectsPageProps {
   projects: Project[];
@@ -78,10 +85,28 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
   onProjectSelect,
 }) => {
   const { t } = useTranslation();
+  const [sortBy, setSortBy] = useState<SortOption>('recent');
 
   const sortedProjects = useMemo(() => {
-    return [...projects].sort((a, b) => a.name.localeCompare(b.name));
-  }, [projects]);
+    const projectsCopy = [...projects];
+
+    switch (sortBy) {
+      case 'recent':
+        return projectsCopy.sort((a, b) => {
+          const dateA = a.lastChapterActivity ? new Date(a.lastChapterActivity).getTime() : 0;
+          const dateB = b.lastChapterActivity ? new Date(b.lastChapterActivity).getTime() : 0;
+          return dateB - dateA;
+        });
+      case 'title':
+        return projectsCopy.sort((a, b) => a.name.localeCompare(b.name));
+      case 'targetLanguage':
+        return projectsCopy.sort((a, b) =>
+          a.targetLanguageName.localeCompare(b.targetLanguageName)
+        );
+      default:
+        return projectsCopy;
+    }
+  }, [projects, sortBy]);
 
   const handleRowClick = (
     projectId: number,
@@ -103,9 +128,21 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
     <div className='flex h-full flex-col'>
       <div className='mb-6 flex-shrink-0'>
         <h1 className='text-foreground mb-4 text-3xl font-semibold'>{t('projects')}</h1>
-        <Button className='bg-primary hover:bg-primary/90 text-white' onClick={onCreateProject}>
-          {t('createProject')}
-        </Button>
+        <div className='flex items-center gap-4'>
+          <Button className='bg-primary hover:bg-primary/90 text-white' onClick={onCreateProject}>
+            {t('createProject')}
+          </Button>
+          <Select value={sortBy} onValueChange={value => setSortBy(value as SortOption)}>
+            <SelectTrigger className='bg-card !h-10 w-[165px]'>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='recent'>{t('Recent')}</SelectItem>
+              <SelectItem value='title'>{t('Title')}</SelectItem>
+              <SelectItem value='targetLanguage'>{t('Target Language')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className='flex-1 overflow-hidden rounded-lg border shadow'>

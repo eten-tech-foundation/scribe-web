@@ -24,6 +24,7 @@ export interface Project {
   metadata: Record<string, unknown>;
   sourceLanguageName: string;
   targetLanguageName: string;
+  lastChapterActivity: string;
 }
 
 export interface CreateProject {
@@ -235,3 +236,5 @@ export const ChapterAssignmentStatusDisplay: Record<ChapterAssignmentStatus, str
   [ChapterAssignmentStatus.PEER_CHECK]: 'Peer Check',
   [ChapterAssignmentStatus.COMMUNITY_REVIEW]: 'Community Review',
 };
+
+export type SortOption = 'recent' | 'title' | 'targetLanguage';
