@@ -1,3 +1,5 @@
+import { useNavigate } from '@tanstack/react-router';
+
 import {
   Dialog,
   DialogContent,
@@ -7,14 +9,14 @@ import {
 } from '@/components/ui/dialog';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
-interface SettingsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+export const SettingsModal: React.FC = ({}) => {
+  const navigate = useNavigate();
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+  const isModalOpen = true;
+  const handleClose = () => void navigate({ to: '/' });
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isModalOpen} onOpenChange={handleClose}>
       <DialogContent className='sm:max-w-[500px]'>
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>

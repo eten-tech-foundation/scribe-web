@@ -1,3 +1,5 @@
+import { useNavigate } from '@tanstack/react-router';
+
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { UserModal } from '@/components/UserModal';
 import { useUpdateUser } from '@/hooks/useUsers';
@@ -6,13 +8,17 @@ import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 interface EditProfileProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export function EditProfile({ isOpen, onClose }: EditProfileProps) {
   const { userdetail, setUserDetail } = useAppStore();
   const updateUserMutation = useUpdateUser();
+  const navigate = useNavigate();
+
+  const isModalOpen = isOpen ?? true;
+  const handleClose = onClose ?? (() => void navigate({ to: '/' }));
 
   const handleSaveUser = async (userData: User | Omit<User, 'id'>) => {
     try {
@@ -32,7 +38,7 @@ export function EditProfile({ isOpen, onClose }: EditProfileProps) {
         status: res.status,
       });
 
-      onClose();
+      handleClose();
     } catch (error) {
       Logger.logException(error instanceof Error ? error : new Error(String(error)), {
         source: 'Failed to update user profile',
@@ -45,10 +51,10 @@ export function EditProfile({ isOpen, onClose }: EditProfileProps) {
       <UserModal
         disableRoleSelection={true}
         isLoading={updateUserMutation.isPending}
-        isOpen={isOpen}
+        isOpen={isModalOpen}
         mode={'edit'}
         user={userdetail}
-        onClose={onClose}
+        onClose={handleClose}
         onSave={handleSaveUser}
       />
     </ProtectedRoute>

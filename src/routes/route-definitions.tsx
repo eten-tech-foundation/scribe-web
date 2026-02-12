@@ -2,11 +2,13 @@ import { createRootRoute, createRoute } from '@tanstack/react-router';
 
 import { App } from '@/app';
 import { RoleBasedHomePage } from '@/components/RoleBasedHomePage';
+import { SettingsModal } from '@/components/SettingsModal';
 import { AppInsightsTestPage } from '@/layouts/app-insights-test';
 import DraftingPage from '@/layouts/bible/DraftingPage';
 import { translationLoader } from '@/layouts/bible/TranslationLoader';
 import { PrivacyPolicyPage } from '@/layouts/legal/PrivacyPolicyPage';
 import { TermsOfUsePage } from '@/layouts/legal/TermsOfUsePage';
+import { EditProfile } from '@/layouts/profile/EditProfile';
 import { ProjectsWrapper } from '@/layouts/projects';
 import { ProjectDetailWrapper } from '@/layouts/projects/ProjectDetailWrapper';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
@@ -37,6 +39,18 @@ export const appInsightsTestRoute = createRoute({
 export const userListRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/users',
+  component: UsersWrapper,
+});
+
+export const addUserRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/users/add',
+  component: UsersWrapper,
+});
+
+export const editUserRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/users/$userId/edit',
   component: UsersWrapper,
 });
 
@@ -90,4 +104,16 @@ export const termsOfUseRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/legal/terms',
   component: TermsOfUsePage,
+});
+
+export const profileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/profile',
+  component: EditProfile,
+});
+
+export const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/settings',
+  component: SettingsModal,
 });
