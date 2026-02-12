@@ -202,6 +202,7 @@ export interface DraftingUIProps {
 }
 
 export interface UserChapterAssignment {
+  id: number;
   chapterAssignmentId: number;
   projectName: string;
   projectUnitId: number;

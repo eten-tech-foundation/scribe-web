@@ -6,6 +6,7 @@ import { BookText, ChevronLeft, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
+import { useChapterPresence } from '@/hooks/useChapterPresence';
 import { useDrafting } from '@/hooks/useDrafting';
 import { useResourceState, useSaveResourceState } from '@/hooks/useResourceStatePersistence';
 import { ResourcePanel } from '@/layouts/resources/ResourcePanel';
@@ -32,6 +33,11 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const [currentResource, setCurrentResource] = useState<ResourceName>(RESOURCE_NAMES[0]);
   const [currentLanguage, setCurrentLanguage] = useState('');
 
+  const { warningMessage } = useChapterPresence(
+    projectItem.chapterAssignmentId,
+    false,
+    userdetail.email
+  );
   const { data: savedResourceState, isFetched } = useResourceState(
     projectItem.chapterAssignmentId,
     userdetail.email
@@ -266,7 +272,16 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   }, []);
 
   return (
-    <div className='flex h-full flex-col overflow-hidden'>
+    <div className='relative flex h-full flex-col overflow-hidden'>
+      {warningMessage && (
+        <div
+          className='z-50 w-full py-2 text-center font-bold text-black shadow-sm select-none'
+          style={{ backgroundColor: '#FFFF00' }}
+        >
+          {warningMessage}
+        </div>
+      )}
+
       <div className='flex-shrink-0'>
         <div className='flex items-center justify-between py-4 pr-6'>
           <div className='flex flex-shrink-0 items-center gap-4'>

@@ -150,8 +150,8 @@ export function UserHomePage() {
   }, [chapterAssignmentsData]);
 
   const handleRowClick = async (item: UserChapterAssignment, isHistory: boolean) => {
-    const projectKey = `${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`;
-    setNavigatingToProject(projectKey);
+    const rowId = item.id?.toString() ?? `temp-key-`;
+    setNavigatingToProject(rowId);
 
     try {
       await navigate({
@@ -243,12 +243,13 @@ export function UserHomePage() {
                     </TableRow>
                   ) : (
                     currentData.map(item => {
-                      const projectKey = `${item.projectUnitId}-${item.bookId}-${item.chapterNumber}`;
-                      const isNavigating = navigatingToProject === projectKey;
+                      // Critical Fix: Using unique database ID for key and navigation tracking
+                      const rowId = item.id?.toString();
+                      const isNavigating = navigatingToProject === rowId;
 
                       return (
                         <TableRow
-                          key={projectKey}
+                          key={rowId}
                           className='cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
                           onClick={() => handleRowClick(item, isHistory)}
                         >
