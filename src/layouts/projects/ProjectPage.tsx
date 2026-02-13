@@ -19,13 +19,7 @@ interface ProjectsPageProps {
   projects: Project[];
   loading?: boolean;
   onCreateProject: () => void;
-  onProjectSelect: (
-    projectId: number,
-    projectTitle: string,
-    projectSource: string,
-    projectSourceLanguageName: string,
-    projectTargetLanguageName: string
-  ) => void;
+  onProjectSelect: (projectId: number) => void;
 }
 
 // Adding a component for truncated text with tooltip
@@ -84,15 +78,8 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
   }, [projects]);
 
   const handleRowClick = (project: Project) => {
-    onProjectSelect(
-      project.id,
-      project.name,
-      project.sourceName,
-      project.sourceLanguageName,
-      project.targetLanguageName
-    );
+    onProjectSelect(project.id);
   };
-
   return (
     <div className='flex h-full flex-col'>
       <div className='mb-6 flex-shrink-0'>

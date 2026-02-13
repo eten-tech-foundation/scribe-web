@@ -56,22 +56,10 @@ export const ProjectsWrapper: React.FC = () => {
     setProjectError(null);
   };
 
-  const handleProjectSelect = (
-    projectId: number,
-    title: string,
-    source: string,
-    sourceLang: string,
-    targetLang: string
-  ) => {
+  const handleProjectSelect = (projectId: number) => {
     void navigate({
       to: '/projects/$projectId',
       params: { projectId: projectId.toString() },
-      search: {
-        title,
-        source,
-        sourceLang,
-        targetLang,
-      },
     });
   };
 
