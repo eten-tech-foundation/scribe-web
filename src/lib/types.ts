@@ -238,3 +238,5 @@ export const ChapterAssignmentStatusDisplay: Record<ChapterAssignmentStatus, str
 };
 
 export type SortOption = 'recent' | 'title' | 'targetLanguage';
+
+export type StatusFilter = 'all' | 'potentially_stalled' | 'not_assigned';
