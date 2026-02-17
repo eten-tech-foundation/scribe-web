@@ -79,47 +79,35 @@ const TruncatedText: React.FC<{ text: string }> = ({ text }) => {
   );
 };
 
-type StatusChip = { label: string; bg: string; text: string } | null;
+type StatusChip = { label: string; bg: string; text: string; filterValue: StatusFilter } | null;
 
-const getStatusChip = (
+const deriveStatusChip = (
   status: string,
   lastChapterActivity: string | null | undefined
 ): StatusChip => {
   if (status === 'not_assigned') {
-    return { label: 'Not Assigned', bg: '#DDE3ED', text: '#3D4A5C' };
+    return { label: 'Not Assigned', bg: '#DDE3ED', text: '#1A1A1A', filterValue: 'not_assigned' };
   }
 
   if (status === 'active' && lastChapterActivity) {
-    const activityDate = new Date(lastChapterActivity);
-    const now = new Date();
-    const diffMs = now.getTime() - activityDate.getTime();
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    const diffDays = (Date.now() - new Date(lastChapterActivity).getTime()) / (1000 * 60 * 60 * 24);
 
     if (diffDays > 10) {
-      return { label: 'Potentially Stalled', bg: '#E48F06', text: '#FFFFFF' };
+      return {
+        label: 'Potentially Stalled',
+        bg: '#E48F06',
+        text: '#FFFFFF',
+        filterValue: 'potentially_stalled',
+      };
     }
   }
 
   return null;
 };
 
-const getStatusFilterValue = (
-  status: string,
-  lastChapterActivity: string | null | undefined
-): StatusFilter | null => {
-  const chip = getStatusChip(status, lastChapterActivity);
-  if (!chip) return null;
-  if (chip.label === 'Not Assigned') return 'not_assigned';
-  if (chip.label === 'Potentially Stalled') return 'potentially_stalled';
-  return null;
-};
+type EnrichedProject = Project & { statusChip: StatusChip };
 
-const StatusChipCell: React.FC<{ status: string; lastChapterActivity?: string | null }> = ({
-  status,
-  lastChapterActivity,
-}) => {
-  const chip = getStatusChip(status, lastChapterActivity);
-
+const StatusChipCell: React.FC<{ chip: StatusChip }> = ({ chip }) => {
   if (!chip) return null;
 
   return (
@@ -143,34 +131,30 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   const sortedAndFilteredProjects = useMemo(() => {
-    const projectsCopy = [...projects];
+    const enriched: EnrichedProject[] = projects.map(project => ({
+      ...project,
+      statusChip: deriveStatusChip(project.status, project.lastChapterActivity),
+    }));
 
-    let sorted: Project[];
-    switch (sortBy) {
-      case 'recent':
-        sorted = projectsCopy.sort((a, b) => {
+    const sorted = enriched.sort((a, b) => {
+      switch (sortBy) {
+        case 'recent': {
           const dateA = a.lastChapterActivity ? new Date(a.lastChapterActivity).getTime() : 0;
           const dateB = b.lastChapterActivity ? new Date(b.lastChapterActivity).getTime() : 0;
           return dateB - dateA;
-        });
-        break;
-      case 'title':
-        sorted = projectsCopy.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'targetLanguage':
-        sorted = projectsCopy.sort((a, b) =>
-          a.targetLanguageName.localeCompare(b.targetLanguageName)
-        );
-        break;
-      default:
-        sorted = projectsCopy;
-    }
+        }
+        case 'title':
+          return a.name.localeCompare(b.name);
+        case 'targetLanguage':
+          return a.targetLanguageName.localeCompare(b.targetLanguageName);
+        default:
+          return 0;
+      }
+    });
+
     if (statusFilter === 'all') return sorted;
 
-    return sorted.filter(project => {
-      const projectStatus = getStatusFilterValue(project.status, project.lastChapterActivity);
-      return projectStatus === statusFilter;
-    });
+    return sorted.filter(project => project.statusChip?.filterValue === statusFilter);
   }, [projects, sortBy, statusFilter]);
 
   const handleRowClick = (
@@ -285,10 +269,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                           <TruncatedText text={project.sourceName} />
                         </TableCell>
                         <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm'>
-                          <StatusChipCell
-                            lastChapterActivity={project.lastChapterActivity}
-                            status={project.status}
-                          />
+                          <StatusChipCell chip={project.statusChip} />
                         </TableCell>
                       </TableRow>
                     ))}
