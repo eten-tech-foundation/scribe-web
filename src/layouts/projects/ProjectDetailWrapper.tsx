@@ -17,6 +17,13 @@ export const ProjectDetailWrapper: React.FC = () => {
     void navigate({ to: '/projects' });
   };
 
+  const handleExport = () => {
+    void navigate({
+      to: '/projects/$projectId/export',
+      params: { projectId },
+    });
+  };
+
   if (isLoading) {
     return (
       <div className='flex h-full items-center justify-center gap-2'>
@@ -44,6 +51,7 @@ export const ProjectDetailWrapper: React.FC = () => {
       projectTargetLanguageName={project.targetLanguageName}
       projectTitle={project.name}
       onBack={handleBack}
+      onExport={handleExport}
     />
   );
 };

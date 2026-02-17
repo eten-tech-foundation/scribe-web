@@ -29,7 +29,6 @@ import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 import { AssignUsersDialog } from './AssignUsersDialog';
-import { ExportProjectDialog } from './ExportProjectDialog';
 
 interface ProjectDetailPageProps {
   projectId?: number | null;
@@ -38,6 +37,7 @@ interface ProjectDetailPageProps {
   projectTargetLanguageName: string;
   projectSource: string;
   onBack?: () => void;
+  onExport?: () => void;
 }
 
 const TruncatedCardText = ({ text }: { text: string }) => {
@@ -146,6 +146,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   projectTargetLanguageName,
   projectSource,
   onBack,
+  onExport,
 }) => {
   const { userdetail } = useAppStore();
 
@@ -157,17 +158,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const [selectedAssignmentsStatuses, setSelectedAssignmentsStatuses] = useState<string[]>([]);
   const [isRefreshingAfterAssignment, setIsRefreshingAfterAssignment] = useState(false);
   const [updatingAssignmentIds, setUpdatingAssignmentIds] = useState<number[]>([]);
-  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
   const {
     data: chapterAssignments,
     isLoading: assignmentsLoading,
     isFetching: assignmentsFetching,
   } = useChapterAssignments(projectId ? projectId.toString() : '0', userdetail?.email ?? '');
-
-  const projectUnitId = useMemo(() => {
-    return chapterAssignments?.[0]?.projectUnitId ?? null;
-  }, [chapterAssignments]);
 
   const { data: books, isLoading: booksLoading } = useProjectUnitBooks(
     projectId ? projectId.toString() : '0',
@@ -202,28 +198,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       assignment => assignment.bookNameEng === selectedBookData.engDisplayName
     );
   }, [chapterAssignments, selectedBook, books]);
-
-  const exportBooks = useMemo(() => {
-    if (!books || !chapterAssignments) return [];
-
-    return books.map(book => {
-      const bookAssignments = chapterAssignments.filter(
-        assignment => assignment.bookNameEng === book.engDisplayName
-      );
-
-      const completedChapters = bookAssignments.filter(
-        assignment => assignment.completedVerses === assignment.totalVerses
-      ).length;
-
-      return {
-        bookId: book.bookId,
-        engDisplayName: book.engDisplayName,
-        code: book.code,
-        completedChapters,
-        totalChapters: bookAssignments.length || 0,
-      };
-    });
-  }, [books, chapterAssignments]);
 
   const formatProgress = useCallback((completedVerses: number, totalVerses: number) => {
     return `${completedVerses} of ${totalVerses}`;
@@ -330,7 +304,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             disabled={isDisabled}
             size='sm'
             variant={'outline'}
-            onClick={() => setIsExportDialogOpen(true)}
+            onClick={onExport}
           >
             Export Project
           </Button>
@@ -506,15 +480,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         onClose={() => setIsDialogOpen(false)}
         onDrafterChange={setSelectedDrafter}
         onPeerCheckerChange={setSelectedPeerChecker}
-      />
-
-      <ExportProjectDialog
-        books={exportBooks}
-        isLoading={booksLoading}
-        isOpen={isExportDialogOpen}
-        projectName={projectTitle}
-        projectUnitId={projectUnitId}
-        onClose={() => setIsExportDialogOpen(false)}
       />
     </div>
   );

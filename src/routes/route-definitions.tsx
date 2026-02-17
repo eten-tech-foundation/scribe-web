@@ -9,7 +9,9 @@ import { translationLoader } from '@/layouts/bible/TranslationLoader';
 import { PrivacyPolicyPage } from '@/layouts/legal/PrivacyPolicyPage';
 import { TermsOfUsePage } from '@/layouts/legal/TermsOfUsePage';
 import { EditProfile } from '@/layouts/profile/EditProfile';
-import { ProjectsWrapper } from '@/layouts/projects';
+import { CreateProjectPage } from '@/layouts/projects/CreateProjectPage';
+import { ExportProjectWrapper } from '@/layouts/projects/ExportProjectWrapper';
+import { ProjectsWrapper } from '@/layouts/projects/index';
 import { ProjectDetailWrapper } from '@/layouts/projects/ProjectDetailWrapper';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 import { UsersWrapper } from '@/layouts/users/UsersWrapper';
@@ -60,10 +62,22 @@ export const projectsRoute = createRoute({
   component: ProjectsWrapper,
 });
 
+export const createProjectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/projects/create',
+  component: CreateProjectPage,
+});
+
 export const projectDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/projects/$projectId',
   component: ProjectDetailWrapper,
+});
+
+export const exportProjectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/projects/$projectId/export',
+  component: ExportProjectWrapper,
 });
 
 export const translationRoute = createRoute({
