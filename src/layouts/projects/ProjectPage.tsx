@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -20,7 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { type Project, type SortOption } from '@/lib/types';
+import { type Project, type SortOption, type StatusFilter } from '@/lib/types';
 
 interface ProjectsPageProps {
   projects: Project[];
@@ -78,6 +79,53 @@ const TruncatedText: React.FC<{ text: string }> = ({ text }) => {
   );
 };
 
+const STALLED_THRESHOLD_DAYS = 10;
+type StatusChip = { label: string; bg: string; text: string; filterValue: StatusFilter } | null;
+
+const deriveStatusChip = (
+  status: string,
+  lastChapterActivity: string | null | undefined
+): StatusChip => {
+  if (status === 'not_assigned') {
+    return {
+      label: 'Not Assigned',
+      bg: 'var(--popover)',
+      text: 'var(--foreground)',
+      filterValue: 'not_assigned',
+    };
+  }
+
+  if (status === 'active' && lastChapterActivity) {
+    const diffDays = (Date.now() - new Date(lastChapterActivity).getTime()) / (1000 * 60 * 60 * 24);
+
+    if (diffDays > STALLED_THRESHOLD_DAYS) {
+      return {
+        label: 'Potentially Stalled',
+        bg: 'var(--warning)',
+        text: 'var(--warning-foreground)',
+        filterValue: 'potentially_stalled',
+      };
+    }
+  }
+
+  return null;
+};
+
+type EnrichedProject = Project & { statusChip: StatusChip };
+
+const StatusChipCell: React.FC<{ chip: StatusChip }> = ({ chip }) => {
+  if (!chip) return null;
+
+  return (
+    <Badge
+      className='inline-flex items-center rounded-full border-0 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap'
+      style={{ backgroundColor: chip.bg, color: chip.text }}
+    >
+      {chip.label}
+    </Badge>
+  );
+};
+
 export const ProjectsPage: React.FC<ProjectsPageProps> = ({
   loading,
   projects,
@@ -86,27 +134,34 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
 }) => {
   const { t } = useTranslation();
   const [sortBy, setSortBy] = useState<SortOption>('recent');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
-  const sortedProjects = useMemo(() => {
-    const projectsCopy = [...projects];
+  const sortedAndFilteredProjects = useMemo(() => {
+    const enriched: EnrichedProject[] = projects.map(project => ({
+      ...project,
+      statusChip: deriveStatusChip(project.status, project.lastChapterActivity),
+    }));
 
-    switch (sortBy) {
-      case 'recent':
-        return projectsCopy.sort((a, b) => {
+    const sorted = enriched.sort((a, b) => {
+      switch (sortBy) {
+        case 'recent': {
           const dateA = a.lastChapterActivity ? new Date(a.lastChapterActivity).getTime() : 0;
           const dateB = b.lastChapterActivity ? new Date(b.lastChapterActivity).getTime() : 0;
           return dateB - dateA;
-        });
-      case 'title':
-        return projectsCopy.sort((a, b) => a.name.localeCompare(b.name));
-      case 'targetLanguage':
-        return projectsCopy.sort((a, b) =>
-          a.targetLanguageName.localeCompare(b.targetLanguageName)
-        );
-      default:
-        return projectsCopy;
-    }
-  }, [projects, sortBy]);
+        }
+        case 'title':
+          return a.name.localeCompare(b.name);
+        case 'targetLanguage':
+          return a.targetLanguageName.localeCompare(b.targetLanguageName);
+        default:
+          return 0;
+      }
+    });
+
+    if (statusFilter === 'all') return sorted;
+
+    return sorted.filter(project => project.statusChip?.filterValue === statusFilter);
+  }, [projects, sortBy, statusFilter]);
 
   const handleRowClick = (
     projectId: number,
@@ -142,6 +197,19 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
               <SelectItem value='targetLanguage'>{t('Target Language')}</SelectItem>
             </SelectContent>
           </Select>
+          <Select
+            value={statusFilter}
+            onValueChange={value => setStatusFilter(value as StatusFilter)}
+          >
+            <SelectTrigger className='bg-card !h-10 w-[185px]'>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>{t('Show All')}</SelectItem>
+              <SelectItem value='potentially_stalled'>{t('Potentially Stalled')}</SelectItem>
+              <SelectItem value='not_assigned'>{t('Not Assigned')}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -152,7 +220,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
               <Loader2 className='h-5 w-5 animate-spin text-gray-500' />
               <span className='text-gray-500'>{t('loadingProjects')}</span>
             </div>
-          ) : sortedProjects.length === 0 ? (
+          ) : sortedAndFilteredProjects.length === 0 ? (
             <div className='flex items-center justify-center py-8'>
               <span className='text-gray-500'>{t('noProjectsFound')}</span>
             </div>
@@ -174,10 +242,13 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                       <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
                         {t('sourceBible')}
                       </TableHead>
+                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                        {t('status')}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody className='divide-border divide-y'>
-                    {sortedProjects.map(project => (
+                    {sortedAndFilteredProjects.map(project => (
                       <TableRow
                         key={project.id}
                         className='cursor-pointer border-b transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -202,6 +273,9 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                         </TableCell>
                         <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm'>
                           <TruncatedText text={project.sourceName} />
+                        </TableCell>
+                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm'>
+                          <StatusChipCell chip={project.statusChip} />
                         </TableCell>
                       </TableRow>
                     ))}
