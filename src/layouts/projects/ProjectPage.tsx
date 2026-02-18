@@ -21,6 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import useProgressBar from '@/hooks/useProgressBar';
 import { type Project, type SortOption, type StatusFilter } from '@/lib/types';
 
 interface ProjectsPageProps {
@@ -35,6 +36,43 @@ interface ProjectsPageProps {
     projectSource: string
   ) => void;
 }
+
+const ProjectProgressBar: React.FC<{ project: Project }> = ({ project }) => {
+  const { calculateProgressSegments } = useProgressBar(project.workflowConfig);
+
+  const segments = calculateProgressSegments(project.chapterStatusCounts);
+
+  const borderColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--border')
+    .trim();
+
+  if (segments.length === 0) {
+    return (
+      <div
+        className='h-6 w-full'
+        style={{
+          backgroundColor: 'rgba(11, 80, 208, 0.1)',
+          border: `1px solid ${borderColor}`,
+        }}
+      />
+    );
+  }
+
+  return (
+    <div className='flex h-6 w-full overflow-hidden' style={{ border: `1px solid ${borderColor}` }}>
+      {segments.map((segment, index) => (
+        <div
+          key={`${segment.status}-${index}`}
+          className='transition-all'
+          style={{
+            width: `${segment.widthPercentage}%`,
+            backgroundColor: segment.color,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 // Adding a component for truncated text with tooltip
 const TruncatedText: React.FC<{ text: string }> = ({ text }) => {
@@ -245,6 +283,9 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                       <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
                         {t('status')}
                       </TableHead>
+                      <TableHead className='text-accent-foreground w-[18%] px-6 py-3 text-left text-sm font-semibold tracking-wider'>
+                        {t('Progress')}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody className='divide-border divide-y'>
@@ -276,6 +317,9 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                         </TableCell>
                         <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm'>
                           <StatusChipCell chip={project.statusChip} />
+                        </TableCell>
+                        <TableCell className='text-popover-foreground w-[18%] px-6 py-4 text-sm'>
+                          <ProjectProgressBar project={project} />
                         </TableCell>
                       </TableRow>
                     ))}
