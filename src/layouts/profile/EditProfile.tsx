@@ -1,5 +1,3 @@
-import { useNavigate } from '@tanstack/react-router';
-
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { UserModal } from '@/components/UserModal';
 import { useUpdateUser } from '@/hooks/useUsers';
@@ -15,10 +13,9 @@ interface EditProfileProps {
 export function EditProfile({ isOpen, onClose }: EditProfileProps) {
   const { userdetail, setUserDetail } = useAppStore();
   const updateUserMutation = useUpdateUser();
-  const navigate = useNavigate();
 
   const isModalOpen = isOpen ?? true;
-  const handleClose = onClose ?? (() => void navigate({ to: '/' }));
+  const handleClose = onClose ?? (() => window.history.back());
 
   const handleSaveUser = async (userData: User | Omit<User, 'id'>) => {
     try {
