@@ -79,6 +79,7 @@ const TruncatedText: React.FC<{ text: string }> = ({ text }) => {
   );
 };
 
+const STALLED_THRESHOLD_DAYS = 10;
 type StatusChip = { label: string; bg: string; text: string; filterValue: StatusFilter } | null;
 
 const deriveStatusChip = (
@@ -86,17 +87,22 @@ const deriveStatusChip = (
   lastChapterActivity: string | null | undefined
 ): StatusChip => {
   if (status === 'not_assigned') {
-    return { label: 'Not Assigned', bg: '#DDE3ED', text: '#1A1A1A', filterValue: 'not_assigned' };
+    return {
+      label: 'Not Assigned',
+      bg: 'var(--popover)',
+      text: 'var(--foreground)',
+      filterValue: 'not_assigned',
+    };
   }
 
   if (status === 'active' && lastChapterActivity) {
     const diffDays = (Date.now() - new Date(lastChapterActivity).getTime()) / (1000 * 60 * 60 * 24);
 
-    if (diffDays > 10) {
+    if (diffDays > STALLED_THRESHOLD_DAYS) {
       return {
         label: 'Potentially Stalled',
-        bg: '#E48F06',
-        text: '#FFFFFF',
+        bg: 'var(--warning)',
+        text: 'var(--warning-foreground)',
         filterValue: 'potentially_stalled',
       };
     }
