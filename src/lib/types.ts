@@ -12,6 +12,13 @@ export interface User {
   isActive?: boolean;
 }
 
+export interface WorkflowStep {
+  id: string;
+  label: string;
+}
+
+export type ChapterStatusCounts = Record<string, number>;
+
 export interface Project {
   id: number;
   name: string;
@@ -25,6 +32,8 @@ export interface Project {
   sourceLanguageName: string;
   targetLanguageName: string;
   lastChapterActivity: string;
+  chapterStatusCounts: ChapterStatusCounts;
+  workflowConfig: WorkflowStep[];
 }
 
 export interface CreateProject {

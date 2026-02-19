@@ -21,6 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import useProgressBar from '@/hooks/useProgressBar';
 import { type Project, type SortOption, type StatusFilter } from '@/lib/types';
 
 interface ProjectsPageProps {
@@ -35,6 +36,31 @@ interface ProjectsPageProps {
     projectSource: string
   ) => void;
 }
+
+const ProjectProgressBar: React.FC<{ project: Project }> = ({ project }) => {
+  const { calculateProgressSegments } = useProgressBar(project.workflowConfig);
+
+  const segments = calculateProgressSegments(project.chapterStatusCounts);
+
+  if (segments.length === 0) {
+    return <div className='border-border bg-primary/10 h-6 w-full border' />;
+  }
+
+  return (
+    <div className='border-border flex h-6 w-full overflow-hidden border'>
+      {segments.map((segment, index) => (
+        <div
+          key={`${segment.status}-${index}`}
+          className='transition-all'
+          style={{
+            width: `${segment.widthPercentage}%`,
+            backgroundColor: segment.color,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 // Adding a component for truncated text with tooltip
 const TruncatedText: React.FC<{ text: string }> = ({ text }) => {
@@ -136,6 +162,17 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
+  const columns = [
+    { key: 'title', label: t('title') },
+    { key: 'sourceLanguage', label: t('sourceLanguage') },
+    { key: 'targetLanguage', label: t('targetLanguage') },
+    { key: 'sourceBible', label: t('sourceBible') },
+    { key: 'status', label: t('status') },
+    { key: 'progress', label: t('Progress') },
+  ];
+
+  const colWidth = `${(100 / columns.length).toFixed(4)}%`;
+
   const sortedAndFilteredProjects = useMemo(() => {
     const enriched: EnrichedProject[] = projects.map(project => ({
       ...project,
@@ -230,21 +267,15 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                 <Table className='table-fixed'>
                   <TableHeader className='sticky top-0 z-10'>
                     <TableRow className='hover:bg-transparent'>
-                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                        {t('title')}
-                      </TableHead>
-                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                        {t('sourceLanguage')}
-                      </TableHead>
-                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                        {t('targetLanguage')}
-                      </TableHead>
-                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                        {t('sourceBible')}
-                      </TableHead>
-                      <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-sm font-semibold tracking-wider'>
-                        {t('status')}
-                      </TableHead>
+                      {columns.map(col => (
+                        <TableHead
+                          key={col.key}
+                          className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'
+                          style={{ width: colWidth }}
+                        >
+                          {col.label}
+                        </TableHead>
+                      ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody className='divide-border divide-y'>
@@ -262,20 +293,41 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                           )
                         }
                       >
-                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
+                        <TableCell
+                          className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
+                          style={{ width: colWidth }}
+                        >
                           <TruncatedText text={project.name} />
                         </TableCell>
-                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
+                        <TableCell
+                          className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
+                          style={{ width: colWidth }}
+                        >
                           {project.sourceLanguageName}
                         </TableCell>
-                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm whitespace-nowrap'>
+                        <TableCell
+                          className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'
+                          style={{ width: colWidth }}
+                        >
                           {project.targetLanguageName}
                         </TableCell>
-                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm'>
+                        <TableCell
+                          className='text-popover-foreground px-6 py-4 text-sm'
+                          style={{ width: colWidth }}
+                        >
                           <TruncatedText text={project.sourceName} />
                         </TableCell>
-                        <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-sm'>
+                        <TableCell
+                          className='text-popover-foreground px-6 py-4 text-sm'
+                          style={{ width: colWidth }}
+                        >
                           <StatusChipCell chip={project.statusChip} />
+                        </TableCell>
+                        <TableCell
+                          className='text-popover-foreground px-6 py-4 text-sm'
+                          style={{ width: colWidth }}
+                        >
+                          <ProjectProgressBar project={project} />
                         </TableCell>
                       </TableRow>
                     ))}
