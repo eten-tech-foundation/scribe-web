@@ -119,15 +119,13 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         return;
       }
       setIsSubmitting(true);
-      const projectData: CreateProjectData = {
+      await onSave({
         title: formData.title,
         targetLanguage: formData.targetLanguage,
         sourceLanguage: formData.sourceLanguage,
         sourceBible: formData.sourceBible,
         books: formData.books,
-      };
-
-      await onSave(projectData);
+      });
     } catch (error) {
       Logger.logException(error instanceof Error ? error : new Error(String(error)), {
         source: 'create project submit',
@@ -171,165 +169,153 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   }
 
   return (
-    <div className='text-gray-800'>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className='sm:max-w-[500px]' onInteractOutside={e => e.preventDefault()}>
-          <DialogHeader>
-            <DialogTitle>{t('createProject')}</DialogTitle>
-          </DialogHeader>
-          <div className='space-y-6 py-6'>
-            <div className='space-y-2'>
-              <Label className='gap-1' htmlFor='title'>
-                <span style={{ color: 'red' }}>*</span>
-                {t('projectTitle')}{' '}
-              </Label>
-              <Input
-                id='title'
-                maxLength={100}
-                value={formData.title}
-                onChange={handleTitleChange}
-              />
-            </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className='sm:max-w-[500px]' onInteractOutside={e => e.preventDefault()}>
+        <DialogHeader>
+          <DialogTitle>{t('createProject')}</DialogTitle>
+        </DialogHeader>
+        <div className='space-y-6 py-6'>
+          <div className='space-y-2'>
+            <Label className='gap-1' htmlFor='title'>
+              <span style={{ color: 'red' }}>*</span>
+              {t('projectTitle')}
+            </Label>
+            <Input id='title' maxLength={100} value={formData.title} onChange={handleTitleChange} />
+          </div>
 
-            <div className='space-y-2'>
-              <Label className='gap-1'>
-                <span style={{ color: 'red' }}>*</span>
-                {t('sourceLanguage')}
-              </Label>
-              <Select
-                disabled={languagesLoading}
-                value={formData.sourceLanguage?.toString() ?? ''}
-                onValueChange={value => updateFormData('sourceLanguage', parseInt(value))}
-              >
-                <SelectTrigger className='w-full bg-white'>
-                  <SelectValue
-                    placeholder={
-                      languagesLoading ? 'Loading languages...' : 'Select Source Language'
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {languages?.map(language => (
-                    <SelectItem key={language.id} value={language.id.toString()}>
-                      {language.langName} ({language.langCodeIso6393})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className='space-y-2'>
-              <Label className='gap-1'>
-                <span style={{ color: 'red' }}>*</span>
-                {t('sourceBible')}{' '}
-              </Label>
-              <Select
-                disabled={!formData.sourceLanguage || sourceBiblesLoading}
-                value={formData.sourceBible?.toString() ?? ''}
-                onValueChange={value => updateFormData('sourceBible', parseInt(value))}
-              >
-                <SelectTrigger className='w-full bg-white'>
-                  <SelectValue
-                    placeholder={
-                      !formData.sourceLanguage
-                        ? 'Select Source Language First'
-                        : sourceBiblesLoading
-                          ? 'Loading bibles...'
-                          : 'Select Source Bible'
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {!sourceBibles || sourceBibles.length === 0 ? (
-                    <div className='p-1 text-center text-sm text-gray-500'>
-                      No bibles for this language
-                    </div>
-                  ) : (
-                    sourceBibles.map(bible => (
-                      <SelectItem key={bible.id} value={bible.id.toString()}>
-                        {bible.name} ({bible.abbreviation})
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className='space-y-2'>
-              <Label className='gap-1'>
-                <span style={{ color: 'red' }}>*</span>
-                {t('targetLanguage')}{' '}
-              </Label>
-              <Select
-                disabled={languagesLoading}
-                value={formData.targetLanguage?.toString() ?? ''}
-                onValueChange={value => updateFormData('targetLanguage', parseInt(value))}
-              >
-                <SelectTrigger className='w-full'>
-                  <SelectValue
-                    placeholder={
-                      languagesLoading ? 'Loading languages...' : 'Select Target Language'
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {languages?.map(language => (
-                    <SelectItem key={language.id} value={language.id.toString()}>
-                      {language.langName} ({language.langCodeIso6393})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className='space-y-2'>
-              <Label className='gap-1'>
-                <span style={{ color: 'red' }}>*</span>
-                {t('books')}
-              </Label>
-              {booksLoading && formData.sourceBible ? (
-                <div className='flex items-center gap-2 rounded-md border p-3'>
-                  <Loader2 className='h-4 w-4 animate-spin' />
-                  <span>Loading books...</span>
-                </div>
-              ) : (
-                <BibleBookMultiSelectPopover
-                  books={availableBooks ?? []}
-                  disabled={!formData.sourceBible}
-                  value={formData.books}
-                  onChange={newBooks => setFormData(prev => ({ ...prev, books: newBooks }))}
+          <div className='space-y-2'>
+            <Label className='gap-1'>
+              <span style={{ color: 'red' }}>*</span>
+              {t('sourceLanguage')}
+            </Label>
+            <Select
+              disabled={languagesLoading}
+              value={formData.sourceLanguage?.toString() ?? ''}
+              onValueChange={value => updateFormData('sourceLanguage', parseInt(value))}
+            >
+              <SelectTrigger className='w-full bg-white'>
+                <SelectValue
+                  placeholder={languagesLoading ? 'Loading languages...' : 'Select Source Language'}
                 />
-              )}
-            </div>
+              </SelectTrigger>
+              <SelectContent>
+                {languages?.map(language => (
+                  <SelectItem key={language.id} value={language.id.toString()}>
+                    {language.langName} ({language.langCodeIso6393})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className='flex items-center justify-end pt-4'>
-              {error && (
-                <div className='mr-4 flex w-full items-center justify-center gap-2'>
-                  <TriangleAlert className='h-4 w-4 text-red-500' />
-                  <p className='text-sm font-medium text-red-600'>Error: Project not created.</p>
-                </div>
-              )}
-              {!error && <div />}
-
-              <Button
-                className='bg-primary hover:bg-primary/90 text-white hover:cursor-pointer'
-                disabled={isButtonDisabled}
-                type='button'
-                onClick={handleSubmit}
-              >
-                {isLoading ? (
-                  <div className='flex items-center gap-2'>
-                    <Loader2 className='h-4 w-4 animate-spin' />
-                    <span>Creating...</span>
+          <div className='space-y-2'>
+            <Label className='gap-1'>
+              <span style={{ color: 'red' }}>*</span>
+              {t('sourceBible')}
+            </Label>
+            <Select
+              disabled={!formData.sourceLanguage || sourceBiblesLoading}
+              value={formData.sourceBible?.toString() ?? ''}
+              onValueChange={value => updateFormData('sourceBible', parseInt(value))}
+            >
+              <SelectTrigger className='w-full bg-white'>
+                <SelectValue
+                  placeholder={
+                    !formData.sourceLanguage
+                      ? 'Select Source Language First'
+                      : sourceBiblesLoading
+                        ? 'Loading bibles...'
+                        : 'Select Source Bible'
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {!sourceBibles || sourceBibles.length === 0 ? (
+                  <div className='p-1 text-center text-sm text-gray-500'>
+                    No bibles for this language
                   </div>
                 ) : (
-                  t('createProject')
+                  sourceBibles.map(bible => (
+                    <SelectItem key={bible.id} value={bible.id.toString()}>
+                      {bible.name} ({bible.abbreviation})
+                    </SelectItem>
+                  ))
                 )}
-              </Button>
-            </div>
+              </SelectContent>
+            </Select>
           </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+
+          <div className='space-y-2'>
+            <Label className='gap-1'>
+              <span style={{ color: 'red' }}>*</span>
+              {t('targetLanguage')}
+            </Label>
+            <Select
+              disabled={languagesLoading}
+              value={formData.targetLanguage?.toString() ?? ''}
+              onValueChange={value => updateFormData('targetLanguage', parseInt(value))}
+            >
+              <SelectTrigger className='w-full'>
+                <SelectValue
+                  placeholder={languagesLoading ? 'Loading languages...' : 'Select Target Language'}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {languages?.map(language => (
+                  <SelectItem key={language.id} value={language.id.toString()}>
+                    {language.langName} ({language.langCodeIso6393})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className='space-y-2'>
+            <Label className='gap-1'>
+              <span style={{ color: 'red' }}>*</span>
+              {t('books')}
+            </Label>
+            {booksLoading && formData.sourceBible ? (
+              <div className='flex items-center gap-2 rounded-md border p-3'>
+                <Loader2 className='h-4 w-4 animate-spin' />
+                <span>Loading books...</span>
+              </div>
+            ) : (
+              <BibleBookMultiSelectPopover
+                books={availableBooks ?? []}
+                disabled={!formData.sourceBible}
+                value={formData.books}
+                onChange={newBooks => setFormData(prev => ({ ...prev, books: newBooks }))}
+              />
+            )}
+          </div>
+
+          <div className='flex items-center justify-end pt-4'>
+            {error && (
+              <div className='mr-4 flex w-full items-center justify-center gap-2'>
+                <TriangleAlert className='h-4 w-4 text-red-500' />
+                <p className='text-sm font-medium text-red-600'>Error: Project not created.</p>
+              </div>
+            )}
+
+            <Button
+              className='bg-primary hover:bg-primary/90 text-white hover:cursor-pointer'
+              disabled={isButtonDisabled}
+              type='button'
+              onClick={handleSubmit}
+            >
+              {isLoading ? (
+                <div className='flex items-center gap-2'>
+                  <Loader2 className='h-4 w-4 animate-spin' />
+                  <span>Creating...</span>
+                </div>
+              ) : (
+                t('createProject')
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };

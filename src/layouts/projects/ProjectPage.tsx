@@ -28,13 +28,7 @@ interface ProjectsPageProps {
   projects: Project[];
   loading?: boolean;
   onCreateProject: () => void;
-  onProjectSelect: (
-    projectId: number,
-    projectTitle: string,
-    projectSourceLanguageName: string,
-    projectTargetLanguageName: string,
-    projectSource: string
-  ) => void;
+  onProjectSelect: (projectId: number) => void;
 }
 
 const ProjectProgressBar: React.FC<{ project: Project }> = ({ project }) => {
@@ -200,22 +194,9 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
     return sorted.filter(project => project.statusChip?.filterValue === statusFilter);
   }, [projects, sortBy, statusFilter]);
 
-  const handleRowClick = (
-    projectId: number,
-    projectTitle: string,
-    projectSourceLanguageName: string,
-    projectTargetLanguageName: string,
-    projectSource: string
-  ) => {
-    onProjectSelect(
-      projectId,
-      projectTitle,
-      projectSourceLanguageName,
-      projectTargetLanguageName,
-      projectSource
-    );
+  const handleRowClick = (project: Project) => {
+    onProjectSelect(project.id);
   };
-
   return (
     <div className='flex h-full flex-col'>
       <div className='mb-6 flex-shrink-0'>
@@ -283,15 +264,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                       <TableRow
                         key={project.id}
                         className='cursor-pointer border-b transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
-                        onClick={() =>
-                          handleRowClick(
-                            project.id,
-                            project.name,
-                            project.sourceName,
-                            project.sourceLanguageName,
-                            project.targetLanguageName
-                          )
-                        }
+                        onClick={() => handleRowClick(project)}
                       >
                         <TableCell
                           className='text-popover-foreground px-6 py-4 text-sm whitespace-nowrap'

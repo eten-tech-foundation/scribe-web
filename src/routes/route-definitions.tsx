@@ -1,24 +1,43 @@
-import { createRootRoute, createRoute } from '@tanstack/react-router';
+import { createRootRoute, createRoute, redirect } from '@tanstack/react-router';
 
 import { App } from '@/app';
-import { RoleBasedHomePage } from '@/components/RoleBasedHomePage';
 import { AppInsightsTestPage } from '@/layouts/app-insights-test';
 import DraftingPage from '@/layouts/bible/DraftingPage';
 import { translationLoader } from '@/layouts/bible/TranslationLoader';
+import { UserDashboard } from '@/layouts/dashboard/user';
 import { PrivacyPolicyPage } from '@/layouts/legal/PrivacyPolicyPage';
 import { TermsOfUsePage } from '@/layouts/legal/TermsOfUsePage';
-import { ProjectsWrapper } from '@/layouts/projects';
+import { CreateProjectPage } from '@/layouts/projects/CreateProjectPage';
+import { ExportProjectWrapper } from '@/layouts/projects/ExportProjectWrapper';
+import { ProjectsWrapper } from '@/layouts/projects/index';
+import { ProjectDetailWrapper } from '@/layouts/projects/ProjectDetailWrapper';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 import { UsersWrapper } from '@/layouts/users/UsersWrapper';
+import { UserRole } from '@/lib/types';
+import { hydrationPromise, useAppStore } from '@/store/store';
 
 export const rootRoute = createRootRoute({
   component: App,
+  validateSearch: (search: Record<string, unknown>): { modal?: 'settings' | 'profile' } => {
+    const modal = search.modal;
+    if (modal === 'settings' || modal === 'profile') {
+      return { modal };
+    }
+    return {};
+  },
 });
 
 export const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: RoleBasedHomePage,
+  beforeLoad: async () => {
+    await hydrationPromise;
+    const { userdetail } = useAppStore.getState();
+    if (userdetail?.role === UserRole.PROJECT_MANAGER) {
+      throw redirect({ to: '/projects' });
+    }
+  },
+  component: UserDashboard,
 });
 
 export const tailwindTestRoute = createRoute({
@@ -35,7 +54,19 @@ export const appInsightsTestRoute = createRoute({
 
 export const userListRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/user-list',
+  path: '/users',
+  component: UsersWrapper,
+});
+
+export const addUserRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/users/add',
+  component: UsersWrapper,
+});
+
+export const editUserRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/users/$userId/edit',
   component: UsersWrapper,
 });
 
@@ -45,14 +76,30 @@ export const projectsRoute = createRoute({
   component: ProjectsWrapper,
 });
 
+export const createProjectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/projects/create',
+  component: CreateProjectPage,
+});
+
+export const projectDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/projects/$projectId',
+  component: ProjectDetailWrapper,
+});
+
+export const exportProjectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/projects/$projectId/export',
+  component: ExportProjectWrapper,
+});
+
 export const translationRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/translation/$bookId/$chapterNumber',
-  validateSearch: (search: Record<string, unknown>) => {
-    return {
-      t: (search.t as string) || undefined,
-    };
-  },
+  validateSearch: (search: Record<string, unknown>) => ({
+    t: (search.t as string) || undefined,
+  }),
   loader: translationLoader,
   component: DraftingPage,
   gcTime: 0,
@@ -62,11 +109,9 @@ export const translationRoute = createRoute({
 export const viewResourceRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/view/$bookId/$chapterNumber',
-  validateSearch: (search: Record<string, unknown>) => {
-    return {
-      t: (search.t as string) || undefined,
-    };
-  },
+  validateSearch: (search: Record<string, unknown>) => ({
+    t: (search.t as string) || undefined,
+  }),
   loader: translationLoader,
   component: DraftingPage,
   gcTime: 0,

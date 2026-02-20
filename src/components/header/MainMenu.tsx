@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useAuth } from '@/hooks/useAuth';
+import { UserRole } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 import MenuItem from './MenuItem';
@@ -32,7 +33,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
     return null;
   }
   const isDashboardActive = location.pathname === '/';
-  const isUsersActive = location.pathname === '/user-list';
+  const isUsersActive = location.pathname === '/users';
   const isProjectsActive = location.pathname === '/projects';
 
   return (
@@ -53,7 +54,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
             onClick={onDashboardClick}
             onClosePopover={() => setOpen(false)}
           />
-          {userdetail?.role === 1 && (
+          {userdetail?.role === UserRole.PROJECT_MANAGER && (
             <>
               <MenuItem
                 icon={<Kanban size={18} />}

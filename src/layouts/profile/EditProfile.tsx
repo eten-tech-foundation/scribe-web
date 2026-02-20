@@ -6,13 +6,16 @@ import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 interface EditProfileProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export function EditProfile({ isOpen, onClose }: EditProfileProps) {
   const { userdetail, setUserDetail } = useAppStore();
   const updateUserMutation = useUpdateUser();
+
+  const isModalOpen = isOpen ?? true;
+  const handleClose = onClose ?? (() => window.history.back());
 
   const handleSaveUser = async (userData: User | Omit<User, 'id'>) => {
     try {
@@ -32,7 +35,7 @@ export function EditProfile({ isOpen, onClose }: EditProfileProps) {
         status: res.status,
       });
 
-      onClose();
+      handleClose();
     } catch (error) {
       Logger.logException(error instanceof Error ? error : new Error(String(error)), {
         source: 'Failed to update user profile',
@@ -45,10 +48,10 @@ export function EditProfile({ isOpen, onClose }: EditProfileProps) {
       <UserModal
         disableRoleSelection={true}
         isLoading={updateUserMutation.isPending}
-        isOpen={isOpen}
+        isOpen={isModalOpen}
         mode={'edit'}
         user={userdetail}
-        onClose={onClose}
+        onClose={handleClose}
         onSave={handleSaveUser}
       />
     </ProtectedRoute>

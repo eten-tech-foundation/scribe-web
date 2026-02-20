@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 
-import { Outlet, useLocation } from '@tanstack/react-router';
+import { Outlet, useLocation, useNavigate, useSearch } from '@tanstack/react-router';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { SettingsModal } from '@/components/SettingsModal';
 import { useAuth } from '@/hooks/useAuth';
 import { useGetUserDetailsMutation, useUpdateUser } from '@/hooks/useUsers';
 import Header from '@/layouts/header';
+import { EditProfile } from '@/layouts/profile/EditProfile';
 import { Logger } from '@/lib/services/logger';
 import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
@@ -15,6 +17,8 @@ const PUBLIC_ROUTES = ['/legal/privacy', '/legal/terms'];
 
 export function App() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { modal } = useSearch({ from: '__root__' });
   const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth();
   const { mutate: fetchUserDetails, isPending: isFetchingUserDetails } =
     useGetUserDetailsMutation();
@@ -25,6 +29,14 @@ export function App() {
   const [fetchInitiated, setFetchInitiated] = useState(false);
 
   const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
+
+  const handleModalClose = () => {
+    void navigate({
+      to: location.pathname,
+      search: {},
+      replace: true,
+    });
+  };
 
   useEffect(() => {
     Logger.logEvent('AppStarted', {
@@ -177,6 +189,9 @@ export function App() {
         <Header />
         <main className='flex-1 overflow-hidden p-4'>
           <Outlet />
+
+          <SettingsModal isOpen={modal === 'settings'} onClose={handleModalClose} />
+          <EditProfile isOpen={modal === 'profile'} onClose={handleModalClose} />
         </main>
       </div>
     </ErrorBoundary>
