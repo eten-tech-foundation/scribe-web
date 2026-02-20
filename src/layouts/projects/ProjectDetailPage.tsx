@@ -29,6 +29,7 @@ import { getStatusDisplay } from '@/lib/formatters';
 import { UserRole, type ChapterAssignmentStatus, type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
+import { AssignProjectUsers } from './AssignProjectUsers';
 import { AssignUsersDialog } from './AssignUsersDialog';
 import { ExportProjectDialog } from './ExportProjectDialog';
 
@@ -343,8 +344,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       />
 
       <div className='flex flex-1 overflow-hidden md:gap-4 lg:gap-6'>
-        {/* Project Details Card - Exactly 1/4 width */}
-        <div className='w-1/4 flex-shrink-0'>
+        {/* Left Pane - Project Details + Project Users */}
+        <div className='flex w-1/4 flex-shrink-0 flex-col gap-4'>
+          {/* Project Details Card */}
           <Card className='h-fit'>
             <CardContent className='space-y-4 py-4'>
               <div className='grid grid-cols-2 gap-2'>
@@ -367,9 +369,19 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               </div>
             </CardContent>
           </Card>
+
+          {/* Project Users Section - Managers only */}
+          {userdetail?.role === 1 && (
+            <AssignProjectUsers
+              email={userdetail.email}
+              projectId={projectId as number}
+              users={users}
+              usersLoading={usersLoading}
+            />
+          )}
         </div>
 
-        {/* Table Section - Exactly 2/3 width */}
+        {/* Table Section - Exactly 3/4 width */}
         <div className='flex w-3/4 flex-grow flex-col overflow-hidden'>
           <div className='flex-shrink-0 pb-4 pl-[3px]'>
             <div className='flex items-center gap-3'>
@@ -401,7 +413,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             </div>
           </div>
 
-          {/* Table Container with proper 2/3 width containment */}
+          {/* Table Container */}
           <div className='flex h-full flex-col overflow-hidden rounded-lg border'>
             {assignmentsLoading ? (
               <div className='flex items-center justify-center gap-2 py-8'>

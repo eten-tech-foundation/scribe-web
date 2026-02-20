@@ -35,7 +35,13 @@ interface AssignUsersDialogProps {
   selectedAssignmentsStatuses: string[];
 }
 
-const TruncatedDropdownText = ({ text, className }: { text: string; className?: string }) => {
+export const TruncatedDropdownText = ({
+  text,
+  className,
+}: {
+  text: string;
+  className?: string;
+}) => {
   const textRef = useRef<HTMLDivElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
 
