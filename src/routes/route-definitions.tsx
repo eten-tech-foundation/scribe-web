@@ -1,10 +1,10 @@
-import { createRootRoute, createRoute } from '@tanstack/react-router';
+import { createRootRoute, createRoute, redirect } from '@tanstack/react-router';
 
 import { App } from '@/app';
-import { RoleBasedHomePage } from '@/components/RoleBasedHomePage';
 import { AppInsightsTestPage } from '@/layouts/app-insights-test';
 import DraftingPage from '@/layouts/bible/DraftingPage';
 import { translationLoader } from '@/layouts/bible/TranslationLoader';
+import { UserDashboard } from '@/layouts/dashboard/user';
 import { PrivacyPolicyPage } from '@/layouts/legal/PrivacyPolicyPage';
 import { TermsOfUsePage } from '@/layouts/legal/TermsOfUsePage';
 import { CreateProjectPage } from '@/layouts/projects/CreateProjectPage';
@@ -13,6 +13,8 @@ import { ProjectsWrapper } from '@/layouts/projects/index';
 import { ProjectDetailWrapper } from '@/layouts/projects/ProjectDetailWrapper';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 import { UsersWrapper } from '@/layouts/users/UsersWrapper';
+import { UserRole } from '@/lib/types';
+import { hydrationPromise, useAppStore } from '@/store/store';
 
 export const rootRoute = createRootRoute({
   component: App,
@@ -28,7 +30,14 @@ export const rootRoute = createRootRoute({
 export const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: RoleBasedHomePage,
+  beforeLoad: async () => {
+    await hydrationPromise;
+    const { userdetail } = useAppStore.getState();
+    if (userdetail?.role === UserRole.PROJECT_MANAGER) {
+      throw redirect({ to: '/projects' });
+    }
+  },
+  component: UserDashboard,
 });
 
 export const tailwindTestRoute = createRoute({
