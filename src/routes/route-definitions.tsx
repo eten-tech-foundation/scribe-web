@@ -2,13 +2,11 @@ import { createRootRoute, createRoute } from '@tanstack/react-router';
 
 import { App } from '@/app';
 import { RoleBasedHomePage } from '@/components/RoleBasedHomePage';
-import { SettingsModal } from '@/components/SettingsModal';
 import { AppInsightsTestPage } from '@/layouts/app-insights-test';
 import DraftingPage from '@/layouts/bible/DraftingPage';
 import { translationLoader } from '@/layouts/bible/TranslationLoader';
 import { PrivacyPolicyPage } from '@/layouts/legal/PrivacyPolicyPage';
 import { TermsOfUsePage } from '@/layouts/legal/TermsOfUsePage';
-import { EditProfile } from '@/layouts/profile/EditProfile';
 import { CreateProjectPage } from '@/layouts/projects/CreateProjectPage';
 import { ExportProjectWrapper } from '@/layouts/projects/ExportProjectWrapper';
 import { ProjectsWrapper } from '@/layouts/projects/index';
@@ -18,6 +16,13 @@ import { UsersWrapper } from '@/layouts/users/UsersWrapper';
 
 export const rootRoute = createRootRoute({
   component: App,
+  validateSearch: (search: Record<string, unknown>): { modal?: 'settings' | 'profile' } => {
+    const modal = search.modal;
+    if (modal === 'settings' || modal === 'profile') {
+      return { modal };
+    }
+    return {};
+  },
 });
 
 export const indexRoute = createRoute({
@@ -83,11 +88,9 @@ export const exportProjectRoute = createRoute({
 export const translationRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/translation/$bookId/$chapterNumber',
-  validateSearch: (search: Record<string, unknown>) => {
-    return {
-      t: (search.t as string) || undefined,
-    };
-  },
+  validateSearch: (search: Record<string, unknown>) => ({
+    t: (search.t as string) || undefined,
+  }),
   loader: translationLoader,
   component: DraftingPage,
   gcTime: 0,
@@ -97,11 +100,9 @@ export const translationRoute = createRoute({
 export const viewResourceRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/view/$bookId/$chapterNumber',
-  validateSearch: (search: Record<string, unknown>) => {
-    return {
-      t: (search.t as string) || undefined,
-    };
-  },
+  validateSearch: (search: Record<string, unknown>) => ({
+    t: (search.t as string) || undefined,
+  }),
   loader: translationLoader,
   component: DraftingPage,
   gcTime: 0,
@@ -118,16 +119,4 @@ export const termsOfUseRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/legal/terms',
   component: TermsOfUsePage,
-});
-
-export const profileRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/profile',
-  component: EditProfile,
-});
-
-export const settingsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/settings',
-  component: SettingsModal,
 });

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useNavigate } from '@tanstack/react-router';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { Menu, SquareUserRound } from 'lucide-react';
 
 import MainMenu from '@/components/header/MainMenu';
@@ -8,6 +8,7 @@ import UserMenu from '@/components/header/UserMenu';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const onNavigateToDashboard = () => {
     void navigate({ to: '/' });
@@ -20,12 +21,18 @@ const Header: React.FC = () => {
   const onNavigateToProjects = () => {
     void navigate({ to: '/projects' });
   };
-
   const handleEditProfile = () => {
-    void navigate({ to: '/profile' });
+    void navigate({
+      to: location.pathname,
+      search: { modal: 'profile' as const },
+    });
   };
+
   const onNavigateToSettings = () => {
-    void navigate({ to: '/settings' });
+    void navigate({
+      to: location.pathname,
+      search: { modal: 'settings' as const },
+    });
   };
 
   return (

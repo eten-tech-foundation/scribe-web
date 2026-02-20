@@ -1,3 +1,5 @@
+import React from 'react';
+
 import {
   Dialog,
   DialogContent,
@@ -7,14 +9,14 @@ import {
 } from '@/components/ui/dialog';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
-export const SettingsModal: React.FC = () => {
-  const isModalOpen = true;
-  const handleClose = () => {
-    window.history.back();
-  };
+interface SettingsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   return (
-    <Dialog open={isModalOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className='sm:max-w-[500px]'>
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
