@@ -9,6 +9,7 @@ import { useProjectUnitBooks } from '@/hooks/useProjectUnitBooks';
 import { useAppStore } from '@/store/store';
 
 import { ExportProjectDialog } from './ExportProjectDialog';
+import { ProjectDetailPage } from './ProjectDetailPage';
 
 export const ExportProjectWrapper: React.FC = () => {
   const { projectId } = useParams({ from: '/projects/$projectId/export' });
@@ -61,6 +62,10 @@ export const ExportProjectWrapper: React.FC = () => {
     void navigate({ to: '/projects/$projectId', params: { projectId } });
   };
 
+  const handleBack = () => {
+    void navigate({ to: '/projects' });
+  };
+
   const isLoading = projectLoading || assignmentsLoading || booksLoading;
 
   if (projectLoading) {
@@ -83,13 +88,26 @@ export const ExportProjectWrapper: React.FC = () => {
   }
 
   return (
-    <ExportProjectDialog
-      books={exportBooks}
-      isLoading={isLoading}
-      isOpen={true}
-      projectName={project.name}
-      projectUnitId={projectUnitId}
-      onClose={handleClose}
-    />
+    <>
+      <div className='pointer-events-none opacity-50 select-none'>
+        <ProjectDetailPage
+          projectId={project.id}
+          projectSource={project.sourceName}
+          projectSourceLanguageName={project.sourceLanguageName}
+          projectTargetLanguageName={project.targetLanguageName}
+          projectTitle={project.name}
+          onBack={handleBack}
+          onExport={handleClose}
+        />
+      </div>
+      <ExportProjectDialog
+        books={exportBooks}
+        isLoading={isLoading}
+        isOpen={true}
+        projectName={project.name}
+        projectUnitId={projectUnitId}
+        onClose={handleClose}
+      />
+    </>
   );
 };
