@@ -12,6 +12,13 @@ export interface User {
   isActive?: boolean;
 }
 
+export interface WorkflowStep {
+  id: string;
+  label: string;
+}
+
+export type ChapterStatusCounts = Record<string, number>;
+
 export interface Project {
   id: number;
   name: string;
@@ -24,6 +31,9 @@ export interface Project {
   metadata: Record<string, unknown>;
   sourceLanguageName: string;
   targetLanguageName: string;
+  lastChapterActivity: string;
+  chapterStatusCounts: ChapterStatusCounts;
+  workflowConfig: WorkflowStep[];
 }
 
 export interface CreateProject {
@@ -228,3 +238,14 @@ export enum UserRole {
   PROJECT_MANAGER = 1,
   TRANSLATOR = 2,
 }
+
+export const ChapterAssignmentStatusDisplay: Record<ChapterAssignmentStatus, string> = {
+  [ChapterAssignmentStatus.NOT_STARTED]: 'Not Started',
+  [ChapterAssignmentStatus.DRAFT]: 'Draft',
+  [ChapterAssignmentStatus.PEER_CHECK]: 'Peer Check',
+  [ChapterAssignmentStatus.COMMUNITY_REVIEW]: 'Community Review',
+};
+
+export type SortOption = 'recent' | 'title' | 'targetLanguage';
+
+export type StatusFilter = 'all' | 'potentially_stalled' | 'not_assigned';

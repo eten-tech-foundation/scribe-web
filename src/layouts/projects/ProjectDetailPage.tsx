@@ -25,7 +25,8 @@ import { useAssignChapters, useChapterAssignments } from '@/hooks/useChapterAssi
 import { useProjectUnitBooks } from '@/hooks/useProjectUnitBooks';
 import { useUsers } from '@/hooks/useUsers';
 import { ViewPageHeader } from '@/layouts/projects/ViewPageHeader';
-import { type User } from '@/lib/types';
+import { getStatusDisplay } from '@/lib/formatters';
+import { UserRole, type ChapterAssignmentStatus, type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 import { AssignUsersDialog } from './AssignUsersDialog';
@@ -272,7 +273,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
   const availablePeerCheckers = useMemo(() => {
     if (!users) return [];
-    return users.filter((user: User) => user.role === 2 && user.id.toString() !== selectedDrafter);
+    return users.filter(
+      (user: User) => user.role === UserRole.TRANSLATOR && user.id.toString() !== selectedDrafter
+    );
   }, [users, selectedDrafter]);
 
   if (!projectId) {
@@ -314,8 +317,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       />
 
       <div className='flex flex-1 overflow-hidden md:gap-4 lg:gap-6'>
-        {/* Project Details Card - Exactly 1/3 width */}
-        <div className='w-1/3 flex-shrink-0'>
+        {/* Project Details Card - Exactly 1/4 width */}
+        <div className='w-1/4 flex-shrink-0'>
           <Card className='h-fit'>
             <CardContent className='space-y-4 py-4'>
               <div className='grid grid-cols-2 gap-2'>
@@ -341,7 +344,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         </div>
 
         {/* Table Section - Exactly 2/3 width */}
-        <div className='flex w-2/3 flex-grow flex-col overflow-hidden'>
+        <div className='flex w-3/4 flex-grow flex-col overflow-hidden'>
           <div className='flex-shrink-0 pb-4 pl-[3px]'>
             <div className='flex items-center gap-3'>
               <Select value={selectedBook} onValueChange={setSelectedBook}>
@@ -393,19 +396,25 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                   <Table className='w-full table-fixed'>
                     <TableHeader className='sticky top-0 z-10'>
                       <TableRow className='hover:bg-transparent'>
-                        <TableHead className='w-12 px-6 py-3'>
+                        <TableHead className='w-12 px-3 py-2 md:px-4 md:py-2.5 lg:px-6 lg:py-3'>
                           <></>
                         </TableHead>
-                        <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
+                        <TableHead className='text-accent-foreground px-3 py-2 text-left text-xs font-semibold tracking-wider md:px-4 md:py-2.5 md:text-sm lg:px-6 lg:py-3 lg:text-base'>
                           Book
                         </TableHead>
-                        <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
+                        <TableHead className='text-accent-foreground px-3 py-2 text-left text-xs font-semibold tracking-wider md:px-4 md:py-2.5 md:text-sm lg:px-6 lg:py-3 lg:text-base'>
                           Chapter
                         </TableHead>
-                        <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
-                          Assigned
+                        <TableHead className='text-accent-foreground px-3 py-2 text-left text-xs font-semibold tracking-wider md:px-4 md:py-2.5 md:text-sm lg:px-6 lg:py-3 lg:text-base'>
+                          Drafter
                         </TableHead>
-                        <TableHead className='text-accent-foreground w-1/4 px-6 py-3 text-left text-base font-semibold tracking-wider'>
+                        <TableHead className='text-accent-foreground px-3 py-2 text-left text-xs font-semibold tracking-wider md:px-4 md:py-2.5 md:text-sm lg:px-6 lg:py-3 lg:text-base'>
+                          <TruncatedTableText text='Peer Checker' />
+                        </TableHead>
+                        <TableHead className='text-accent-foreground px-3 py-2 text-left text-xs font-semibold tracking-wider md:px-4 md:py-2.5 md:text-sm lg:px-6 lg:py-3 lg:text-base'>
+                          Status
+                        </TableHead>
+                        <TableHead className='text-accent-foreground px-3 py-2 text-left text-xs font-semibold tracking-wider md:px-4 md:py-2.5 md:text-sm lg:px-6 lg:py-3 lg:text-base'>
                           Progress
                         </TableHead>
                       </TableRow>
@@ -420,7 +429,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                             key={assignment.assignmentId}
                             className='align-center cursor-pointer border-b transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
                           >
-                            <TableCell className='w-12 px-6 py-4'>
+                            <TableCell className='w-12 px-3 py-3 md:px-4 md:py-3.5 lg:px-6 lg:py-4'>
                               <Checkbox
                                 checked={selectedAssignments.includes(assignment.assignmentId)}
                                 disabled={isLoadingData}
@@ -429,17 +438,17 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                                 }
                               />
                             </TableCell>
-                            <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
+                            <TableCell className='text-popover-foreground px-3 py-3 text-xs md:px-4 md:py-3.5 md:text-sm lg:px-6 lg:py-4 lg:text-base'>
                               <TruncatedTableText text={assignment.bookNameEng} />
                             </TableCell>
-                            <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base whitespace-nowrap'>
+                            <TableCell className='text-popover-foreground px-3 py-3 text-xs whitespace-nowrap md:px-4 md:py-3.5 md:text-sm lg:px-6 lg:py-4 lg:text-base'>
                               {assignment.chapterNumber}
                             </TableCell>
-                            <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
+                            <TableCell className='text-popover-foreground px-3 py-3 text-xs md:px-4 md:py-3.5 md:text-sm lg:px-6 lg:py-4 lg:text-base'>
                               {isUpdatingThisAssignment ? (
-                                <div className='flex items-center gap-2'>
+                                <div className='flex items-center gap-1.5 md:gap-2'>
                                   <span>Loading...</span>
-                                  <Loader2 className='h-4 w-4 animate-spin' />
+                                  <Loader2 className='h-3 w-3 animate-spin md:h-4 md:w-4' />
                                 </div>
                               ) : (
                                 <TruncatedTableText
@@ -447,7 +456,26 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                                 />
                               )}
                             </TableCell>
-                            <TableCell className='text-popover-foreground w-1/4 px-6 py-4 text-base'>
+                            <TableCell className='text-popover-foreground px-3 py-3 text-xs md:px-4 md:py-3.5 md:text-sm lg:px-6 lg:py-4 lg:text-base'>
+                              {isUpdatingThisAssignment ? (
+                                <div className='flex items-center gap-1.5 md:gap-2'>
+                                  <span>Loading...</span>
+                                  <Loader2 className='h-3 w-3 animate-spin md:h-4 md:w-4' />
+                                </div>
+                              ) : (
+                                <TruncatedTableText
+                                  text={assignment.peerChecker?.displayName ?? ''}
+                                />
+                              )}
+                            </TableCell>
+                            <TableCell className='text-popover-foreground px-3 py-3 text-xs whitespace-nowrap md:px-4 md:py-3.5 md:text-sm lg:px-6 lg:py-4 lg:text-base'>
+                              <TruncatedTableText
+                                text={getStatusDisplay(
+                                  assignment.status as ChapterAssignmentStatus
+                                )}
+                              />
+                            </TableCell>
+                            <TableCell className='text-popover-foreground px-3 py-3 text-xs md:px-4 md:py-3.5 md:text-sm lg:px-6 lg:py-4 lg:text-base'>
                               <TruncatedTableText
                                 text={formatProgress(
                                   assignment.completedVerses,
