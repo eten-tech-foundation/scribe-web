@@ -18,7 +18,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ChapterAssignmentStatus, UserRole, type User } from '@/lib/types';
+import { type ProjectUser } from '@/hooks/useProjectUsers';
+import { ChapterAssignmentStatus } from '@/lib/types';
 
 interface AssignUsersDialogProps {
   isOpen: boolean;
@@ -27,8 +28,9 @@ interface AssignUsersDialogProps {
   selectedPeerChecker: string;
   onDrafterChange: (value: string) => void;
   onPeerCheckerChange: (value: string) => void;
-  users: User[] | undefined;
-  availablePeerCheckers: User[];
+  allProjectUsers: ProjectUser[];
+  projectUsers: ProjectUser[];
+  availablePeerCheckers: ProjectUser[];
   usersLoading: boolean;
   isAssigning: boolean;
   onAssign: () => void;
@@ -88,7 +90,8 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
   selectedPeerChecker,
   onDrafterChange,
   onPeerCheckerChange,
-  users,
+  allProjectUsers,
+  projectUsers,
   availablePeerCheckers,
   usersLoading,
   isAssigning,
@@ -103,7 +106,6 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
   );
 
   const isDrafterDisabled = hasPeerCheckStatus || hasCommunityReviewStatus;
-
   const isPeerCheckerDisabled = hasCommunityReviewStatus;
 
   return (
@@ -112,6 +114,8 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Assign Users</DialogTitle>
         </DialogHeader>
+
+        {/* Drafter */}
         <div>
           <div className='mt-1 mb-2 flex items-center gap-1'>
             <span className='text-sm text-red-500'>*</span>
@@ -128,7 +132,10 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
                   <div className='flex w-full'>
                     <TruncatedDropdownText
                       className='w-full max-w-[280px] text-left sm:max-w-[350px]'
-                      text={users?.find(u => u.id.toString() === selectedDrafter)?.username ?? ''}
+                      text={
+                        allProjectUsers.find(pu => pu.userId.toString() === selectedDrafter)
+                          ?.displayName ?? ''
+                      }
                     />
                   </div>
                 ) : (
@@ -143,18 +150,18 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {users
-                ?.filter((user: User) => user.role === UserRole.TRANSLATOR)
-                .map((user: User) => (
-                  <SelectItem key={user.id} value={user.id.toString()}>
-                    <div className='w-[250px] sm:w-[350px]'>
-                      <TruncatedDropdownText text={user.username} />
-                    </div>
-                  </SelectItem>
-                ))}
+              {projectUsers.map(pu => (
+                <SelectItem key={pu.userId} value={pu.userId.toString()}>
+                  <div className='w-[250px] sm:w-[350px]'>
+                    <TruncatedDropdownText text={pu.displayName} />
+                  </div>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
+
+        {/* Peer Checker */}
         <div>
           <div className='mb-2 flex items-center gap-1'>
             <span className='text-sm text-red-500'>*</span>
@@ -172,7 +179,8 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
                     <TruncatedDropdownText
                       className='w-full max-w-[280px] text-left sm:max-w-[350px]'
                       text={
-                        users?.find(u => u.id.toString() === selectedPeerChecker)?.username ?? ''
+                        allProjectUsers.find(pu => pu.userId.toString() === selectedPeerChecker)
+                          ?.displayName ?? ''
                       }
                     />
                   </div>
@@ -188,16 +196,17 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {availablePeerCheckers.map((user: User) => (
-                <SelectItem key={user.id} value={user.id.toString()}>
+              {availablePeerCheckers.map(pu => (
+                <SelectItem key={pu.userId} value={pu.userId.toString()}>
                   <div className='w-[250px] sm:w-[350px]'>
-                    <TruncatedDropdownText text={user.username} />
+                    <TruncatedDropdownText text={pu.displayName} />
                   </div>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
+
         <DialogFooter className='flex gap-2'>
           <Button
             disabled={!selectedDrafter || !selectedPeerChecker || usersLoading || isAssigning}

@@ -93,17 +93,17 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
     <>
       <div className='flex flex-col'>
         {/* Title row */}
-        <div className='mb-1 flex items-center justify-between'>
-          <h3 className='text-base font-bold'>Project Users</h3>
+        <div className='mb-3 flex items-center justify-between'>
+          <h3 className='text-base text-lg font-bold'>Project Users</h3>
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  className='bg-primary h-8 w-8 rounded-md p-0 text-white'
+                  className='bg-primary h-8 w-8 rounded-sm p-0 text-white'
                   size='sm'
                   onClick={handleOpenAddDialog}
                 >
-                  <Plus className='h-4 w-4' />
+                  <Plus className='h-4 w-4' strokeWidth={2} />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side='top'>Add user to project</TooltipContent>
@@ -122,15 +122,15 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
         {/* Users table */}
         <Card>
           <CardContent className='p-0'>
-            <div className='max-h-[220px] overflow-y-auto'>
+            <div className='max-h-[235px] overflow-y-auto'>
               <Table>
-                <TableHeader>
+                <TableHeader className='sticky top-0 z-10'>
                   <TableRow className='hover:bg-transparent'>
                     <TableHead className='py-2 pl-3 text-sm font-semibold'>Name</TableHead>
                     <TableHead className='w-10 py-2 pr-3' />
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className='bg-white'>
                   {projectUsersLoading ? (
                     <TableRow>
                       <TableCell className='py-4 text-center' colSpan={2}>
@@ -152,7 +152,7 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
-                                  className='h-7 w-7 p-0 text-gray-400 hover:text-red-500'
+                                  className='h-7 w-7 p-0 hover:text-red-500'
                                   disabled={removeProjectUserMutation.isPending}
                                   size='sm'
                                   variant='ghost'
@@ -161,7 +161,7 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
                                   <Trash2 className='h-4 w-4' />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent side='left'>Remove user from project</TooltipContent>
+                              <TooltipContent side='top'>Remove user from project</TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </TableCell>

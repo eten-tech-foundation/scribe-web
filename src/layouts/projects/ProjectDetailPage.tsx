@@ -23,10 +23,11 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAssignChapters, useChapterAssignments } from '@/hooks/useChapterAssignment';
 import { useProjectUnitBooks } from '@/hooks/useProjectUnitBooks';
+import { useProjectUsers } from '@/hooks/useProjectUsers';
 import { useUsers } from '@/hooks/useUsers';
 import { ViewPageHeader } from '@/layouts/projects/ViewPageHeader';
 import { getStatusDisplay } from '@/lib/formatters';
-import { UserRole, type ChapterAssignmentStatus, type User } from '@/lib/types';
+import { UserRole, type ChapterAssignmentStatus } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 import { AssignProjectUsers } from './AssignProjectUsers';
@@ -178,13 +179,33 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
   const { data: users, isLoading: usersLoading } = useUsers(userdetail?.email ?? '');
 
+  const { data: projectUsers, isLoading: projectUsersLoading } = useProjectUsers(
+    projectId ?? 0,
+    userdetail?.email ?? '',
+    { enabled: !!projectId && !!userdetail?.email }
+  );
+
+  const projectTranslators = useMemo(() => {
+    if (!projectUsers) return [];
+    return projectUsers.filter(
+      pu => pu.roleID === UserRole.TRANSLATOR && pu.userId.toString() !== selectedPeerChecker
+    );
+  }, [projectUsers, selectedPeerChecker]);
+
+  const availablePeerCheckers = useMemo(() => {
+    if (!projectUsers) return [];
+    return projectUsers.filter(
+      pu => pu.roleID === UserRole.TRANSLATOR && pu.userId.toString() !== selectedDrafter
+    );
+  }, [projectUsers, selectedDrafter]);
+
   const getSelectedUserFullName = useCallback(
     (userId: string) => {
-      if (!userId || !users) return '';
-      const user = users.find((u: User) => u.id.toString() === userId);
-      return user ? `${user.firstName} ${user.lastName}` : '';
+      if (!userId || !projectUsers) return '';
+      const pu = projectUsers.find(p => p.userId.toString() === userId);
+      return pu?.displayName ?? '';
     },
-    [users]
+    [projectUsers]
   );
 
   const assignChapterMutation = useAssignChapters(
@@ -245,20 +266,20 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       setSelectedAssignmentsStatuses(statuses);
 
       if (firstSelectedAssignment) {
-        const drafterUser = users?.find(
-          (u: User) => u.username === firstSelectedAssignment.assignedUser?.displayName
+        const drafterUser = projectUsers?.find(
+          pu => pu.displayName === firstSelectedAssignment.assignedUser?.displayName
         );
-        const peerCheckerUser = users?.find(
-          (u: User) => u.username === firstSelectedAssignment.peerChecker?.displayName
+        const peerCheckerUser = projectUsers?.find(
+          pu => pu.displayName === firstSelectedAssignment.peerChecker?.displayName
         );
 
-        setSelectedDrafter(drafterUser ? drafterUser.id.toString() : '');
-        setSelectedPeerChecker(peerCheckerUser ? peerCheckerUser.id.toString() : '');
+        setSelectedDrafter(drafterUser ? drafterUser.userId.toString() : '');
+        setSelectedPeerChecker(peerCheckerUser ? peerCheckerUser.userId.toString() : '');
       }
 
       setIsDialogOpen(true);
     }
-  }, [selectedAssignments, chapterAssignments, users]);
+  }, [selectedAssignments, chapterAssignments, projectUsers]);
 
   const handleAssignUser = useCallback(async () => {
     if (selectedDrafter && selectedAssignments.length > 0 && userdetail?.email) {
@@ -298,13 +319,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
     );
   }, []);
 
-  const availablePeerCheckers = useMemo(() => {
-    if (!users) return [];
-    return users.filter(
-      (user: User) => user.role === UserRole.TRANSLATOR && user.id.toString() !== selectedDrafter
-    );
-  }, [users, selectedDrafter]);
-
   if (!projectId) {
     return (
       <div className='flex h-full items-center justify-center'>
@@ -314,9 +328,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   }
 
   const headerTitle = `${projectTargetLanguageName} - ${projectTitle}`;
-
   const isLoadingData = assignmentsLoading || assignChapterMutation.isPending;
-
   const isRefreshing = isRefreshingAfterAssignment && assignmentsFetching && !assignmentsLoading;
   const isDisabled = booksLoading || !books?.length || !chapterAssignments?.length;
 
@@ -352,6 +364,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               <div className='grid grid-cols-2 gap-2'>
                 <label className='text-base font-bold'>Title</label>
                 <TruncatedCardText text={projectTitle} />
+
                 <label className='text-base font-bold'>Target Language</label>
                 <p className='text-base font-medium text-gray-600 dark:text-gray-400'>
                   {projectTargetLanguageName}
@@ -371,17 +384,17 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           </Card>
 
           {/* Project Users Section - Managers only */}
-          {userdetail?.role === 1 && (
+          {userdetail?.role === UserRole.PROJECT_MANAGER && (
             <AssignProjectUsers
               email={userdetail.email}
-              projectId={projectId as number}
+              projectId={projectId}
               users={users}
               usersLoading={usersLoading}
             />
           )}
         </div>
 
-        {/* Table Section - Exactly 3/4 width */}
+        {/* Table Section */}
         <div className='flex w-3/4 flex-grow flex-col overflow-hidden'>
           <div className='flex-shrink-0 pb-4 pl-[3px]'>
             <div className='flex items-center gap-3'>
@@ -534,14 +547,15 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       </div>
 
       <AssignUsersDialog
+        allProjectUsers={projectUsers ?? []}
         availablePeerCheckers={availablePeerCheckers}
         isAssigning={assignChapterMutation.isPending}
         isOpen={isDialogOpen}
+        projectUsers={projectTranslators}
         selectedAssignmentsStatuses={selectedAssignmentsStatuses}
         selectedDrafter={selectedDrafter}
         selectedPeerChecker={selectedPeerChecker}
-        users={users}
-        usersLoading={usersLoading}
+        usersLoading={projectUsersLoading}
         onAssign={handleAssignUser}
         onClose={() => setIsDialogOpen(false)}
         onDrafterChange={setSelectedDrafter}

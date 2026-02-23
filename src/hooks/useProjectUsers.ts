@@ -7,6 +7,7 @@ export interface ProjectUser {
   projectId: number;
   userId: number;
   displayName: string;
+  roleID: number;
   addedAt: string | null;
 }
 
