@@ -8,19 +8,19 @@ import DraftingPage from '@/layouts/bible/DraftingPage';
 import { translationLoader } from '@/layouts/bible/TranslationLoader';
 import { PrivacyPolicyPage } from '@/layouts/legal/PrivacyPolicyPage';
 import { TermsOfUsePage } from '@/layouts/legal/TermsOfUsePage';
-import { CreateProjectPage } from '@/layouts/projects/CreateProjectPage';
-import { ExportProjectWrapper } from '@/layouts/projects/ExportProjectWrapper';
 import { ProjectsWrapper } from '@/layouts/projects/index';
 import { ProjectDetailWrapper } from '@/layouts/projects/ProjectDetailWrapper';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 import { UsersWrapper } from '@/layouts/users/UsersWrapper';
 
-export const globalModalSchema = z.enum(['settings', 'profile']);
-export type GlobalModal = z.infer<typeof globalModalSchema>;
+export const modalSchema = z.enum(['settings', 'profile', 'add', 'edit', 'create', 'export']);
+export type ModalType = z.infer<typeof modalSchema>;
 
 export const rootRoute = createRootRoute({
   component: App,
-  validateSearch: z.object({}).parse,
+  validateSearch: z.object({
+    modal: modalSchema.optional(),
+  }).parse,
 });
 
 export const indexRoute = createRoute({
@@ -41,11 +41,8 @@ export const appInsightsTestRoute = createRoute({
   component: AppInsightsTestPage,
 });
 
-export const userModalSchema = z.enum(['add', 'edit']);
-export type UserModal = z.infer<typeof userModalSchema>;
-
 export const userSearchSchema = z.object({
-  modal: z.union([globalModalSchema, userModalSchema]).optional(),
+  modal: modalSchema.optional(),
   userId: z.number().optional(),
 });
 export type UserSearch = z.infer<typeof userSearchSchema>;
@@ -57,28 +54,28 @@ export const userListRoute = createRoute({
   component: UsersWrapper,
 });
 
+export const projectSearchSchema = z.object({
+  modal: modalSchema.optional(),
+});
+export type ProjectSearch = z.infer<typeof projectSearchSchema>;
+
 export const projectsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/projects',
+  validateSearch: projectSearchSchema.parse,
   component: ProjectsWrapper,
 });
 
-export const createProjectRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/projects/create',
-  component: CreateProjectPage,
+export const projectDetailSearchSchema = z.object({
+  modal: modalSchema.optional(),
 });
+export type ProjectDetailSearch = z.infer<typeof projectDetailSearchSchema>;
 
 export const projectDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/projects/$projectId',
+  validateSearch: projectDetailSearchSchema.parse,
   component: ProjectDetailWrapper,
-});
-
-export const exportProjectRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/projects/$projectId/export',
-  component: ExportProjectWrapper,
 });
 
 export const translationRoute = createRoute({

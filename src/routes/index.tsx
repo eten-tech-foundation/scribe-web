@@ -4,8 +4,6 @@ import { type ProjectItem, type User } from '@/lib/types';
 
 import {
   appInsightsTestRoute,
-  createProjectRoute,
-  exportProjectRoute,
   indexRoute,
   privacyPolicyRoute,
   projectDetailRoute,
@@ -24,9 +22,7 @@ const routeTree = rootRoute.addChildren([
   appInsightsTestRoute,
   userListRoute,
   projectsRoute,
-  createProjectRoute,
   projectDetailRoute,
-  exportProjectRoute,
   translationRoute,
   viewResourceRoute,
   privacyPolicyRoute,
