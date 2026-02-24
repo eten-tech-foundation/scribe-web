@@ -3,10 +3,8 @@ import { Router } from '@tanstack/react-router';
 import { type ProjectItem, type User } from '@/lib/types';
 
 import {
-  addUserRoute,
   appInsightsTestRoute,
   createProjectRoute,
-  editUserRoute,
   exportProjectRoute,
   indexRoute,
   privacyPolicyRoute,
@@ -33,8 +31,6 @@ const routeTree = rootRoute.addChildren([
   viewResourceRoute,
   privacyPolicyRoute,
   termsOfUseRoute,
-  addUserRoute,
-  editUserRoute,
 ]);
 
 export const router = new Router({ routeTree });

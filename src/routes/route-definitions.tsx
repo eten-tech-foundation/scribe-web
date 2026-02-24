@@ -1,4 +1,5 @@
 import { createRootRoute, createRoute } from '@tanstack/react-router';
+import { z } from 'zod';
 
 import { App } from '@/app';
 import { RoleBasedHomePage } from '@/components/RoleBasedHomePage';
@@ -14,15 +15,12 @@ import { ProjectDetailWrapper } from '@/layouts/projects/ProjectDetailWrapper';
 import { TailwindTestPage } from '@/layouts/tailwind-test';
 import { UsersWrapper } from '@/layouts/users/UsersWrapper';
 
+export const globalModalSchema = z.enum(['settings', 'profile']);
+export type GlobalModal = z.infer<typeof globalModalSchema>;
+
 export const rootRoute = createRootRoute({
   component: App,
-  validateSearch: (search: Record<string, unknown>): { modal?: 'settings' | 'profile' } => {
-    const modal = search.modal;
-    if (modal === 'settings' || modal === 'profile') {
-      return { modal };
-    }
-    return {};
-  },
+  validateSearch: z.object({}).parse,
 });
 
 export const indexRoute = createRoute({
@@ -43,21 +41,19 @@ export const appInsightsTestRoute = createRoute({
   component: AppInsightsTestPage,
 });
 
+export const userModalSchema = z.enum(['add', 'edit']);
+export type UserModal = z.infer<typeof userModalSchema>;
+
+export const userSearchSchema = z.object({
+  modal: z.union([globalModalSchema, userModalSchema]).optional(),
+  userId: z.number().optional(),
+});
+export type UserSearch = z.infer<typeof userSearchSchema>;
+
 export const userListRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/users',
-  component: UsersWrapper,
-});
-
-export const addUserRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/users/add',
-  component: UsersWrapper,
-});
-
-export const editUserRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/users/$userId/edit',
+  validateSearch: userSearchSchema.parse,
   component: UsersWrapper,
 });
 
@@ -88,9 +84,9 @@ export const exportProjectRoute = createRoute({
 export const translationRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/translation/$bookId/$chapterNumber',
-  validateSearch: (search: Record<string, unknown>) => ({
-    t: (search.t as string) || undefined,
-  }),
+  validateSearch: z.object({
+    t: z.string().optional(),
+  }).parse,
   loader: translationLoader,
   component: DraftingPage,
   gcTime: 0,
@@ -100,9 +96,9 @@ export const translationRoute = createRoute({
 export const viewResourceRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/view/$bookId/$chapterNumber',
-  validateSearch: (search: Record<string, unknown>) => ({
-    t: (search.t as string) || undefined,
-  }),
+  validateSearch: z.object({
+    t: z.string().optional(),
+  }).parse,
   loader: translationLoader,
   component: DraftingPage,
   gcTime: 0,
