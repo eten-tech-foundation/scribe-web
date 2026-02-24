@@ -68,8 +68,9 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
       await addProjectUserMutation.mutateAsync({ userId: parseInt(selectedUserToAdd) });
       setIsAddUserDialogOpen(false);
       setSelectedUserToAdd('');
-    } catch {
-      setError('Error: User not added.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error: User not added.';
+      setError(message);
     }
   }, [selectedUserToAdd, addProjectUserMutation]);
 
@@ -94,7 +95,7 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
       <div className='flex flex-col'>
         {/* Title row */}
         <div className='mb-3 flex items-center justify-between'>
-          <h3 className='text-base text-lg font-bold'>Project Users</h3>
+          <h3 className='text-lg font-bold'>Project Users</h3>
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>

@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { config } from '@/lib/config';
 
 export interface ProjectUser {
-  id: number;
   projectId: number;
   userId: number;
   displayName: string;
@@ -51,10 +50,12 @@ const addProjectUser = async (
     body: JSON.stringify({ userId }),
   });
 
+  // parseErrorMessage always throws on error, so execution only runs on success
   if (!res.ok) {
     await parseErrorMessage(res, 'Failed to add user to project');
   }
 
+  // API always returns JSON on success
   return (await res.json()) as ProjectUser;
 };
 
@@ -133,6 +134,9 @@ export const useRemoveProjectUser = (projectId: number, email: string) => {
       if (context?.previousUsers) {
         queryClient.setQueryData(['projectUsers', projectId, email], context.previousUsers);
       }
+      // re-throw so the error propagates to the mutateAsync caller (handleRemoveProjectUser)
+      // which handles it by showing an error message in the UI.
+      // No global MutationCache onError handler exists in this project so double-reporting is not a concern.
       throw err;
     },
     onSuccess: () => {
