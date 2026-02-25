@@ -104,11 +104,13 @@ export const ProjectDetailWrapper: React.FC = () => {
   return (
     <>
       <ProjectDetailPage
+        projectChapterStatusCounts={project.chapterStatusCounts}
         projectId={project.id}
         projectSource={project.sourceName}
         projectSourceLanguageName={project.sourceLanguageName}
         projectTargetLanguageName={project.targetLanguageName}
         projectTitle={project.name}
+        projectWorkflowConfig={project.workflowConfig}
         onBack={handleBack}
         onExport={handleOpenExport}
       />
