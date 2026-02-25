@@ -134,7 +134,15 @@ const deriveStatusChip = (
 type EnrichedProject = Project & { statusChip: StatusChip };
 
 const StatusChipCell: React.FC<{ chip: StatusChip }> = ({ chip }) => {
-  if (!chip) return null;
+  if (!chip)
+    return (
+      <Badge
+        className='inline-flex items-center rounded-full border-0 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap'
+        style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}
+      >
+        Active
+      </Badge>
+    );
 
   return (
     <Badge
