@@ -22,12 +22,18 @@ import {
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAssignChapters, useChapterAssignments } from '@/hooks/useChapterAssignment';
+import useProgressBar from '@/hooks/useProgressBar';
 import { useProjectUnitBooks } from '@/hooks/useProjectUnitBooks';
 import { useProjectUsers } from '@/hooks/useProjectUsers';
 import { useUsers } from '@/hooks/useUsers';
 import { ViewPageHeader } from '@/layouts/projects/ViewPageHeader';
 import { getStatusDisplay } from '@/lib/formatters';
-import { UserRole, type ChapterAssignmentStatus } from '@/lib/types';
+import {
+  UserRole,
+  type ChapterAssignmentStatus,
+  type ChapterStatusCounts,
+  type WorkflowStep,
+} from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 import { AssignProjectUsers } from './AssignProjectUsers';
@@ -39,10 +45,66 @@ interface ProjectDetailPageProps {
   projectSourceLanguageName: string;
   projectTargetLanguageName: string;
   projectSource: string;
+  projectChapterStatusCounts: ChapterStatusCounts;
+  projectWorkflowConfig: WorkflowStep[];
   onBack?: () => void;
   onExport?: () => void;
 }
 
+const CardProgressBar: React.FC<{
+  chapterStatusCounts: ChapterStatusCounts;
+  workflowConfig: WorkflowStep[];
+}> = ({ chapterStatusCounts, workflowConfig }) => {
+  const { colors, calculateProgressSegments } = useProgressBar(workflowConfig);
+  const segments = calculateProgressSegments(chapterStatusCounts);
+
+  return (
+    <div className='space-y-2'>
+      <TooltipProvider delayDuration={100}>
+        <div className='border-border flex h-6 w-full overflow-hidden border'>
+          {segments.length === 0 ? (
+            <div className='bg-primary/10 h-full w-full' />
+          ) : (
+            segments.map((segment, index) => (
+              <Tooltip key={`${segment.status}-${index}`}>
+                <TooltipTrigger asChild>
+                  <div
+                    className='h-full cursor-default hover:brightness-95'
+                    style={{
+                      width: `${segment.widthPercentage}%`,
+                      backgroundColor: segment.color,
+                    }}
+                  />
+                </TooltipTrigger>
+                <TooltipContent
+                  className='bg-popover text-popover-foreground border-border rounded-md border px-2.5 py-1 text-xs font-semibold shadow-md'
+                  side='top'
+                >
+                  {Math.round(segment.widthPercentage)}%
+                </TooltipContent>
+              </Tooltip>
+            ))
+          )}
+        </div>
+      </TooltipProvider>
+
+      <div className='flex flex-wrap gap-x-2 gap-y-1.5 pt-1'>
+        {[...workflowConfig].reverse().map(step => {
+          const colorInfo = colors[step.id];
+          return (
+            <div key={step.id} className='flex items-center gap-2'>
+              <div
+                className='h-4 w-4 shrink-0 rounded-none'
+                style={{ backgroundColor: colorInfo.rgba }}
+              />
+              <span className='text-muted-foreground text-xs'>{step.label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 const TruncatedCardText = ({ text }: { text: string }) => {
   const textRef = useRef<HTMLDivElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
@@ -148,6 +210,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   projectSourceLanguageName,
   projectTargetLanguageName,
   projectSource,
+  projectChapterStatusCounts,
+  projectWorkflowConfig,
   onBack,
   onExport,
 }) => {
@@ -354,6 +418,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                   {projectSource}
                 </p>
               </div>
+              <CardProgressBar
+                chapterStatusCounts={projectChapterStatusCounts}
+                workflowConfig={projectWorkflowConfig}
+              />
             </CardContent>
           </Card>
 

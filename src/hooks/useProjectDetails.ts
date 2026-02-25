@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { config } from '@/lib/config';
+import { type ChapterStatusCounts, type WorkflowStep } from '@/lib/types';
 
 export interface ProjectDetails {
   id: number;
@@ -14,6 +15,8 @@ export interface ProjectDetails {
   sourceLanguageName: string;
   targetLanguageName: string;
   sourceName: string;
+  chapterStatusCounts: ChapterStatusCounts;
+  workflowConfig: WorkflowStep[];
 }
 
 const fetchProjectDetails = async (projectId: string, email: string): Promise<ProjectDetails> => {
