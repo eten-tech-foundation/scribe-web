@@ -1,11 +1,12 @@
 import { Router } from '@tanstack/react-router';
 
-import { type ProjectItem } from '@/lib/types';
+import { type ProjectItem, type User } from '@/lib/types';
 
 import {
   appInsightsTestRoute,
   indexRoute,
   privacyPolicyRoute,
+  projectDetailRoute,
   projectsRoute,
   rootRoute,
   tailwindTestRoute,
@@ -21,6 +22,7 @@ const routeTree = rootRoute.addChildren([
   appInsightsTestRoute,
   userListRoute,
   projectsRoute,
+  projectDetailRoute,
   translationRoute,
   viewResourceRoute,
   privacyPolicyRoute,
@@ -35,5 +37,6 @@ declare module '@tanstack/react-router' {
   }
   interface HistoryState {
     projectItem?: ProjectItem;
+    user?: User;
   }
 }

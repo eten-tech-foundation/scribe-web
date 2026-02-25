@@ -1,40 +1,38 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-import { useNavigate } from '@tanstack/react-router';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { Menu, SquareUserRound } from 'lucide-react';
 
 import MainMenu from '@/components/header/MainMenu';
 import UserMenu from '@/components/header/UserMenu';
-import { SettingsModal } from '@/components/SettingsModal';
-import { EditProfile } from '@/layouts/profile/EditProfile';
 
 const Header: React.FC = () => {
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const onNavigateToDashboard = () => {
     void navigate({ to: '/' });
   };
 
   const onNavigateToUsers = () => {
-    void navigate({ to: '/user-list' });
+    void navigate({ to: '/users' });
   };
 
   const onNavigateToProjects = () => {
     void navigate({ to: '/projects' });
   };
-
   const handleEditProfile = () => {
-    setIsEditProfileOpen(true);
+    void navigate({
+      to: location.pathname,
+      search: { modal: 'profile' as const },
+    });
   };
 
-  const closeEditProfile = () => {
-    setIsEditProfileOpen(false);
-  };
-
-  const handleToggleSettings = () => {
-    setIsSettingsOpen(!isSettingsOpen);
+  const onNavigateToSettings = () => {
+    void navigate({
+      to: location.pathname,
+      search: { modal: 'settings' as const },
+    });
   };
 
   return (
@@ -74,7 +72,7 @@ const Header: React.FC = () => {
           </div>
 
           <div className='relative pr-[18px]'>
-            <UserMenu onEditProfile={handleEditProfile} onToggleSettings={handleToggleSettings}>
+            <UserMenu onEditProfile={handleEditProfile} onToggleSettings={onNavigateToSettings}>
               <button
                 aria-label='User menu'
                 className='hover:bg-hover bg-background flex h-[40px] w-[40px] cursor-pointer items-center justify-center rounded-md p-1.5 transition-colors duration-150'
@@ -85,10 +83,6 @@ const Header: React.FC = () => {
           </div>
         </div>
       </header>
-      {/* Edit Profile Modal */}
-      {isEditProfileOpen && <EditProfile isOpen={isEditProfileOpen} onClose={closeEditProfile} />}
-      {/* Settings Modal - Placeholder */}
-      {isSettingsOpen && <SettingsModal isOpen={isSettingsOpen} onClose={handleToggleSettings} />}
     </>
   );
 };

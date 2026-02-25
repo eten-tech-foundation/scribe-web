@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+
+import { getRouteApi, useNavigate } from '@tanstack/react-router';
 
 import { UserModal } from '@/components/UserModal';
 import { useCreateUser, useUpdateUser, useUsers } from '@/hooks/useUsers';
@@ -7,78 +9,100 @@ import { Logger } from '@/lib/services/logger';
 import { type User } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
+const routeApi = getRouteApi('/users');
+
 export const UsersWrapper: React.FC = () => {
+  const navigate = useNavigate();
+
+  const { modal, userId } = routeApi.useSearch();
+
   const { userdetail } = useAppStore();
-  const { data: users = [], isLoading } = useUsers(userdetail ? userdetail.email : '');
+  const { data: users = [], isLoading } = useUsers(userdetail?.email ?? '');
+
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userError, setUserError] = useState<string | null>(null);
 
-  const handleSaveUser = async (userData: User | Omit<User, 'id'>) => {
+  const isModalOpen = modal === 'add' || modal === 'edit';
+  const mode = modal === 'edit' ? 'edit' : 'create';
+
+  const selectedUser = useMemo(
+    () => (userId ? users.find(u => u.id === userId) : undefined),
+    [userId, users]
+  );
+
+  const handleClose = () => {
+    setUserError(null);
+    void navigate({
+      to: '/users',
+      search: {},
+    });
+  };
+
+  const handleAddUser = () => {
+    void navigate({
+      to: '/users',
+      search: { modal: 'add' as const },
+    });
+  };
+
+  const handleEditUser = (user: User) => {
+    void navigate({
+      to: '/users',
+      search: { modal: 'edit' as const, userId: user.id },
+    });
+  };
+
+  const handleSaveUser = async (userData: User | Omit<User, 'id'>): Promise<void> => {
     setUserError(null);
     try {
-      if (modalMode === 'create') {
-        userData.organization = userdetail?.organization ?? 0;
-        userData.createdBy = userdetail?.id ?? 0;
-        userData.isActive = true;
-        // Creating new user
-        await createUserMutation.mutateAsync({
-          userData: userData as Omit<User, 'id'>,
-          email: userdetail ? userdetail.email : '',
-        });
-      } else {
-        // Updating existing user
+      if (mode === 'edit' && selectedUser) {
         await updateUserMutation.mutateAsync({
           userData: userData as User,
-          email: userdetail ? userdetail.email : '',
+          email: selectedUser.email,
+        });
+      } else {
+        const newUser: Omit<User, 'id'> = {
+          ...(userData as Omit<User, 'id'>),
+          organization: userdetail?.organization ?? 0,
+          createdBy: userdetail?.id ?? 0,
+          isActive: true,
+        };
+        await createUserMutation.mutateAsync({
+          userData: newUser,
+          email: userdetail?.email ?? '',
         });
       }
-      closeModal();
+      handleClose();
     } catch (error) {
       setUserError(error instanceof Error ? error.message : 'An unknown error occurred');
       Logger.logException(error instanceof Error ? error : new Error(String(error)), {
-        source: modalMode === 'create' ? 'Failed to create user.' : 'Failed to update user.',
+        source: `Failed to ${mode} user`,
       });
     }
   };
 
-  const openCreateModal = () => {
-    setModalMode('create');
-    setSelectedUser(null);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (user: User) => {
-    setModalMode('edit');
-    setSelectedUser(user);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedUser(null);
-    setUserError(null);
-  };
+  const mutationIsLoading =
+    mode === 'edit' ? updateUserMutation.isPending : createUserMutation.isPending;
+  const mutationError =
+    mode === 'edit' ? updateUserMutation.error?.message : createUserMutation.error?.message;
 
   return (
     <>
       <UsersPage
         loading={isLoading}
         users={users}
-        onAddUser={openCreateModal}
-        onEditUser={openEditModal}
+        onAddUser={handleAddUser}
+        onEditUser={handleEditUser}
       />
 
       <UserModal
-        error={userError}
-        isLoading={createUserMutation.isPending || updateUserMutation.isPending}
+        error={userError ?? mutationError}
+        isLoading={mutationIsLoading}
         isOpen={isModalOpen}
-        mode={modalMode}
+        mode={mode}
         user={selectedUser}
-        onClose={closeModal}
+        onClose={handleClose}
         onSave={handleSaveUser}
       />
     </>

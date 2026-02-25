@@ -1,31 +1,48 @@
-import React, { useState } from 'react';
+import React from 'react';
+
+import { getRouteApi, useNavigate } from '@tanstack/react-router';
 
 import { useCreateProject, useProjects } from '@/hooks/useProjects';
-import { CreateProjectModal, type CreateProjectData } from '@/layouts/projects/CreateProjectModal';
-import { ProjectDetailPage } from '@/layouts/projects/ProjectDetailPage';
 import { ProjectsPage } from '@/layouts/projects/ProjectPage';
 import { Logger } from '@/lib/services/logger';
 import { type CreateProject } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
+import { type CreateProjectData, CreateProjectModal } from './CreateProjectModal';
+
+const routeApi = getRouteApi('/projects');
+
 export const ProjectsWrapper: React.FC = () => {
+  const navigate = useNavigate();
+  const { modal } = routeApi.useSearch();
   const { userdetail } = useAppStore();
-  const { data: projects = [], isLoading } = useProjects(userdetail ? userdetail.email : '');
+
+  const { data: projects = [], isLoading } = useProjects(userdetail?.email ?? '');
   const createProjectMutation = useCreateProject();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [projectError, setProjectError] = useState<string | null>(null);
+  const handleOpenCreate = () => {
+    void navigate({
+      to: '/projects',
+      search: { modal: 'create' as const },
+    });
+  };
 
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
-  const [selectProjectTitle, setSelectProjectTitle] = useState<string>('');
-  const [selectedProjectSource, setSelectedProjectSource] = useState<string>('');
-  const [selectedProjectSourceLang, setSelectedProjectSourceLang] = useState<string>('');
-  const [selectedProjectTargetLang, setSelectedProjectTargetLang] = useState<string>('');
+  const handleCloseCreate = () => {
+    void navigate({
+      to: '/projects',
+      search: {},
+    });
+  };
 
-  const [showProjectDetail, setShowProjectDetail] = useState(false);
-  const handleSaveProject = async (projectData: CreateProjectData) => {
+  const handleProjectSelect = (projectId: number) => {
+    void navigate({
+      to: '/projects/$projectId',
+      params: { projectId: projectId.toString() },
+    });
+  };
+
+  const handleSave = async (projectData: CreateProjectData) => {
     try {
-      setProjectError(null);
       const newProjectData: Omit<CreateProject, 'id' | 'createdAt' | 'updatedAt'> = {
         name: projectData.title,
         targetLanguage: projectData.targetLanguage,
@@ -39,76 +56,32 @@ export const ProjectsWrapper: React.FC = () => {
 
       await createProjectMutation.mutateAsync({
         projectData: newProjectData,
-        email: userdetail ? userdetail.email : '',
+        email: userdetail?.email ?? '',
       });
 
-      closeModal();
+      handleCloseCreate();
     } catch (error) {
-      setProjectError('Failed to create project');
       Logger.logException(error instanceof Error ? error : new Error(String(error)), {
         source: 'Failed to create project.',
       });
     }
   };
 
-  const openCreateModal = () => {
-    setIsModalOpen(true);
-    setProjectError(null);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setProjectError(null);
-  };
-
-  const handleProjectSelect = (
-    projectId: number,
-    title: string,
-    source: string,
-    sourceLang: string,
-    targetLang: string
-  ) => {
-    setSelectedProjectId(projectId);
-    setSelectProjectTitle(title);
-    setSelectedProjectSource(source);
-    setSelectedProjectSourceLang(sourceLang);
-    setSelectedProjectTargetLang(targetLang);
-    setShowProjectDetail(true);
-  };
-
-  const handleBackToProjects = () => {
-    setShowProjectDetail(false);
-    setSelectedProjectId(null);
-  };
-
-  if (showProjectDetail) {
-    return (
-      <ProjectDetailPage
-        projectId={selectedProjectId ?? null}
-        projectSource={selectedProjectSource}
-        projectSourceLanguageName={selectedProjectSourceLang}
-        projectTargetLanguageName={selectedProjectTargetLang}
-        projectTitle={selectProjectTitle}
-        onBack={handleBackToProjects}
-      />
-    );
-  }
-
   return (
     <>
       <ProjectsPage
         loading={isLoading}
         projects={projects}
-        onCreateProject={openCreateModal}
+        onCreateProject={handleOpenCreate}
         onProjectSelect={handleProjectSelect}
       />
 
       <CreateProjectModal
-        error={projectError}
+        error={createProjectMutation.error?.message}
         isLoading={createProjectMutation.isPending}
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onSave={handleSaveProject}
+        isOpen={modal === 'create'}
+        onClose={handleCloseCreate}
+        onSave={handleSave}
       />
     </>
   );
