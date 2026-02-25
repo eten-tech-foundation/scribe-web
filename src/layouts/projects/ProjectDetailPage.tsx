@@ -1,6 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -82,7 +81,6 @@ const CardProgressBar: React.FC<{
                   side='top'
                 >
                   {Math.round(segment.widthPercentage)}%
-                  <TooltipPrimitive.Arrow className='fill-popover drop-shadow-sm' />
                 </TooltipContent>
               </Tooltip>
             ))
