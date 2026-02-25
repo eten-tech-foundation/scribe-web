@@ -131,23 +131,28 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
                     <TableHead className='w-10 py-2 pr-3' />
                   </TableRow>
                 </TableHeader>
-                <TableBody className='bg-white'>
+                <TableBody className='bg-background'>
                   {projectUsersLoading ? (
                     <TableRow>
                       <TableCell className='py-4 text-center' colSpan={2}>
-                        <Loader2 className='mx-auto h-4 w-4 animate-spin text-gray-400' />
+                        <Loader2 className='text-muted-foreground mx-auto h-4 w-4 animate-spin' />
                       </TableCell>
                     </TableRow>
                   ) : !projectUsers?.length ? (
                     <TableRow>
-                      <TableCell className='py-4 text-center text-sm text-gray-400' colSpan={2}>
+                      <TableCell
+                        className='text-muted-foreground py-4 text-center text-sm'
+                        colSpan={2}
+                      >
                         No users added yet
                       </TableCell>
                     </TableRow>
                   ) : (
                     projectUsers.map(pu => (
-                      <TableRow key={pu.userId} className='hover:bg-gray-50 dark:hover:bg-gray-800'>
-                        <TableCell className='py-2.5 pl-3 text-sm'>{pu.displayName}</TableCell>
+                      <TableRow key={pu.userId} className='hover:bg-muted/50'>
+                        <TableCell className='text-foreground py-2.5 pl-3 text-sm'>
+                          {pu.displayName}
+                        </TableCell>
                         <TableCell className='py-2.5 pr-3 text-right'>
                           <TooltipProvider delayDuration={300}>
                             <Tooltip>
@@ -184,7 +189,7 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
           </DialogHeader>
           <div className='flex flex-col gap-6 pt-2'>
             <Select value={selectedUserToAdd} onValueChange={setSelectedUserToAdd}>
-              <SelectTrigger className='w-full bg-white'>
+              <SelectTrigger className='bg-background w-full'>
                 <SelectValue placeholder='Select a User' />
               </SelectTrigger>
               <SelectContent className='w-[var(--radix-select-trigger-width)]'>
