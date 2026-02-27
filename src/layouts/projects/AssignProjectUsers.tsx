@@ -69,7 +69,12 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
       setIsAddUserDialogOpen(false);
       setSelectedUserToAdd('');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error: User not added.';
+      const message =
+        err instanceof TypeError && err.message === 'Failed to fetch'
+          ? 'Error: User not added.'
+          : err instanceof Error
+            ? err.message
+            : 'Error: User not added.';
       setError(message);
     }
   }, [selectedUserToAdd, addProjectUserMutation]);
