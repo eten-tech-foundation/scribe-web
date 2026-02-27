@@ -91,6 +91,7 @@ const getUserDetails = async (email: string): Promise<User> => {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'x-user-email': email,
     },
   });
   if (!res.ok) throw new Error('Failed to fetch user details');
