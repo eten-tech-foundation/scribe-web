@@ -1,5 +1,6 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
+import { useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -29,9 +30,12 @@ import { useUsers } from '@/hooks/useUsers';
 import { ViewPageHeader } from '@/layouts/projects/ViewPageHeader';
 import { getStatusDisplay } from '@/lib/formatters';
 import {
+  ChapterAssignmentStatus,
   UserRole,
-  type ChapterAssignmentStatus,
+  type ChapterAssignmentProgress,
+  type ChapterAssignmentStatus as ChapterAssignmentStatusType,
   type ChapterStatusCounts,
+  type ProjectItem,
   type WorkflowStep,
 } from '@/lib/types';
 import { useAppStore } from '@/store/store';
@@ -216,6 +220,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   onExport,
 }) => {
   const { userdetail } = useAppStore();
+  const navigate = useNavigate();
 
   const [selectedBook, setSelectedBook] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -237,12 +242,14 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
     userdetail?.email ?? ''
   );
 
-  const { data: users, isLoading: usersLoading } = useUsers(userdetail?.email ?? '');
+  const isManager = userdetail?.role === UserRole.PROJECT_MANAGER;
+
+  const { data: users, isLoading: usersLoading } = useUsers(userdetail?.email ?? '', isManager);
 
   const { data: projectUsers, isLoading: projectUsersLoading } = useProjectUsers(
     projectId ?? 0,
     userdetail?.email ?? '',
-    { enabled: !!projectId && !!userdetail?.email }
+    { enabled: isManager && !!projectId && !!userdetail.email }
   );
 
   const projectTranslators = useMemo(() => {
@@ -289,6 +296,54 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const formatProgress = useCallback((completedVerses: number, totalVerses: number) => {
     return `${completedVerses} of ${totalVerses}`;
   }, []);
+
+  const handleChapterRowClick = useCallback(
+    (assignment: ChapterAssignmentProgress) => {
+      if (!userdetail) return;
+
+      const status = assignment.status as ChapterAssignmentStatusType;
+      const isAssignedDrafter = assignment.assignedUser?.id === userdetail.id;
+      const isAssignedPeerChecker = assignment.peerChecker?.id === userdetail.id;
+
+      const canEdit =
+        (isAssignedDrafter && status === ChapterAssignmentStatus.DRAFT) ||
+        (isAssignedPeerChecker && status === ChapterAssignmentStatus.PEER_CHECK) ||
+        status === ChapterAssignmentStatus.COMMUNITY_REVIEW;
+
+      const route = canEdit
+        ? '/translation/$bookId/$chapterNumber'
+        : '/view/$bookId/$chapterNumber';
+
+      const projectItem: ProjectItem = {
+        chapterAssignmentId: assignment.assignmentId,
+        projectName: projectTitle,
+        projectUnitId: assignment.projectUnitId,
+        bibleId: assignment.bibleId,
+        bibleName: projectSource,
+        targetLanguage: projectTargetLanguageName,
+        bookId: assignment.bookId,
+        book: assignment.bookNameEng,
+        chapterStatus: assignment.status,
+        chapterNumber: assignment.chapterNumber,
+        totalVerses: assignment.totalVerses,
+        completedVerses: assignment.completedVerses,
+        submittedTime: assignment.submittedTime ? assignment.submittedTime.toString() : null,
+        bookCode: assignment.bookCode,
+        sourceLangCode: assignment.sourceLangCode,
+      };
+
+      void navigate({
+        to: route,
+        params: {
+          bookId: assignment.bookId.toString(),
+          chapterNumber: assignment.chapterNumber.toString(),
+        },
+        search: { t: Date.now().toString() },
+        state: { projectItem },
+      });
+    },
+    [userdetail, projectTitle, projectSource, projectTargetLanguageName, navigate]
+  );
 
   const handleAddBook = useCallback(() => {
     if (selectedAssignments.length > 0) {
@@ -426,7 +481,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           </Card>
 
           {/* Project Users Section - Managers only */}
-          {userdetail?.role === UserRole.PROJECT_MANAGER && (
+          {isManager && (
             <AssignProjectUsers
               email={userdetail.email}
               projectId={projectId}
@@ -454,21 +509,27 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 </SelectContent>
               </Select>
 
-              <Button
-                className='flex items-center gap-2'
-                disabled={selectedAssignments.length === 0 || booksLoading || isLoadingData}
-                size='sm'
-                onClick={handleAddBook}
-              >
-                {assignChapterMutation.isPending && (
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                )}
-                Assign
-              </Button>
+              {isManager && (
+                <Button
+                  className='flex items-center gap-2'
+                  disabled={
+                    selectedAssignments.length === 0 ||
+                    booksLoading ||
+                    isLoadingData ||
+                    (projectUsers?.filter(pu => pu.roleID === UserRole.TRANSLATOR).length ?? 0) < 2
+                  }
+                  size='sm'
+                  onClick={handleAddBook}
+                >
+                  {assignChapterMutation.isPending && (
+                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  )}
+                  Assign
+                </Button>
+              )}
             </div>
           </div>
 
-          {/* Table Container */}
           <div className='flex h-full flex-col overflow-hidden rounded-lg border'>
             {assignmentsLoading ? (
               <div className='flex items-center justify-center gap-2 py-8'>
@@ -521,15 +582,19 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                           <TableRow
                             key={assignment.assignmentId}
                             className='align-center cursor-pointer border-b transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
+                            onClick={() => handleChapterRowClick(assignment)}
                           >
                             <TableCell className='w-12 px-3 py-3 md:px-4 md:py-3.5 lg:px-6 lg:py-4'>
-                              <Checkbox
-                                checked={selectedAssignments.includes(assignment.assignmentId)}
-                                disabled={isLoadingData}
-                                onCheckedChange={checked =>
-                                  handleCheckboxChange(assignment.assignmentId, !!checked)
-                                }
-                              />
+                              {isManager && (
+                                <Checkbox
+                                  checked={selectedAssignments.includes(assignment.assignmentId)}
+                                  disabled={isLoadingData}
+                                  onCheckedChange={checked =>
+                                    handleCheckboxChange(assignment.assignmentId, !!checked)
+                                  }
+                                  onClick={e => e.stopPropagation()}
+                                />
+                              )}
                             </TableCell>
                             <TableCell className='text-popover-foreground px-3 py-3 text-xs md:px-4 md:py-3.5 md:text-sm lg:px-6 lg:py-4 lg:text-base'>
                               <TruncatedTableText text={assignment.bookNameEng} />
@@ -564,7 +629,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                             <TableCell className='text-popover-foreground px-3 py-3 text-xs whitespace-nowrap md:px-4 md:py-3.5 md:text-sm lg:px-6 lg:py-4 lg:text-base'>
                               <TruncatedTableText
                                 text={getStatusDisplay(
-                                  assignment.status as ChapterAssignmentStatus
+                                  assignment.status as ChapterAssignmentStatusType
                                 )}
                               />
                             </TableCell>

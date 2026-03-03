@@ -58,6 +58,10 @@ export interface Chapter {
 }
 
 export interface ChapterAssignmentProgress {
+  bibleId: number;
+  bookId: number;
+  bookCode: string;
+  sourceLangCode: string;
   bookNameEng: string;
   chapterNumber: number;
   assignedUser: User | null;

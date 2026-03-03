@@ -91,6 +91,7 @@ const getUserDetails = async (email: string): Promise<User> => {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'x-user-email': email,
     },
   });
   if (!res.ok) throw new Error('Failed to fetch user details');
@@ -98,11 +99,11 @@ const getUserDetails = async (email: string): Promise<User> => {
   return data;
 };
 
-export const useUsers = (email: string) => {
+export const useUsers = (email: string, enabled: boolean = true) => {
   return useQuery<User[]>({
     queryKey: ['users', email],
     queryFn: () => fetchUsers(email),
-    enabled: !!email,
+    enabled: enabled && !!email,
   });
 };
 

@@ -27,6 +27,7 @@ import { type Project, type SortOption, type StatusFilter } from '@/lib/types';
 interface ProjectsPageProps {
   projects: Project[];
   loading?: boolean;
+  isManager: boolean;
   onCreateProject: () => void;
   onProjectSelect: (projectId: number) => void;
 }
@@ -149,6 +150,7 @@ const StatusChipCell: React.FC<{ chip: StatusChip }> = ({ chip }) => {
 export const ProjectsPage: React.FC<ProjectsPageProps> = ({
   loading,
   projects,
+  isManager,
   onCreateProject,
   onProjectSelect,
 }) => {
@@ -202,9 +204,11 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
       <div className='mb-6 flex-shrink-0'>
         <h1 className='text-foreground mb-4 text-3xl font-semibold'>{t('projects')}</h1>
         <div className='flex items-center gap-4'>
-          <Button className='bg-primary hover:bg-primary/90 text-white' onClick={onCreateProject}>
-            {t('createProject')}
-          </Button>
+          {isManager && (
+            <Button className='bg-primary hover:bg-primary/90 text-white' onClick={onCreateProject}>
+              {t('createProject')}
+            </Button>
+          )}
           <Select value={sortBy} onValueChange={value => setSortBy(value as SortOption)}>
             <SelectTrigger className='bg-card !h-10 w-[165px]'>
               <SelectValue />

@@ -46,22 +46,24 @@ const MainMenu: React.FC<MainMenuProps> = ({
         sideOffset={5}
       >
         <div className='space-y-1'>
-          <MenuItem
-            icon={<Home size={18} />}
-            isActive={isDashboardActive}
-            text={t('dashboard')}
-            onClick={onDashboardClick}
-            onClosePopover={() => setOpen(false)}
-          />
+          <>
+            <MenuItem
+              icon={<Home size={18} />}
+              isActive={isDashboardActive}
+              text={t('dashboard')}
+              onClick={onDashboardClick}
+              onClosePopover={() => setOpen(false)}
+            />
+            <MenuItem
+              icon={<Kanban size={18} />}
+              isActive={isProjectsActive}
+              text={t('projects')}
+              onClick={onProjectsClick}
+              onClosePopover={() => setOpen(false)}
+            />
+          </>
           {userdetail?.role === 1 && (
             <>
-              <MenuItem
-                icon={<Kanban size={18} />}
-                isActive={isProjectsActive}
-                text={t('projects')}
-                onClick={onProjectsClick}
-                onClosePopover={() => setOpen(false)}
-              />
               <MenuItem
                 icon={<Users size={18} />}
                 isActive={isUsersActive}
