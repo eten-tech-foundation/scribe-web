@@ -51,8 +51,11 @@ interface ProjectDetailPageProps {
   projectSource: string;
   projectChapterStatusCounts: ChapterStatusCounts;
   projectWorkflowConfig: WorkflowStep[];
+  isAddUserOpen?: boolean;
   onBack?: () => void;
   onExport?: () => void;
+  onAddUser?: () => void;
+  onCloseAddUser?: () => void;
 }
 
 const CardProgressBar: React.FC<{
@@ -109,6 +112,7 @@ const CardProgressBar: React.FC<{
     </div>
   );
 };
+
 const TruncatedCardText = ({ text }: { text: string }) => {
   const textRef = useRef<HTMLDivElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
@@ -216,8 +220,11 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   projectSource,
   projectChapterStatusCounts,
   projectWorkflowConfig,
+  isAddUserOpen = false,
   onBack,
   onExport,
+  onAddUser,
+  onCloseAddUser,
 }) => {
   const { userdetail } = useAppStore();
   const navigate = useNavigate();
@@ -484,9 +491,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           {isManager && (
             <AssignProjectUsers
               email={userdetail.email}
+              isAddUserOpen={isAddUserOpen}
               projectId={projectId}
               users={users}
               usersLoading={usersLoading}
+              onAddUser={onAddUser}
+              onCloseAddUser={onCloseAddUser}
             />
           )}
         </div>
