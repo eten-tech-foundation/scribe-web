@@ -151,6 +151,10 @@ export const useAssignChapters = (
       void queryClient.invalidateQueries({
         queryKey: ['userChapterAssignments', variables.userId],
       });
+
+      void queryClient.invalidateQueries({
+        queryKey: ['projectDetails', projectId, email],
+      });
     },
   });
 };
