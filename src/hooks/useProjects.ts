@@ -74,7 +74,7 @@ export const useUserProjects = (user: User | null | undefined) => {
 export const useProjectsByRole = (user: User | null | undefined) => {
   const isManager = user?.role === UserRole.PROJECT_MANAGER;
   const managerQuery = useProjects(isManager ? (user as User).email : '');
-  const translatorQuery = useUserProjects(user);
+  const translatorQuery = useUserProjects(!isManager ? user : null);
   return isManager ? managerQuery : translatorQuery;
 };
 

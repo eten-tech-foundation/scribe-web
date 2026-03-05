@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useAuth } from '@/hooks/useAuth';
+import { UserRole } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 import MenuItem from './MenuItem';
@@ -26,6 +27,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
   const { user, isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const { userdetail } = useAppStore();
+  const isManager = userdetail?.role === UserRole.PROJECT_MANAGER;
   const [open, setOpen] = React.useState(false);
   const location = useLocation();
   if (!isAuthenticated || !user) {
@@ -62,7 +64,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
               onClosePopover={() => setOpen(false)}
             />
           </>
-          {userdetail?.role === 1 && (
+          {isManager && (
             <>
               <MenuItem
                 icon={<Users size={18} />}

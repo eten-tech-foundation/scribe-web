@@ -101,6 +101,13 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const handleBack = useCallback(() => {
     clearCurrentProjectItem();
+
+    // If user navigated directly to this page, back button will be routed to dashboard instead.
+    if (window.history.length <= 2) {
+      void router.navigate({ to: '/' });
+      return;
+    }
+
     router.history.back();
   }, [clearCurrentProjectItem, router]);
 
