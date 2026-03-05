@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useMatch, useNavigate } from '@tanstack/react-router';
+import { useMatch, useRouter } from '@tanstack/react-router';
 import { BookText, ChevronLeft, Loader } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,12 @@ import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget'
 import { useDrafting } from '@/hooks/useDrafting';
 import { useResourceState, useSaveResourceState } from '@/hooks/useResourceStatePersistence';
 import { ResourcePanel } from '@/layouts/resources/ResourcePanel';
-import { type DraftingUIProps, type ResourceName, type Source } from '@/lib/types';
+import {
+  ChapterAssignmentStatus,
+  type DraftingUIProps,
+  type ResourceName,
+  type Source,
+} from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 const RESOURCE_NAMES: ResourceName[] = [
@@ -26,7 +31,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 }) => {
   const addVerseMutation = useAddTranslatedVerse();
   const submitChapterMutation = useSubmitChapter();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const [showResources, setShowResources] = useState(false);
   const [currentResource, setCurrentResource] = useState<ResourceName>(RESOURCE_NAMES[0]);
@@ -49,8 +54,9 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     tabStatus: boolean;
   } | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const setUserDashboardTab = useAppStore(state => state.setUserDashboardTab);
   const clearCurrentProjectItem = useAppStore(state => state.clearCurrentProjectItem);
+
+  const isCommunityReview = projectItem.chapterStatus === ChapterAssignmentStatus.COMMUNITY_REVIEW;
 
   const saveVerse = useCallback(
     async (verse: number, text: string) => {
@@ -93,11 +99,17 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     onSave: saveVerse,
   });
 
-  const handleBack = () => {
-    setUserDashboardTab('my-history');
+  const handleBack = useCallback(() => {
     clearCurrentProjectItem();
-    void navigate({ to: '/' });
-  };
+
+    // If user navigated directly to this page, back button will be routed to dashboard instead.
+    if (window.history.length <= 2) {
+      void router.navigate({ to: '/' });
+      return;
+    }
+
+    router.history.back();
+  }, [clearCurrentProjectItem, router]);
 
   // Initialize resource state from saved data
   useEffect(() => {
@@ -219,8 +231,9 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const hasAnyError = !readOnly && verses.some(v => getSaveStatus(v.verseNumber).hasRetryScheduled);
 
   const getButtonText = () => {
-    if (projectItem.chapterStatus === 'draft') return 'Send to Peer Checking';
-    if (projectItem.chapterStatus === 'peer_check') return 'Send to Community Review';
+    if (projectItem.chapterStatus === ChapterAssignmentStatus.DRAFT) return 'Send to Peer Checking';
+    if (projectItem.chapterStatus === ChapterAssignmentStatus.PEER_CHECK)
+      return 'Send to Community Review';
     return 'Submit';
   };
 
@@ -238,7 +251,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
       email: userdetail.email,
     });
     clearCurrentProjectItem();
-    await navigate({ to: '/' });
+    router.history.back();
   }, [
     isTranslationComplete,
     verses,
@@ -248,7 +261,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     projectItem.chapterAssignmentId,
     userdetail.email,
     clearCurrentProjectItem,
-    navigate,
+    router,
   ]);
 
   const handleKeyDown = useCallback(
@@ -265,38 +278,41 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
     setShowResources(prev => !prev);
   }, []);
 
+  const backButton = (
+    <TooltipProvider delayDuration={300}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span>
+            <ChevronLeft
+              className='flex-shrink-0 cursor-pointer'
+              size={'24px'}
+              strokeWidth={'2px'}
+              onClick={handleBack}
+            />
+          </span>
+        </TooltipTrigger>
+        <TooltipContent
+          align='start'
+          className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
+          side='top'
+        >
+          Back
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+
   return (
     <div className='flex h-full flex-col overflow-hidden'>
       <div className='flex-shrink-0'>
         <div className='flex items-center justify-between py-4 pr-6'>
           <div className='flex flex-shrink-0 items-center gap-4'>
-            {readOnly && (
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>
-                      <ChevronLeft
-                        className='flex-shrink-0 cursor-pointer'
-                        size={'24px'}
-                        strokeWidth={'2px'}
-                        onClick={handleBack}
-                      />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    align='start'
-                    className='bg-popover text-popover-foreground border-border rounded-md border px-4 py-2.5 text-sm font-semibold whitespace-nowrap shadow-lg'
-                    side='top'
-                  >
-                    Back
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
+            {backButton}
             <h2 className='text-3xl font-bold'>
               {projectItem.book} {projectItem.chapterNumber}
             </h2>
           </div>
+
           {!readOnly && (
             <div className='flex flex-1 items-center justify-end gap-4'>
               <div className='flex items-center gap-2'>
@@ -305,6 +321,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                 )}
                 {hasAnyError && <span className='text-sm text-red-500'>Auto-save failed</span>}
               </div>
+
               <TooltipProvider delayDuration={300}>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -326,25 +343,30 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <div className='bg-input rounded-lg border sm:w-40 md:w-50 lg:w-76 xl:w-105'>
-                <div className='h-4 overflow-hidden rounded-full'>
-                  <div
-                    className='bg-primary h-full rounded-full transition-all duration-300'
-                    style={{ width: `${progressPercentage}%` }}
-                  ></div>
-                </div>
-              </div>
-              <Button
-                className={`flex-shrink-0 px-6 py-2 font-medium transition-all ${
-                  isTranslationComplete
-                    ? 'bg-primary hover:bg-primary-hover cursor-pointer text-white'
-                    : 'cursor-not-allowed bg-gray-300 text-gray-500'
-                }`}
-                disabled={!isTranslationComplete}
-                onClick={handleSubmit}
-              >
-                {getButtonText()}
-              </Button>
+
+              {!isCommunityReview && (
+                <>
+                  <div className='bg-input rounded-lg border sm:w-40 md:w-50 lg:w-76 xl:w-105'>
+                    <div className='h-4 overflow-hidden rounded-full'>
+                      <div
+                        className='bg-primary h-full rounded-full transition-all duration-300'
+                        style={{ width: `${progressPercentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <Button
+                    className={`flex-shrink-0 px-6 py-2 font-medium transition-all ${
+                      isTranslationComplete
+                        ? 'bg-primary hover:bg-primary-hover cursor-pointer text-white'
+                        : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                    }`}
+                    disabled={!isTranslationComplete}
+                    onClick={handleSubmit}
+                  >
+                    {getButtonText()}
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </div>

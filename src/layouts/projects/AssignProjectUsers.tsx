@@ -30,6 +30,9 @@ interface AssignProjectUsersProps {
   email: string;
   users: User[] | undefined;
   usersLoading: boolean;
+  isAddUserOpen?: boolean;
+  onAddUser?: () => void;
+  onCloseAddUser?: () => void;
 }
 
 export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
@@ -37,8 +40,10 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
   email,
   users,
   usersLoading,
+  isAddUserOpen = false,
+  onAddUser,
+  onCloseAddUser,
 }) => {
-  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [selectedUserToAdd, setSelectedUserToAdd] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
@@ -58,21 +63,31 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
   const handleOpenAddDialog = useCallback(() => {
     setError(null);
     setSelectedUserToAdd('');
-    setIsAddUserDialogOpen(true);
-  }, []);
+    onAddUser?.();
+  }, [onAddUser]);
+
+  const handleCloseDialog = useCallback(() => {
+    setError(null);
+    setSelectedUserToAdd('');
+    onCloseAddUser?.();
+  }, [onCloseAddUser]);
 
   const handleAddProjectUser = useCallback(async () => {
     if (!selectedUserToAdd) return;
     setError(null);
     try {
       await addProjectUserMutation.mutateAsync({ userId: parseInt(selectedUserToAdd) });
-      setIsAddUserDialogOpen(false);
-      setSelectedUserToAdd('');
+      handleCloseDialog();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error: User not added.';
+      const message =
+        err instanceof TypeError && err.message === 'Failed to fetch'
+          ? 'Error: User not added.'
+          : err instanceof Error
+            ? err.message
+            : 'Error: User not added.';
       setError(message);
     }
-  }, [selectedUserToAdd, addProjectUserMutation]);
+  }, [selectedUserToAdd, addProjectUserMutation, handleCloseDialog]);
 
   const handleRemoveProjectUser = useCallback(
     async (userId: number) => {
@@ -123,7 +138,7 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
         {/* Users table */}
         <Card>
           <CardContent className='p-0'>
-            <div className='max-h-[235px] overflow-y-auto'>
+            <div className={`overflow-y-auto ${error ? 'max-h-[165px]' : 'max-h-[188px]'}`}>
               <Table>
                 <TableHeader className='sticky top-0 z-10'>
                   <TableRow className='hover:bg-transparent'>
@@ -182,7 +197,14 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
       </div>
 
       {/* Add Project User Dialog */}
-      <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
+      <Dialog
+        open={isAddUserOpen}
+        onOpenChange={open => {
+          if (!open && isAddUserOpen) {
+            handleCloseDialog();
+          }
+        }}
+      >
         <DialogContent className='w-[420px] max-w-[90vw]'>
           <DialogHeader>
             <DialogTitle>Add Project User</DialogTitle>

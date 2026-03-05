@@ -2,13 +2,13 @@ import React from 'react';
 
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 
-import { useCreateProject, useProjects } from '@/hooks/useProjects';
+import { useCreateProject, useProjectsByRole } from '@/hooks/useProjects';
 import { ProjectsPage } from '@/layouts/projects/ProjectPage';
 import { Logger } from '@/lib/services/logger';
-import { type CreateProject } from '@/lib/types';
+import { UserRole, type CreateProject } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
-import { type CreateProjectData, CreateProjectModal } from './CreateProjectModal';
+import { CreateProjectModal, type CreateProjectData } from './CreateProjectModal';
 
 const routeApi = getRouteApi('/projects');
 
@@ -17,8 +17,10 @@ export const ProjectsWrapper: React.FC = () => {
   const { modal } = routeApi.useSearch();
   const { userdetail } = useAppStore();
 
-  const { data: projects = [], isLoading } = useProjects(userdetail?.email ?? '');
+  const { data: projects = [], isLoading } = useProjectsByRole(userdetail);
   const createProjectMutation = useCreateProject();
+
+  const isManager = userdetail?.role === UserRole.PROJECT_MANAGER;
 
   const handleOpenCreate = () => {
     void navigate({
@@ -70,19 +72,22 @@ export const ProjectsWrapper: React.FC = () => {
   return (
     <>
       <ProjectsPage
+        isManager={isManager}
         loading={isLoading}
         projects={projects}
         onCreateProject={handleOpenCreate}
         onProjectSelect={handleProjectSelect}
       />
 
-      <CreateProjectModal
-        error={createProjectMutation.error?.message}
-        isLoading={createProjectMutation.isPending}
-        isOpen={modal === 'create'}
-        onClose={handleCloseCreate}
-        onSave={handleSave}
-      />
+      {isManager && (
+        <CreateProjectModal
+          error={createProjectMutation.error?.message}
+          isLoading={createProjectMutation.isPending}
+          isOpen={modal === 'create'}
+          onClose={handleCloseCreate}
+          onSave={handleSave}
+        />
+      )}
     </>
   );
 };
