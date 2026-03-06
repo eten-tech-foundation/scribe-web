@@ -260,7 +260,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                         <TableHead
                           key={col.key}
                           className='text-accent-foreground px-6 py-3 text-left text-sm font-semibold tracking-wider'
-                          style={{ width: colWidth }}
+                          style={{ width: colWidth, textWrap: 'balance' }}
                         >
                           {col.label}
                         </TableHead>
