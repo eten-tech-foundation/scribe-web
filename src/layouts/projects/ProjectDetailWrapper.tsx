@@ -55,6 +55,22 @@ export const ProjectDetailWrapper: React.FC = () => {
     });
   };
 
+  const handleOpenAddUser = () => {
+    void navigate({
+      to: '/projects/$projectId',
+      params: { projectId },
+      search: { modal: 'add' as const },
+    });
+  };
+
+  const handleCloseAddUser = () => {
+    void navigate({
+      to: '/projects/$projectId',
+      params: { projectId },
+      search: {},
+    });
+  };
+
   const projectUnitId = useMemo(
     () => chapterAssignments?.[0]?.projectUnitId ?? null,
     [chapterAssignments]
@@ -104,6 +120,7 @@ export const ProjectDetailWrapper: React.FC = () => {
   return (
     <>
       <ProjectDetailPage
+        isAddUserOpen={modal === 'add'}
         projectChapterStatusCounts={project.chapterStatusCounts}
         projectId={project.id}
         projectSource={project.sourceName}
@@ -111,7 +128,9 @@ export const ProjectDetailWrapper: React.FC = () => {
         projectTargetLanguageName={project.targetLanguageName}
         projectTitle={project.name}
         projectWorkflowConfig={project.workflowConfig}
+        onAddUser={handleOpenAddUser}
         onBack={handleBack}
+        onCloseAddUser={handleCloseAddUser}
         onExport={handleOpenExport}
       />
 

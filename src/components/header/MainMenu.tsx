@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useAuth } from '@/hooks/useAuth';
+import { UserRole } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
 import MenuItem from './MenuItem';
@@ -26,6 +27,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
   const { user, isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const { userdetail } = useAppStore();
+  const isManager = userdetail?.role === UserRole.PROJECT_MANAGER;
   const [open, setOpen] = React.useState(false);
   const location = useLocation();
   if (!isAuthenticated || !user) {
@@ -46,22 +48,24 @@ const MainMenu: React.FC<MainMenuProps> = ({
         sideOffset={5}
       >
         <div className='space-y-1'>
-          <MenuItem
-            icon={<Home size={18} />}
-            isActive={isDashboardActive}
-            text={t('dashboard')}
-            onClick={onDashboardClick}
-            onClosePopover={() => setOpen(false)}
-          />
-          {userdetail?.role === 1 && (
+          <>
+            <MenuItem
+              icon={<Home size={18} />}
+              isActive={isDashboardActive}
+              text={t('dashboard')}
+              onClick={onDashboardClick}
+              onClosePopover={() => setOpen(false)}
+            />
+            <MenuItem
+              icon={<Kanban size={18} />}
+              isActive={isProjectsActive}
+              text={t('projects')}
+              onClick={onProjectsClick}
+              onClosePopover={() => setOpen(false)}
+            />
+          </>
+          {isManager && (
             <>
-              <MenuItem
-                icon={<Kanban size={18} />}
-                isActive={isProjectsActive}
-                text={t('projects')}
-                onClick={onProjectsClick}
-                onClosePopover={() => setOpen(false)}
-              />
               <MenuItem
                 icon={<Users size={18} />}
                 isActive={isUsersActive}
