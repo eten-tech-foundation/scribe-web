@@ -6,6 +6,7 @@ import { BookText, ChevronLeft, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
+import { useChapterPresence } from '@/hooks/useChapterPresence';
 import { useDrafting } from '@/hooks/useDrafting';
 import { useResourceState, useSaveResourceState } from '@/hooks/useResourceStatePersistence';
 import { ResourcePanel } from '@/layouts/resources/ResourcePanel';
@@ -55,8 +56,19 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   } | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const clearCurrentProjectItem = useAppStore(state => state.clearCurrentProjectItem);
+  const setPresenceWarning = useAppStore(state => state.setPresenceWarning);
 
   const isCommunityReview = projectItem.chapterStatus === ChapterAssignmentStatus.COMMUNITY_REVIEW;
+
+  const { warningMessage } = useChapterPresence(
+    projectItem.chapterAssignmentId,
+    isCommunityReview,
+    userdetail.email
+  );
+
+  useEffect(() => {
+    setPresenceWarning(warningMessage);
+  }, [warningMessage, setPresenceWarning]);
 
   const saveVerse = useCallback(
     async (verse: number, text: string) => {
