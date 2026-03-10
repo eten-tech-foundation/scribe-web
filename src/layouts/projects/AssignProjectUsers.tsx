@@ -47,7 +47,12 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
   const [selectedUserToAdd, setSelectedUserToAdd] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
-  const { data: projectUsers, isLoading: projectUsersLoading } = useProjectUsers(projectId, email, {
+  const {
+    data: projectUsers,
+    isLoading: projectUsersLoading,
+    isError: projectUsersError,
+    refetch: refetchProjectUsers,
+  } = useProjectUsers(projectId, email, {
     enabled: !!projectId && !!email,
   });
 
@@ -105,6 +110,68 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
     [removeProjectUserMutation]
   );
 
+  const renderTableBody = () => {
+    if (projectUsersLoading) {
+      return (
+        <TableRow>
+          <TableCell className='py-4 text-center' colSpan={2}>
+            <Loader2 className='text-muted-foreground mx-auto h-4 w-4 animate-spin' />
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    if (projectUsersError) {
+      return (
+        <TableRow>
+          <TableCell className='py-4 text-center' colSpan={2}>
+            <Button
+              className='bg-primary text-white'
+              size='sm'
+              onClick={() => void refetchProjectUsers()}
+            >
+              Reload Users
+            </Button>
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    if (!projectUsers?.length) {
+      return (
+        <TableRow>
+          <TableCell className='text-muted-foreground py-4 text-center text-sm' colSpan={2}>
+            No users added yet
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return projectUsers.map(pu => (
+      <TableRow key={pu.userId} className='hover:bg-muted/50'>
+        <TableCell className='text-foreground py-2.5 pl-3 text-sm'>{pu.displayName}</TableCell>
+        <TableCell className='py-2.5 pr-3 text-right'>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  className='h-7 w-7 p-0 hover:text-red-500'
+                  disabled={removeProjectUserMutation.isPending}
+                  size='sm'
+                  variant='ghost'
+                  onClick={() => handleRemoveProjectUser(pu.userId)}
+                >
+                  <Trash2 className='h-4 w-4' />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side='top'>Remove user from project</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </TableCell>
+      </TableRow>
+    ));
+  };
+
   return (
     <>
       <div className='flex flex-col'>
@@ -127,7 +194,14 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
           </TooltipProvider>
         </div>
 
-        {/* Error message */}
+        {/*Error banner — only shown when the fetch itself failed */}
+        {projectUsersError && (
+          <div className='mb-2 flex items-center gap-1.5 text-sm text-red-500'>
+            <TriangleAlert className='h-4 w-4 flex-shrink-0' />
+            <span>Error: Loading users failed.</span>
+          </div>
+        )}
+
         {error && (
           <div className='mb-2 flex items-center gap-1.5 text-sm text-red-500'>
             <TriangleAlert className='h-4 w-4 flex-shrink-0' />
@@ -138,7 +212,9 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
         {/* Users table */}
         <Card>
           <CardContent className='p-0'>
-            <div className={`overflow-y-auto ${error ? 'max-h-[165px]' : 'max-h-[188px]'}`}>
+            <div
+              className={`overflow-y-auto ${error || projectUsersError ? 'max-h-[165px]' : 'max-h-[188px]'}`}
+            >
               <Table>
                 <TableHeader className='sticky top-0 z-10'>
                   <TableRow className='hover:bg-transparent'>
@@ -146,50 +222,7 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
                     <TableHead className='w-10 py-2 pr-3' />
                   </TableRow>
                 </TableHeader>
-                <TableBody className='bg-background'>
-                  {projectUsersLoading ? (
-                    <TableRow>
-                      <TableCell className='py-4 text-center' colSpan={2}>
-                        <Loader2 className='text-muted-foreground mx-auto h-4 w-4 animate-spin' />
-                      </TableCell>
-                    </TableRow>
-                  ) : !projectUsers?.length ? (
-                    <TableRow>
-                      <TableCell
-                        className='text-muted-foreground py-4 text-center text-sm'
-                        colSpan={2}
-                      >
-                        No users added yet
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    projectUsers.map(pu => (
-                      <TableRow key={pu.userId} className='hover:bg-muted/50'>
-                        <TableCell className='text-foreground py-2.5 pl-3 text-sm'>
-                          {pu.displayName}
-                        </TableCell>
-                        <TableCell className='py-2.5 pr-3 text-right'>
-                          <TooltipProvider delayDuration={300}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  className='h-7 w-7 p-0 hover:text-red-500'
-                                  disabled={removeProjectUserMutation.isPending}
-                                  size='sm'
-                                  variant='ghost'
-                                  onClick={() => handleRemoveProjectUser(pu.userId)}
-                                >
-                                  <Trash2 className='h-4 w-4' />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent side='top'>Remove user from project</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
+                <TableBody className='bg-background'>{renderTableBody()}</TableBody>
               </Table>
             </div>
           </CardContent>
