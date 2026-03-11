@@ -59,7 +59,7 @@ export const UsersWrapper: React.FC = () => {
       if (mode === 'edit' && selectedUser) {
         await updateUserMutation.mutateAsync({
           userData: userData as User,
-          email: selectedUser.email,
+          email: userdetail?.email ?? '',
         });
       } else {
         const newUser: Omit<User, 'id'> = {
