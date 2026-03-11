@@ -46,7 +46,6 @@ export const useAppStore = create<AppState>()(
         userdetail: state.userdetail,
         userDashboardTab: state.userDashboardTab,
         currentProjectItem: state.currentProjectItem,
-        _hasHydrated: state._hasHydrated,
       }),
       onRehydrateStorage: () => state => {
         state?.setHasHydrated(true);

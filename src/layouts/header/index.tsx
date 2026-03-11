@@ -75,12 +75,11 @@ const Header: React.FC = () => {
           </div>
 
           {isOnTranslationPage && presenceWarning && (
-            <div
-              className='absolute right-1/4 flex items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-medium text-black'
-              style={{ backgroundColor: '#FFFF00' }}
-            >
-              <TriangleAlert className='h-4 w-4 shrink-0' />
-              <span>{presenceWarning}</span>
+            <div className='pointer-events-none absolute inset-x-0 flex justify-center px-[120px]'>
+              <div className='pointer-events-auto flex max-w-md items-center gap-2 rounded-lg bg-yellow-300 px-4 py-1.5 text-sm font-medium text-black'>
+                <TriangleAlert className='h-4 w-4 shrink-0' />
+                <span className='truncate'>{presenceWarning}</span>
+              </div>
             </div>
           )}
 

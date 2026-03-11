@@ -17,20 +17,29 @@ export const useChapterPresence = (
   userEmail: string
 ) => {
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const isCleanedUpRef = useRef(false);
 
-  const heartbeatMutation = useMutation({
-    mutationFn: async () => {
-      if (!userEmail) return null;
+  // Assign directly during render — never stale, no useEffect needed.
+  const chapterAssignmentIdRef = useRef(chapterAssignmentId);
+  const userEmailRef = useRef(userEmail);
+  chapterAssignmentIdRef.current = chapterAssignmentId;
+  userEmailRef.current = userEmail;
 
-      const res = await fetch(`${config.api.url}/heartbeat/${chapterAssignmentId}/presence`, {
+  const { mutate, isPending } = useMutation({
+    mutationFn: async () => {
+      const email = userEmailRef.current;
+      const assignmentId = chapterAssignmentIdRef.current;
+
+      if (!email) return null;
+
+      const res = await fetch(`${config.api.url}/chapter-assignments/${assignmentId}/presence`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-email': userEmail,
+          'x-user-email': email,
         },
-        credentials: 'omit',
       });
 
       if (res.status === 401) return null;
@@ -50,8 +59,17 @@ export const useChapterPresence = (
     },
   });
 
+  const mutateRef = useRef(mutate);
+  mutateRef.current = mutate;
+
+  const isPendingRef = useRef(isPending);
+  isPendingRef.current = isPending;
+
   const cleanup = useCallback(() => {
-    if (isCleanedUpRef.current || !userEmail || !chapterAssignmentId) return;
+    const email = userEmailRef.current;
+    const assignmentId = chapterAssignmentIdRef.current;
+
+    if (isCleanedUpRef.current || !email || !assignmentId) return;
     isCleanedUpRef.current = true;
 
     if (intervalRef.current) {
@@ -59,28 +77,33 @@ export const useChapterPresence = (
       intervalRef.current = null;
     }
 
-    void fetch(`${config.api.url}/heartbeat/${chapterAssignmentId}/presence`, {
+    void fetch(`${config.api.url}/chapter-assignments/${assignmentId}/presence`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'x-user-email': userEmail,
+        'x-user-email': email,
       },
       keepalive: true,
-      credentials: 'omit',
     }).catch(err => {
       console.error('Presence cleanup failed:', err);
     });
-  }, [chapterAssignmentId, userEmail]);
+  }, []);
 
   useEffect(() => {
-    if (!isActive || !chapterAssignmentId || !userEmail) return;
+    if (!isActive) {
+      setWarningMessage(null);
+      return;
+    }
+
+    if (!chapterAssignmentId || !userEmail) return;
 
     isCleanedUpRef.current = false;
 
-    heartbeatMutation.mutate();
+    mutateRef.current();
 
     intervalRef.current = setInterval(() => {
-      heartbeatMutation.mutate();
+      if (isPendingRef.current) return;
+      mutateRef.current();
     }, HEARTBEAT_INTERVAL_MS);
 
     const handleBeforeUnload = () => cleanup();
@@ -90,8 +113,7 @@ export const useChapterPresence = (
       window.removeEventListener('beforeunload', handleBeforeUnload);
       cleanup();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chapterAssignmentId, isActive, userEmail]);
+  }, [chapterAssignmentId, isActive, userEmail, cleanup]);
 
   return { warningMessage };
 };

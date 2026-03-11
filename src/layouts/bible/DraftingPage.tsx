@@ -68,6 +68,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   useEffect(() => {
     setPresenceWarning(warningMessage);
+    return () => setPresenceWarning(null);
   }, [warningMessage, setPresenceWarning]);
 
   const saveVerse = useCallback(
