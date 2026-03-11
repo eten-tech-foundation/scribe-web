@@ -213,7 +213,7 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
         <Card>
           <CardContent className='p-0'>
             <div
-              className={`overflow-y-auto ${error || projectUsersError ? 'max-h-[165px]' : 'max-h-[188px]'}`}
+              className={`overflow-y-auto rounded-lg ${error || projectUsersError ? 'max-h-[165px]' : 'max-h-[188px]'}`}
             >
               <Table>
                 <TableHeader className='sticky top-0 z-10'>
@@ -257,13 +257,16 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
                     All users already added
                   </SelectItem>
                 ) : (
-                  availableUsersToAdd.map((user: User) => (
-                    <SelectItem key={user.id} value={user.id.toString()}>
-                      <div className='w-[250px] text-left sm:w-[300px]'>
-                        <TruncatedDropdownText text={user.username} />
-                      </div>
-                    </SelectItem>
-                  ))
+                  availableUsersToAdd
+                    .slice()
+                    .sort((a, b) => a.username.localeCompare(b.username))
+                    .map((user: User) => (
+                      <SelectItem key={user.id} value={user.id.toString()}>
+                        <div className='w-[250px] text-left sm:w-[300px]'>
+                          <TruncatedDropdownText text={user.username} />
+                        </div>
+                      </SelectItem>
+                    ))
                 )}
               </SelectContent>
             </Select>
