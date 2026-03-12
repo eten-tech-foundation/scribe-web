@@ -1,14 +1,17 @@
 import React from 'react';
 
 import { useLocation, useNavigate } from '@tanstack/react-router';
-import { Menu, SquareUserRound } from 'lucide-react';
+import { Menu, SquareUserRound, TriangleAlert } from 'lucide-react';
 
 import MainMenu from '@/components/header/MainMenu';
 import UserMenu from '@/components/header/UserMenu';
+import { useAppStore } from '@/store/store';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const presenceWarning = useAppStore(state => state.presenceWarning);
+  const isOnTranslationPage = location.pathname.startsWith('/translation/');
 
   const onNavigateToDashboard = () => {
     void navigate({ to: '/' });
@@ -70,6 +73,15 @@ const Header: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {isOnTranslationPage && presenceWarning && (
+            <div className='pointer-events-none absolute inset-x-0 flex justify-center px-[120px]'>
+              <div className='pointer-events-auto flex max-w-md items-center gap-2 rounded-lg bg-yellow-300 px-4 py-1.5 text-sm font-medium text-black'>
+                <TriangleAlert className='h-4 w-4 shrink-0' />
+                <span className='truncate'>{presenceWarning}</span>
+              </div>
+            </div>
+          )}
 
           <div className='relative pr-[18px]'>
             <UserMenu onEditProfile={handleEditProfile} onToggleSettings={onNavigateToSettings}>

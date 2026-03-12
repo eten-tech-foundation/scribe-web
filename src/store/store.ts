@@ -7,6 +7,7 @@ interface AppState {
   userdetail: User | null;
   userDashboardTab: 'my-work' | 'my-history';
   currentProjectItem: ProjectItem | null;
+  presenceWarning: string | null;
   _hasHydrated: boolean;
   setUserDetail: (user: User) => void;
   setUserDashboardTab: (tab: 'my-work' | 'my-history') => void;
@@ -14,6 +15,7 @@ interface AppState {
   clearUserDetail: () => void;
   clearCurrentProjectItem: () => void;
   setHasHydrated: (state: boolean) => void;
+  setPresenceWarning: (msg: string | null) => void;
 }
 let hydrationResolve: (() => void) | null = null;
 export const hydrationPromise = new Promise<void>(resolve => {
@@ -26,6 +28,7 @@ export const useAppStore = create<AppState>()(
       userdetail: null,
       userDashboardTab: 'my-work',
       currentProjectItem: null,
+      presenceWarning: null,
       _hasHydrated: false,
       setUserDetail: (userdetail: User) => set({ userdetail }),
       setUserDashboardTab: (userDashboardTab: 'my-work' | 'my-history') =>
@@ -35,9 +38,15 @@ export const useAppStore = create<AppState>()(
       clearUserDetail: () => set({ userdetail: null }),
       clearCurrentProjectItem: () => set({ currentProjectItem: null }),
       setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
+      setPresenceWarning: (presenceWarning: string | null) => set({ presenceWarning }),
     }),
     {
       name: 'app-store',
+      partialize: state => ({
+        userdetail: state.userdetail,
+        userDashboardTab: state.userDashboardTab,
+        currentProjectItem: state.currentProjectItem,
+      }),
       onRehydrateStorage: () => state => {
         state?.setHasHydrated(true);
         if (hydrationResolve) {
