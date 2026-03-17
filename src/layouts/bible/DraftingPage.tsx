@@ -60,16 +60,16 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const isCommunityReview = projectItem.chapterStatus === ChapterAssignmentStatus.COMMUNITY_REVIEW;
 
-  const { warningMessage } = useChapterPresence(
+  const { editorName } = useChapterPresence(
     projectItem.chapterAssignmentId,
     isCommunityReview,
     userdetail.email
   );
 
   useEffect(() => {
-    setPresenceWarning(warningMessage);
+    setPresenceWarning(editorName);
     return () => setPresenceWarning(null);
-  }, [warningMessage, setPresenceWarning]);
+  }, [editorName, setPresenceWarning]);
 
   const saveVerse = useCallback(
     async (verse: number, text: string) => {
