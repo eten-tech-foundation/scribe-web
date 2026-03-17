@@ -16,7 +16,7 @@ export const useChapterPresence = (
   isActive: boolean,
   userEmail: string
 ) => {
-  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+  const [editorName, setEditorName] = useState<string | null>(null);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const isCleanedUpRef = useRef(false);
@@ -49,9 +49,9 @@ export const useChapterPresence = (
     },
     onSuccess: data => {
       if (data && !data.isFirstEditor && data.firstEditorName) {
-        setWarningMessage(`${data.firstEditorName} is editing this resource.`);
+        setEditorName(data.firstEditorName);
       } else {
-        setWarningMessage(null);
+        setEditorName(null);
       }
     },
     onError: err => {
@@ -91,7 +91,7 @@ export const useChapterPresence = (
 
   useEffect(() => {
     if (!isActive) {
-      setWarningMessage(null);
+      setEditorName(null);
       return;
     }
 
@@ -115,5 +115,5 @@ export const useChapterPresence = (
     };
   }, [chapterAssignmentId, isActive, userEmail, cleanup]);
 
-  return { warningMessage };
+  return { editorName };
 };

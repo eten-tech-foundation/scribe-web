@@ -40,9 +40,9 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <header className='bg-primary relative flex h-[56px] items-center'>
-        <div className='my-4 flex w-full items-center justify-between'>
-          <div className='flex items-center'>
+      <header className='bg-primary flex h-[56px] items-center'>
+        <div className='my-4 flex w-full items-center'>
+          <div className='flex shrink-0 items-center'>
             <div className='relative flex items-center pl-[18px]'>
               <MainMenu
                 onDashboardClick={onNavigateToDashboard}
@@ -74,16 +74,17 @@ const Header: React.FC = () => {
             </div>
           </div>
 
-          {isOnTranslationPage && presenceWarning && (
-            <div className='pointer-events-none absolute inset-x-0 flex justify-center px-[120px]'>
-              <div className='pointer-events-auto flex max-w-md items-center gap-2 rounded-lg bg-yellow-300 px-4 py-1.5 text-sm font-medium text-black'>
+          <div className='flex min-w-0 flex-1 justify-center px-4'>
+            {isOnTranslationPage && presenceWarning && (
+              <div className='flex max-w-md min-w-0 items-center gap-2 rounded-lg bg-yellow-300 px-4 py-1.5 text-sm font-medium text-black'>
                 <TriangleAlert className='h-4 w-4 shrink-0' />
-                <span className='truncate'>{presenceWarning}</span>
+                <span className='max-w-[150px] truncate'>{presenceWarning}</span>
+                <span className='shrink-0 whitespace-nowrap'>is editing this resource.</span>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          <div className='relative pr-[18px]'>
+          <div className='shrink-0 pr-[18px]'>
             <UserMenu onEditProfile={handleEditProfile} onToggleSettings={onNavigateToSettings}>
               <button
                 aria-label='User menu'
