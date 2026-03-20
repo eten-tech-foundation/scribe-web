@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { config } from '@/lib/config';
+import { Logger } from '@/lib/services/logger';
 import { type User } from '@/lib/types';
 
 const fetchUsers = async (email: string): Promise<User[]> => {
@@ -118,7 +119,7 @@ export const useCreateUser = () => {
       void queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: error => {
-      console.error('Error creating user:', error);
+      Logger.logException(error, { context: 'Error creating user' });
     },
   });
 };
@@ -134,7 +135,7 @@ export const useUpdateUser = () => {
       void queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: error => {
-      console.error('Error updating user:', error);
+      Logger.logException(error, { context: 'Error updating user' });
     },
   });
 };
@@ -150,7 +151,7 @@ export const useGetUserDetailsMutation = () => {
       void queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: error => {
-      console.error('Error fetching user details:', error);
+      Logger.logException(error, { context: 'Error fetching user details' });
     },
   });
 };

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { config } from '@/lib/config';
+import { Logger } from '@/lib/services/logger';
 
 export interface FetchResourceState {
   activeResource: string;
@@ -99,7 +100,7 @@ export const useSaveResourceState = () => {
       );
     },
     onError: error => {
-      console.error('Error saving resource state:', error);
+      Logger.logException(error, { context: 'Error saving resource state' });
     },
   });
 };

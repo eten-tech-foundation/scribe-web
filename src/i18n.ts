@@ -19,6 +19,7 @@ i18n
     defaultNS: 'common',
   })
   .catch(error => {
+    // eslint-disable-next-line no-console
     console.error('i18n initialization failed:', error);
   });
 

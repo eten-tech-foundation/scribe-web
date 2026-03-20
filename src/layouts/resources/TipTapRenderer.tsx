@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Logger } from '@/lib/services/logger';
 import type { TipTapMark, TipTapNode } from '@/lib/types';
 
 interface TipTapRendererProps {
@@ -236,7 +237,10 @@ export const TipTapRenderer: React.FC<TipTapRendererProps> = ({
       }
 
       default:
-        console.warn('Unknown node type:', node.type, node);
+        Logger.warn('Unknown TipTap node type', {
+          nodeType: node.type,
+          parentResourceId,
+        });
         return null;
     }
   };

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
+import { Logger } from '@/lib/services/logger';
 import { useAppStore } from '@/store/store';
 
 import MenuItem from './MenuItem';
@@ -31,7 +32,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ children, onEditProfile, onToggleSe
       await logout();
       setOpen(false);
     } catch (error) {
-      console.error('Logout error:', error);
+      Logger.logException(error, { context: 'Logout error' });
     }
   };
 

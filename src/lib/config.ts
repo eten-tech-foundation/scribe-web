@@ -48,8 +48,11 @@ function validateEnv(): Env {
         })
         .join('\n');
 
+      // eslint-disable-next-line no-console
       console.error('❌ Invalid environment variables:');
+      // eslint-disable-next-line no-console
       console.error(errorMessages);
+      // eslint-disable-next-line no-console
       console.error('\nPlease check your .env file and update the required variables.');
     }
     throw new Error('Invalid environment configuration');

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { config } from '@/lib/config';
+import { Logger } from '@/lib/services/logger';
 import {
   UserRole,
   type CreateProject,
@@ -93,7 +94,7 @@ export const useCreateProject = () => {
       void queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
     onError: error => {
-      console.error('Error creating project:', error);
+      Logger.logException(error, { context: 'Error creating project' });
     },
   });
 };
