@@ -12,7 +12,6 @@ export class Logger {
   static setUser(userId: string, accountId?: string, userName?: string): void {
     if (!appInsightsService.isReady()) {
       if (config.environment.isDevelopment) {
-        // eslint-disable-next-line no-console
         console.warn(`User context would be set: ${userName ?? 'Unknown'} (${userId})`);
       }
       return;
@@ -28,7 +27,6 @@ export class Logger {
     const normalizedError = error instanceof Error ? error : new Error(String(error));
     if (!this.appInsights) {
       if (config.environment.isDevelopment) {
-        // eslint-disable-next-line no-console
         console.error('AppInsights not initialized:', normalizedError);
       }
       return;
@@ -46,7 +44,6 @@ export class Logger {
   static logEvent(name: string, properties?: LogProperties, measurements?: LogMeasurements): void {
     if (!this.appInsights) {
       if (config.environment.isDevelopment) {
-        // eslint-disable-next-line no-console
         console.warn(`Event: ${name}`, properties);
       }
       return;
@@ -64,7 +61,6 @@ export class Logger {
   static logTrace(message: string, severityLevel?: number, properties?: LogProperties): void {
     if (!this.appInsights) {
       if (config.environment.isDevelopment) {
-        // eslint-disable-next-line no-console
         console.warn(`Trace: ${message}`, properties);
       }
       return;

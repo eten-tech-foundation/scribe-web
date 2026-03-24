@@ -245,6 +245,15 @@ export default typescriptEslint.config(
 
   /* TypeScript-specific rules */
   {
+    files: [
+      'src/lib/config.ts',
+      'src/lib/services/appInsights.ts',
+      'src/lib/services/logger.ts',
+      'src/i18n.ts',
+    ],
+    rules: { 'no-console': 'off' },
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     plugins: basePlugins,
     languageOptions: tsLanguageOptions,

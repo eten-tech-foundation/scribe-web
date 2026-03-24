@@ -19,7 +19,6 @@ class AppInsightsService {
   constructor() {
     if (!config.monitoring.appInsightsConnectionString) {
       if (config.environment.isDevelopment) {
-        // eslint-disable-next-line no-console
         console.warn(
           'Application Insights connection string not configured - logging will fall back to console'
         );
@@ -48,12 +47,10 @@ class AppInsightsService {
       this.initialize();
       this.isInitialized = true;
       if (config.environment.isDevelopment) {
-        // eslint-disable-next-line no-console
         console.warn('✅ Application Insights initialized successfully');
       }
     } catch (error) {
       if (config.environment.isDevelopment) {
-        // eslint-disable-next-line no-console
         console.error('❌ Failed to initialize Application Insights:', error);
       }
       this.appInsights = undefined;
@@ -84,7 +81,6 @@ class AppInsightsService {
   setUser(userId: string, accountId?: string, userName?: string): void {
     if (!this.appInsights) {
       if (config.environment.isDevelopment) {
-        // eslint-disable-next-line no-console
         console.warn('Cannot set user context - Application Insights not initialized');
       }
       return;
