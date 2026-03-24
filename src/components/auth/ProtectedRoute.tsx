@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect } from 'react';
 
 import { useAuth } from '@/hooks/useAuth';
+import { Logger } from '@/lib/services/logger';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -12,7 +13,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       login().catch(error => {
-        console.error('Auto-login failed:', error);
+        Logger.logException(error, { context: 'Auto-login failed' });
       });
     }
   }, [isAuthenticated, isLoading, login]);

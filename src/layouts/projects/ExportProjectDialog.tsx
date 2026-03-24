@@ -20,6 +20,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useExportUsfm } from '@/hooks/useExportUsfm';
+import { Logger } from '@/lib/services/logger';
 
 interface Book {
   bookId: number;
@@ -115,7 +116,12 @@ export const ExportProjectDialog: React.FC<ExportProjectDialogProps> = ({
       onClose();
     } catch (err) {
       setError('Export Failed');
-      console.error('Export failed:', err);
+      Logger.logException(err, {
+        context: 'Export failed',
+        projectUnitId,
+        projectName,
+        bookCount: selectedBooks.length,
+      });
     } finally {
       setIsExporting(false);
     }

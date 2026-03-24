@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { config } from '@/lib/config';
+import { Logger } from '@/lib/services/logger';
 import { type ProjectItem, type VerseData } from '@/lib/types';
 
 export const fetchTargetText = async (
@@ -50,7 +51,7 @@ export const useAddTranslatedVerse = () => {
       void queryClient.invalidateQueries({ queryKey: ['verse-text'] });
     },
     onError: error => {
-      console.error('Error creating verse:', error);
+      Logger.logException(error, { context: 'Error adding translated verse' });
     },
   });
 };
@@ -79,7 +80,7 @@ export const useSubmitChapter = () => {
       void queryClient.invalidateQueries({ queryKey: ['chapter-submit'] });
     },
     onError: error => {
-      console.error('Error submitting chapter:', error);
+      Logger.logException(error, { context: 'Error submitting chapter' });
     },
   });
 };

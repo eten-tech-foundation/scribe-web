@@ -29,6 +29,7 @@ import { useProjectUsers } from '@/hooks/useProjectUsers';
 import { useUsers } from '@/hooks/useUsers';
 import { ViewPageHeader } from '@/layouts/projects/ViewPageHeader';
 import { getStatusDisplay } from '@/lib/formatters';
+import { Logger } from '@/lib/services/logger';
 import {
   ChapterAssignmentStatus,
   UserRole,
@@ -400,7 +401,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         setSelectedAssignmentsStatuses([]);
         setIsDialogOpen(false);
       } catch (error) {
-        console.error('Error assigning chapters:', error);
+        Logger.logException(error, { context: 'Error Assigning Chapters' });
         setUpdatingAssignmentIds([]);
         setIsRefreshingAfterAssignment(false);
       }

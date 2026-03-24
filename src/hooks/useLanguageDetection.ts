@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { LANGUAGE_STORAGE_KEY, languages } from '@/lib/constants/languages';
+import { Logger } from '@/lib/services/logger';
 
 // Define navigator interface to fix TypeScript issues
 interface NavigatorWithUserLanguage extends Navigator {
@@ -54,7 +55,7 @@ export const useLanguageDetection = () => {
         // Save to local storage whenever language changes
         localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLanguage);
       } catch (error) {
-        console.error('Failed to change language:', error);
+        Logger.logException(error, { context: 'Failed to change language', currentLanguage });
       }
     };
 

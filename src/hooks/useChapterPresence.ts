@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 
 import { config } from '@/lib/config';
+import { Logger } from '@/lib/services/logger';
 
 interface PresenceResponse {
   isFirstEditor: boolean;
@@ -55,7 +56,7 @@ export const useChapterPresence = (
       }
     },
     onError: err => {
-      console.error('Presence heartbeat failed:', err);
+      Logger.logException(err, { context: 'Presence heartbeat error' });
     },
   });
 
@@ -85,7 +86,7 @@ export const useChapterPresence = (
       },
       keepalive: true,
     }).catch(err => {
-      console.error('Presence cleanup failed:', err);
+      Logger.logException(err, { context: 'Presence cleanup error' });
     });
   }, []);
 

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { config, getApiHeaders } from '@/lib/config';
+import { Logger } from '@/lib/services/logger';
 import type { GuideContent, ItemWithUrl } from '@/lib/types';
 
 const API_BASE_URL = config.api.aquifer_url;
@@ -204,7 +205,7 @@ const fetchImageUrls = async (items: unknown[]): Promise<ItemWithUrl[]> => {
           thumbnailUrl: details.content?.url,
         };
       } catch (e) {
-        console.error(`Error fetching item ${resourceItem.id}`, e);
+        Logger.logException(e, { context: `Error fetching image URL for item ${resourceItem.id}` });
         return { ...resourceItem, url: '', thumbnailUrl: '' };
       }
     })

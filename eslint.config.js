@@ -200,7 +200,7 @@ export default typescriptEslint.config(
       'import/no-named-as-default': 'warn',
 
       /* Code quality */
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': 'error',
       'no-debugger': 'warn',
       'no-multiple-empty-lines': ['error', { max: 1 }],
       'eol-last': ['error', 'always'],
@@ -226,7 +226,7 @@ export default typescriptEslint.config(
 
   /* JavaScript files that need parserOptions.project */
   {
-    files: ['scripts/**/*.js'],
+    files: ['scripts/*.{js,ts}', 'scripts/**/*.{js,ts}'],
     plugins: basePlugins,
     languageOptions: {
       ...jsLanguageOptions,
@@ -239,10 +239,20 @@ export default typescriptEslint.config(
     },
     rules: {
       '@typescript-eslint/no-var-requires': 'off',
+      'no-console': 'off',
     },
   },
 
   /* TypeScript-specific rules */
+  {
+    files: [
+      'src/lib/config.ts',
+      'src/lib/services/appInsights.ts',
+      'src/lib/services/logger.ts',
+      'src/i18n.ts',
+    ],
+    rules: { 'no-console': 'off' },
+  },
   {
     files: ['**/*.{ts,tsx}'],
     plugins: basePlugins,

@@ -1,3 +1,4 @@
+import { config } from '@/lib/config';
 import appInsightsService from '@/lib/services/appInsights';
 
 // Define proper types for Application Insights
@@ -10,23 +11,28 @@ export class Logger {
 
   static setUser(userId: string, accountId?: string, userName?: string): void {
     if (!appInsightsService.isReady()) {
-      console.warn(`User context would be set: ${userName ?? 'Unknown'} (${userId})`);
+      if (config.environment.isDevelopment) {
+        console.warn(`User context would be set: ${userName ?? 'Unknown'} (${userId})`);
+      }
       return;
     }
     appInsightsService.setUser(userId, accountId, userName);
   }
 
   static logException(
-    error: Error,
+    error: unknown,
     properties?: LogProperties,
     measurements?: LogMeasurements
   ): void {
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
     if (!this.appInsights) {
-      console.error('AppInsights not initialized:', error);
+      if (config.environment.isDevelopment) {
+        console.error('AppInsights not initialized:', normalizedError);
+      }
       return;
     }
     this.appInsights.trackException({
-      exception: error,
+      exception: normalizedError,
       properties: {
         timestamp: new Date().toISOString(),
         ...properties,
@@ -37,7 +43,9 @@ export class Logger {
 
   static logEvent(name: string, properties?: LogProperties, measurements?: LogMeasurements): void {
     if (!this.appInsights) {
-      console.warn(`Event: ${name}`, properties);
+      if (config.environment.isDevelopment) {
+        console.warn(`Event: ${name}`, properties);
+      }
       return;
     }
     this.appInsights.trackEvent({
@@ -52,7 +60,9 @@ export class Logger {
 
   static logTrace(message: string, severityLevel?: number, properties?: LogProperties): void {
     if (!this.appInsights) {
-      console.warn(`Trace: ${message}`, properties);
+      if (config.environment.isDevelopment) {
+        console.warn(`Trace: ${message}`, properties);
+      }
       return;
     }
     this.appInsights.trackTrace({

@@ -47,9 +47,10 @@ function validateEnv(): Env {
           return `- ${err.path.join('.')}: ${err.message}`;
         })
         .join('\n');
-
       console.error('❌ Invalid environment variables:');
+
       console.error(errorMessages);
+
       console.error('\nPlease check your .env file and update the required variables.');
     }
     throw new Error('Invalid environment configuration');

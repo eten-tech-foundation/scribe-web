@@ -28,7 +28,6 @@ export class ErrorBoundary extends Component<Props, State> {
       errorBoundary: 'ErrorBoundary',
       errorInfo: JSON.stringify(errorInfo),
     });
-    console.error('Error caught by ErrorBoundary:', error, errorInfo);
   }
 
   render() {

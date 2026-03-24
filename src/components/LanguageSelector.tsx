@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LANGUAGE_STORAGE_KEY, languages } from '@/lib/constants/languages';
+import { Logger } from '@/lib/services/logger';
 
 interface LanguageSelectorProps {
   position?: 'absolute' | 'relative';
@@ -26,7 +27,7 @@ export const LanguageSelector = ({ className = '' }: LanguageSelectorProps) => {
       // Save to local storage
       localStorage.setItem(LANGUAGE_STORAGE_KEY, lng);
     } catch (error) {
-      console.error('Failed to change language:', error);
+      Logger.logException(error, { context: 'Failed to change language', language: lng });
     }
   };
 

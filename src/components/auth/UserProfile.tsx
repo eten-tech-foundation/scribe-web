@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ChevronDown, LogOut, User } from 'lucide-react';
 
 import { useAuth } from '@/hooks/useAuth';
+import { Logger } from '@/lib/services/logger';
 
 export function UserProfile() {
   const { user, logout, isAuthenticated } = useAuth();
@@ -16,7 +17,7 @@ export function UserProfile() {
     try {
       await logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      Logger.logException(error, { context: 'Logout error' });
     }
   };
 

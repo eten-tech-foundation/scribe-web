@@ -14,6 +14,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useChapterAssignmentsByUserId } from '@/hooks/useChapterAssignment';
 import { getStatusDisplay } from '@/lib/formatters';
+import { Logger } from '@/lib/services/logger';
 import { type ChapterAssignmentStatus, type User, type UserChapterAssignment } from '@/lib/types';
 import { useAppStore } from '@/store/store';
 
@@ -166,7 +167,13 @@ export function UserHomePage() {
         state: { projectItem: item },
       });
     } catch (error) {
-      console.error('Navigation error:', error);
+      Logger.logException(error, {
+        context: 'Failed to navigate',
+        projectUnitId: item.projectUnitId.toString(),
+        bookId: item.bookId.toString(),
+        chapterNumber: item.chapterNumber.toString(),
+        isHistory: isHistory.toString(),
+      });
     } finally {
       setNavigatingToProject(null);
     }

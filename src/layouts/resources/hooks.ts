@@ -10,6 +10,7 @@ import {
   useResourcesByVerse,
   type Language,
 } from '@/hooks/useAquiferResources';
+import { Logger } from '@/lib/services/logger';
 import {
   type GuideContent,
   type ItemWithUrl,
@@ -207,20 +208,12 @@ export const useResourceFetch = (
   // Combine loading states
   const loadingImages = loadingResources || (isImageResource && loadingImageUrls);
 
-  // Log errors if any
-  useEffect(() => {
-    if (resourcesError) {
-      console.error('Error fetching resources:', resourcesError);
-    }
-    if (imageUrlsError) {
-      console.error('Error fetching image URLs:', imageUrlsError);
-    }
-  }, [resourcesError, imageUrlsError]);
-
   return {
     localizeRefName: shouldFetch ? localizeRefName : [],
     imageItems: (shouldFetch ? imageItems : []) as ItemWithUrl[],
     loadingImages,
+    resourcesError,
+    imageUrlsError,
   };
 };
 
@@ -385,7 +378,7 @@ export const useResourceDialog = () => {
   useEffect(() => {
     const error = associationError ?? directError;
     if (error) {
-      console.error('Error fetching resource:', error);
+      Logger.logException(error, { context: 'Error fetching resource dialog content' });
       setResourceError(true);
       if (currentResourceId !== null) {
         // Create an empty GuideContent object as fallback

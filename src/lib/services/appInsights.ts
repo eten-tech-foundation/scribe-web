@@ -18,9 +18,11 @@ class AppInsightsService {
 
   constructor() {
     if (!config.monitoring.appInsightsConnectionString) {
-      console.warn(
-        'Application Insights connection string not configured - logging will fall back to console'
-      );
+      if (config.environment.isDevelopment) {
+        console.warn(
+          'Application Insights connection string not configured - logging will fall back to console'
+        );
+      }
       return;
     }
 
@@ -44,9 +46,13 @@ class AppInsightsService {
       this.appInsights.loadAppInsights();
       this.initialize();
       this.isInitialized = true;
-      console.warn('✅ Application Insights initialized successfully');
+      if (config.environment.isDevelopment) {
+        console.warn('✅ Application Insights initialized successfully');
+      }
     } catch (error) {
-      console.error('❌ Failed to initialize Application Insights:', error);
+      if (config.environment.isDevelopment) {
+        console.error('❌ Failed to initialize Application Insights:', error);
+      }
       this.appInsights = undefined;
     }
   }
@@ -74,7 +80,9 @@ class AppInsightsService {
 
   setUser(userId: string, accountId?: string, userName?: string): void {
     if (!this.appInsights) {
-      console.warn('Cannot set user context - Application Insights not initialized');
+      if (config.environment.isDevelopment) {
+        console.warn('Cannot set user context - Application Insights not initialized');
+      }
       return;
     }
 
