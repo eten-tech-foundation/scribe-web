@@ -237,7 +237,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const [selectedAssignments, setSelectedAssignments] = useState<number[]>([]);
   const [selectedAssignmentsStatuses, setSelectedAssignmentsStatuses] = useState<string[]>([]);
   const [isRefreshingAfterAssignment, setIsRefreshingAfterAssignment] = useState(false);
-  const [updatingAssignmentIds, setUpdatingAssignmentIds] = useState<number[]>([]);
 
   const {
     data: chapterAssignments,
@@ -286,7 +285,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const assignChapterMutation = useAssignChapters(
     projectId ? projectId.toString() : '0',
     userdetail?.email ?? '',
-    getSelectedUserFullName(selectedDrafter)
+    getSelectedUserFullName(selectedDrafter),
+    getSelectedUserFullName(selectedPeerChecker)
   );
 
   const filteredAssignments = useMemo(() => {
@@ -385,7 +385,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const handleAssignUser = useCallback(async () => {
     if (selectedDrafter && selectedAssignments.length > 0 && userdetail?.email) {
       try {
-        setUpdatingAssignmentIds(selectedAssignments);
         await assignChapterMutation.mutateAsync({
           chapterAssignmentId: selectedAssignments,
           userId: parseInt(selectedDrafter),
@@ -402,7 +401,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         setIsDialogOpen(false);
       } catch (error) {
         Logger.logException(error, { context: 'Error Assigning Chapters' });
-        setUpdatingAssignmentIds([]);
         setIsRefreshingAfterAssignment(false);
       }
     }
@@ -420,6 +418,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
     );
   }, []);
 
+  if (isRefreshingAfterAssignment && !assignmentsFetching) {
+    setIsRefreshingAfterAssignment(false);
+  }
+
   if (!projectId) {
     return (
       <div className='flex h-full items-center justify-center'>
@@ -430,13 +432,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
   const headerTitle = `${projectTargetLanguageName} - ${projectTitle}`;
   const isLoadingData = assignmentsLoading || assignChapterMutation.isPending;
-  const isRefreshing = isRefreshingAfterAssignment && assignmentsFetching && !assignmentsLoading;
   const isDisabled = booksLoading || !books?.length || !chapterAssignments?.length;
-
-  if (isRefreshingAfterAssignment && !assignmentsFetching) {
-    setIsRefreshingAfterAssignment(false);
-    setUpdatingAssignmentIds([]);
-  }
 
   return (
     <div className='flex h-full min-w-[750px] flex-col'>
@@ -458,7 +454,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
       <div className='flex flex-1 overflow-hidden md:gap-4 lg:gap-6'>
         {/* Left Pane - Project Details + Project Users */}
-        <div className='flex w-1/4 flex-shrink-0 flex-col gap-4'>
+        <div className='flex w-1/4 shrink-0 flex-col gap-4'>
           {/* Project Details Card */}
           <Card className='h-fit'>
             <CardContent className='space-y-4 py-4'>
@@ -503,8 +499,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         </div>
 
         {/* Table Section */}
-        <div className='flex w-3/4 flex-grow flex-col overflow-hidden'>
-          <div className='flex-shrink-0 pb-4 pl-[3px]'>
+        <div className='flex w-3/4 grow flex-col overflow-hidden'>
+          <div className='shrink-0 pb-4 pl-[3px]'>
             <div className='flex items-center gap-3'>
               <Select value={selectedBook} onValueChange={setSelectedBook}>
                 <SelectTrigger className='my-0.5 w-[200px] lg:w-[250px]'>
@@ -586,9 +582,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                     </TableHeader>
                     <TableBody className='divide-border divide-y'>
                       {filteredAssignments.map(assignment => {
-                        const isUpdatingThisAssignment =
-                          isRefreshing && updatingAssignmentIds.includes(assignment.assignmentId);
-
                         return (
                           <TableRow
                             key={assignment.assignmentId}
@@ -614,28 +607,14 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                               {assignment.chapterNumber}
                             </TableCell>
                             <TableCell className='text-popover-foreground px-3 py-3 text-xs md:px-4 md:py-3.5 md:text-sm lg:px-6 lg:py-4 lg:text-base'>
-                              {isUpdatingThisAssignment ? (
-                                <div className='flex items-center gap-1.5 md:gap-2'>
-                                  <span>Loading...</span>
-                                  <Loader2 className='h-3 w-3 animate-spin md:h-4 md:w-4' />
-                                </div>
-                              ) : (
-                                <TruncatedTableText
-                                  text={assignment.assignedUser?.displayName ?? ''}
-                                />
-                              )}
+                              <TruncatedTableText
+                                text={assignment.assignedUser?.displayName ?? ''}
+                              />
                             </TableCell>
                             <TableCell className='text-popover-foreground px-3 py-3 text-xs md:px-4 md:py-3.5 md:text-sm lg:px-6 lg:py-4 lg:text-base'>
-                              {isUpdatingThisAssignment ? (
-                                <div className='flex items-center gap-1.5 md:gap-2'>
-                                  <span>Loading...</span>
-                                  <Loader2 className='h-3 w-3 animate-spin md:h-4 md:w-4' />
-                                </div>
-                              ) : (
-                                <TruncatedTableText
-                                  text={assignment.peerChecker?.displayName ?? ''}
-                                />
-                              )}
+                              <TruncatedTableText
+                                text={assignment.peerChecker?.displayName ?? ''}
+                              />
                             </TableCell>
                             <TableCell className='text-popover-foreground px-3 py-3 text-xs whitespace-nowrap md:px-4 md:py-3.5 md:text-sm lg:px-6 lg:py-4 lg:text-base'>
                               <TruncatedTableText

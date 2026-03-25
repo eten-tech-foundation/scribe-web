@@ -115,15 +115,20 @@ export const useAssignChapters = (
         email,
       ]);
 
-      if (previousAssignments && (assignedUserName || peerCheckerName)) {
+      if (previousAssignments) {
         const updatedAssignments = previousAssignments.map(assignment => {
           if (variables.chapterAssignmentId.includes(assignment.assignmentId)) {
             return {
               ...assignment,
-              ...(assignedUserName && { assigned_user: assignedUserName }),
-              ...(peerCheckerName && { peer_checker: peerCheckerName }),
-              total_verses: assignment.totalVerses,
-              completed_verses: assignment.completedVerses,
+              ...(assignedUserName &&
+                variables.userId && {
+                  assignedUser: { id: variables.userId, displayName: assignedUserName },
+                }),
+              ...(peerCheckerName &&
+                variables.peerCheckerId && {
+                  peerChecker: { id: variables.peerCheckerId, displayName: peerCheckerName },
+                }),
+              status: assignment.status === 'not_started' ? 'draft' : assignment.status,
             };
           }
           return assignment;
