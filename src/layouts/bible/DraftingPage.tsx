@@ -14,6 +14,7 @@ import { ResourcePanel } from '@/layouts/resources/ResourcePanel';
 import { getStatusDisplay } from '@/lib/formatters';
 import {
   ChapterAssignmentStatus,
+  ChapterAssignmentStatusNextAction,
   type ChapterAssignmentStatus as ChapterAssignmentStatusType,
   type DraftingUIProps,
   type ResourceName,
@@ -62,10 +63,15 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const setPresenceWarning = useAppStore(state => state.setPresenceWarning);
 
   const isCommunityReview = projectItem.chapterStatus === ChapterAssignmentStatus.COMMUNITY_REVIEW;
+  const isLinguistCheck = projectItem.chapterStatus === ChapterAssignmentStatus.LINGUIST_CHECK;
+  const isTheologicalCheck =
+    projectItem.chapterStatus === ChapterAssignmentStatus.THEOLOGICAL_CHECK;
+  const isConsultantCheck = projectItem.chapterStatus === ChapterAssignmentStatus.CONSULTANT_CHECK;
+  const isComplete = projectItem.chapterStatus === ChapterAssignmentStatus.COMPLETE;
 
   const { editorName } = useChapterPresence(
     projectItem.chapterAssignmentId,
-    isCommunityReview,
+    isCommunityReview || isLinguistCheck || isTheologicalCheck || isConsultantCheck,
     userdetail.email
   );
 
@@ -246,12 +252,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const isAnythingSaving = !readOnly && verses.some(v => getSaveStatus(v.verseNumber).showLoader);
   const hasAnyError = !readOnly && verses.some(v => getSaveStatus(v.verseNumber).hasRetryScheduled);
 
-  const getButtonText = () => {
-    if (projectItem.chapterStatus === ChapterAssignmentStatus.DRAFT) return 'Send to Peer Checking';
-    if (projectItem.chapterStatus === ChapterAssignmentStatus.PEER_CHECK)
-      return 'Send to Community Review';
-    return 'Submit';
-  };
+  const buttonText =
+    ChapterAssignmentStatusNextAction[projectItem.chapterStatus as ChapterAssignmentStatus];
 
   const handleSubmit = useCallback(async () => {
     if (!isTranslationComplete) return;
@@ -364,7 +366,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                 </Tooltip>
               </TooltipProvider>
 
-              {!isCommunityReview && (
+              {!isComplete && (
                 <>
                   <div className='bg-input rounded-lg border sm:w-40 md:w-50 lg:w-76 xl:w-105'>
                     <div className='h-4 overflow-hidden rounded-full'>
@@ -383,7 +385,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                     disabled={!isTranslationComplete}
                     onClick={handleSubmit}
                   >
-                    {getButtonText()}
+                    {buttonText}
                   </Button>
                 </>
               )}
