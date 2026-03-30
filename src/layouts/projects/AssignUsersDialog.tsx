@@ -73,7 +73,7 @@ export const TruncatedDropdownText = ({
         <TooltipTrigger asChild>{content}</TooltipTrigger>
         <TooltipContent
           align='center'
-          className='bg-popover text-popover-foreground border-border max-w-[350px] rounded-md border text-center text-sm font-semibold break-words shadow-lg'
+          className='bg-popover text-popover-foreground border-border wrap-break-words max-w-[350px] rounded-md border text-center text-sm font-semibold shadow-lg'
           side='top'
         >
           {text}
@@ -104,9 +104,32 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
   const hasCommunityReviewStatus = selectedAssignmentsStatuses.some(
     status => status === ChapterAssignmentStatus.COMMUNITY_REVIEW
   );
+  const hasLinguistCheckStatus = selectedAssignmentsStatuses.some(
+    status => status === ChapterAssignmentStatus.LINGUIST_CHECK
+  );
+  const hasTheologicalCheckStatus = selectedAssignmentsStatuses.some(
+    status => status === ChapterAssignmentStatus.THEOLOGICAL_CHECK
+  );
+  const hasConsultantCheckStatus = selectedAssignmentsStatuses.some(
+    status => status === ChapterAssignmentStatus.CONSULTANT_CHECK
+  );
+  const hasCompleteStatus = selectedAssignmentsStatuses.some(
+    status => status === ChapterAssignmentStatus.COMPLETE
+  );
 
-  const isDrafterDisabled = hasPeerCheckStatus || hasCommunityReviewStatus;
-  const isPeerCheckerDisabled = hasCommunityReviewStatus;
+  const isDrafterDisabled =
+    hasPeerCheckStatus ||
+    hasCommunityReviewStatus ||
+    hasLinguistCheckStatus ||
+    hasTheologicalCheckStatus ||
+    hasConsultantCheckStatus ||
+    hasCompleteStatus;
+  const isPeerCheckerDisabled =
+    hasCommunityReviewStatus ||
+    hasLinguistCheckStatus ||
+    hasTheologicalCheckStatus ||
+    hasConsultantCheckStatus ||
+    hasCompleteStatus;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

@@ -316,7 +316,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       const canEdit =
         (isAssignedDrafter && status === ChapterAssignmentStatus.DRAFT) ||
         (isAssignedPeerChecker && status === ChapterAssignmentStatus.PEER_CHECK) ||
-        status === ChapterAssignmentStatus.COMMUNITY_REVIEW;
+        status === ChapterAssignmentStatus.COMMUNITY_REVIEW ||
+        status === ChapterAssignmentStatus.LINGUIST_CHECK ||
+        status === ChapterAssignmentStatus.THEOLOGICAL_CHECK ||
+        status === ChapterAssignmentStatus.CONSULTANT_CHECK;
 
       const route = canEdit
         ? '/translation/$bookId/$chapterNumber'
@@ -458,7 +461,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
       <div className='flex flex-1 overflow-hidden md:gap-4 lg:gap-6'>
         {/* Left Pane - Project Details + Project Users */}
-        <div className='flex w-1/4 flex-shrink-0 flex-col gap-4'>
+        <div className='flex w-1/4 shrink-0 flex-col gap-4'>
           {/* Project Details Card */}
           <Card className='h-fit'>
             <CardContent className='space-y-4 py-4'>
@@ -503,8 +506,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         </div>
 
         {/* Table Section */}
-        <div className='flex w-3/4 flex-grow flex-col overflow-hidden'>
-          <div className='flex-shrink-0 pb-4 pl-[3px]'>
+        <div className='flex w-3/4 grow flex-col overflow-hidden'>
+          <div className='shrink-0 pb-4 pl-[3px]'>
             <div className='flex items-center gap-3'>
               <Select value={selectedBook} onValueChange={setSelectedBook}>
                 <SelectTrigger className='my-0.5 w-[200px] lg:w-[250px]'>
