@@ -316,7 +316,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       const canEdit =
         (isAssignedDrafter && status === ChapterAssignmentStatus.DRAFT) ||
         (isAssignedPeerChecker && status === ChapterAssignmentStatus.PEER_CHECK) ||
-        status === ChapterAssignmentStatus.COMMUNITY_REVIEW;
+        status === ChapterAssignmentStatus.COMMUNITY_REVIEW ||
+        status === ChapterAssignmentStatus.LINGUIST_CHECK ||
+        status === ChapterAssignmentStatus.THEOLOGICAL_CHECK ||
+        status === ChapterAssignmentStatus.CONSULTANT_CHECK;
 
       const route = canEdit
         ? '/translation/$bookId/$chapterNumber'

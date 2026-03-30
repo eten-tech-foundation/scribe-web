@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useMatch, useRouter } from '@tanstack/react-router';
 import { BookText, ChevronLeft, Loader } from 'lucide-react';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget';
@@ -10,8 +11,11 @@ import { useChapterPresence } from '@/hooks/useChapterPresence';
 import { useDrafting } from '@/hooks/useDrafting';
 import { useResourceState, useSaveResourceState } from '@/hooks/useResourceStatePersistence';
 import { ResourcePanel } from '@/layouts/resources/ResourcePanel';
+import { getStatusDisplay } from '@/lib/formatters';
 import {
   ChapterAssignmentStatus,
+  ChapterAssignmentStatusNextAction,
+  type ChapterAssignmentStatus as ChapterAssignmentStatusType,
   type DraftingUIProps,
   type ResourceName,
   type Source,
@@ -59,10 +63,15 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const setPresenceWarning = useAppStore(state => state.setPresenceWarning);
 
   const isCommunityReview = projectItem.chapterStatus === ChapterAssignmentStatus.COMMUNITY_REVIEW;
+  const isLinguistCheck = projectItem.chapterStatus === ChapterAssignmentStatus.LINGUIST_CHECK;
+  const isTheologicalCheck =
+    projectItem.chapterStatus === ChapterAssignmentStatus.THEOLOGICAL_CHECK;
+  const isConsultantCheck = projectItem.chapterStatus === ChapterAssignmentStatus.CONSULTANT_CHECK;
+  const isComplete = projectItem.chapterStatus === ChapterAssignmentStatus.COMPLETE;
 
   const { editorName } = useChapterPresence(
     projectItem.chapterAssignmentId,
-    isCommunityReview,
+    isCommunityReview || isLinguistCheck || isTheologicalCheck || isConsultantCheck,
     userdetail.email
   );
 
@@ -243,12 +252,8 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const isAnythingSaving = !readOnly && verses.some(v => getSaveStatus(v.verseNumber).showLoader);
   const hasAnyError = !readOnly && verses.some(v => getSaveStatus(v.verseNumber).hasRetryScheduled);
 
-  const getButtonText = () => {
-    if (projectItem.chapterStatus === ChapterAssignmentStatus.DRAFT) return 'Send to Peer Checking';
-    if (projectItem.chapterStatus === ChapterAssignmentStatus.PEER_CHECK)
-      return 'Send to Community Review';
-    return 'Submit';
-  };
+  const buttonText =
+    ChapterAssignmentStatusNextAction[projectItem.chapterStatus as ChapterAssignmentStatus];
 
   const handleSubmit = useCallback(async () => {
     if (!isTranslationComplete) return;
@@ -297,7 +302,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
         <TooltipTrigger asChild>
           <span>
             <ChevronLeft
-              className='flex-shrink-0 cursor-pointer'
+              className='shrink-0 cursor-pointer'
               size={'24px'}
               strokeWidth={'2px'}
               onClick={handleBack}
@@ -317,21 +322,25 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   return (
     <div className='flex h-full flex-col overflow-hidden'>
-      <div className='flex-shrink-0'>
+      <div className='shrink-0'>
         <div className='flex items-center justify-between py-4 pr-6'>
-          <div className='flex flex-shrink-0 items-center gap-4'>
+          <div className='flex shrink-0 items-center gap-4'>
             {backButton}
             <h2 className='text-3xl font-bold'>
               {projectItem.book} {projectItem.chapterNumber}
             </h2>
+            <Badge
+              className='rounded-full border px-3 py-1 text-sm font-normal whitespace-nowrap text-(--text-disabled)'
+              variant='outline'
+            >
+              {getStatusDisplay(projectItem.chapterStatus as ChapterAssignmentStatusType)}
+            </Badge>
           </div>
 
           {!readOnly && (
             <div className='flex flex-1 items-center justify-end gap-4'>
               <div className='flex items-center gap-2'>
-                {isAnythingSaving && (
-                  <Loader className='h-4 w-4 animate-spin text-[var(--primary)]' />
-                )}
+                {isAnythingSaving && <Loader className='text-primary h-4 w-4 animate-spin' />}
                 {hasAnyError && <span className='text-sm text-red-500'>Auto-save failed</span>}
               </div>
 
@@ -357,7 +366,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                 </Tooltip>
               </TooltipProvider>
 
-              {!isCommunityReview && (
+              {!isComplete && (
                 <>
                   <div className='bg-input rounded-lg border sm:w-40 md:w-50 lg:w-76 xl:w-105'>
                     <div className='h-4 overflow-hidden rounded-full'>
@@ -368,7 +377,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                     </div>
                   </div>
                   <Button
-                    className={`flex-shrink-0 px-6 py-2 font-medium transition-all ${
+                    className={`shrink-0 px-6 py-2 font-medium transition-all ${
                       isTranslationComplete
                         ? 'bg-primary hover:bg-primary-hover cursor-pointer text-white'
                         : 'cursor-not-allowed bg-gray-300 text-gray-500'
@@ -376,7 +385,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                     disabled={!isTranslationComplete}
                     onClick={handleSubmit}
                   >
-                    {getButtonText()}
+                    {buttonText}
                   </Button>
                 </>
               )}

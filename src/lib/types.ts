@@ -242,6 +242,10 @@ export enum ChapterAssignmentStatus {
   DRAFT = 'draft',
   PEER_CHECK = 'peer_check',
   COMMUNITY_REVIEW = 'community_review',
+  LINGUIST_CHECK = 'linguist_check',
+  THEOLOGICAL_CHECK = 'theological_check',
+  CONSULTANT_CHECK = 'consultant_check',
+  COMPLETE = 'complete',
 }
 export enum UserRole {
   PROJECT_MANAGER = 1,
@@ -253,6 +257,19 @@ export const ChapterAssignmentStatusDisplay: Record<ChapterAssignmentStatus, str
   [ChapterAssignmentStatus.DRAFT]: 'Draft',
   [ChapterAssignmentStatus.PEER_CHECK]: 'Peer Check',
   [ChapterAssignmentStatus.COMMUNITY_REVIEW]: 'Community Review',
+  [ChapterAssignmentStatus.LINGUIST_CHECK]: 'Linguist Check',
+  [ChapterAssignmentStatus.THEOLOGICAL_CHECK]: 'Theological Check',
+  [ChapterAssignmentStatus.CONSULTANT_CHECK]: 'Consultant Check',
+  [ChapterAssignmentStatus.COMPLETE]: 'Complete',
+};
+
+export const ChapterAssignmentStatusNextAction: Partial<Record<ChapterAssignmentStatus, string>> = {
+  [ChapterAssignmentStatus.DRAFT]: 'Send to Peer Checking',
+  [ChapterAssignmentStatus.PEER_CHECK]: 'Send to Community Review',
+  [ChapterAssignmentStatus.COMMUNITY_REVIEW]: 'Send to Linguist Check',
+  [ChapterAssignmentStatus.LINGUIST_CHECK]: 'Send to Theological Check',
+  [ChapterAssignmentStatus.THEOLOGICAL_CHECK]: 'Send to Consultant Check',
+  [ChapterAssignmentStatus.CONSULTANT_CHECK]: 'Mark as Complete',
 };
 
 export type SortOption = 'recent' | 'title' | 'targetLanguage';
