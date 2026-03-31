@@ -12,6 +12,11 @@ export interface User {
   isActive?: boolean;
 }
 
+export interface AssignmentUser {
+  id: number;
+  displayName: string;
+}
+
 export interface WorkflowStep {
   id: string;
   label: string;
@@ -64,8 +69,8 @@ export interface ChapterAssignmentProgress {
   sourceLangCode: string;
   bookNameEng: string;
   chapterNumber: number;
-  assignedUser: User | null;
-  peerChecker: User | null;
+  assignedUser: AssignmentUser | null;
+  peerChecker: AssignmentUser | null;
   status: string;
   projectUnitId: number;
   assignmentId: number;
