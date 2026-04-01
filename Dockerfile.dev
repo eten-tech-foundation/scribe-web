@@ -1,0 +1,31 @@
+FROM node:22.15.0-alpine
+
+# Security: Remove package manager and cache to reduce attack surface
+RUN apk add --no-cache dumb-init && \
+    corepack enable && corepack prepare pnpm@9 --activate && \
+    npm cache clean --force && \
+    rm -rf /tmp/*
+
+# Security: Create non-root user early
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+WORKDIR /app
+
+# Security: Copy only package files first for better layer caching
+COPY package.json pnpm-lock.yaml .npmrc ./
+
+# Security: Install with frozen lockfile and clean up
+RUN pnpm install --frozen-lockfile && \
+    chown -R nodejs:nodejs /app && \
+    rm -rf /root/.npm /root/.cache
+
+# Security: Use non-root user
+USER nodejs
+
+# Security: Expose only necessary port
+EXPOSE 5173
+
+# Security: Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["pnpm", "dev", "--host", "0.0.0.0"]
