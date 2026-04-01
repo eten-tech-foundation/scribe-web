@@ -330,7 +330,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
               {projectItem.book} {projectItem.chapterNumber}
             </h2>
             <Badge
-              className='rounded-full border px-3 py-1 text-sm font-normal whitespace-nowrap text-(--text-disabled)'
+              className='rounded-full border-2 px-3 py-1 text-sm font-bold whitespace-nowrap text-(--text-disabled)'
               variant='outline'
             >
               {getStatusDisplay(projectItem.chapterStatus as ChapterAssignmentStatusType)}
