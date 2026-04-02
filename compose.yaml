@@ -14,7 +14,7 @@ services:
       - ./tsconfig.node.json:/app/tsconfig.node.json:ro
       - ./components.json:/app/components.json:ro
       - ./.env:/app/.env:ro
-      - /app/node_modules
+      - fluent-web-node-modules:/app/node_modules
     environment:
       VITE_API_URL: '${VITE_API_URL:-http://localhost:9999}'
       COREPACK_HOME: /app/.cache/corepack
@@ -27,3 +27,6 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+
+volumes:
+  fluent-web-node-modules:
