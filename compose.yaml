@@ -6,8 +6,24 @@ services:
     ports:
       - '${PORT:-5173}:5173'
     volumes:
-      - .:/app
+      - ./src:/app/src:ro
+      - ./public:/app/public:ro
+      - ./index.html:/app/index.html:ro
+      - ./vite.config.ts:/app/vite.config.ts
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./tsconfig.node.json:/app/tsconfig.node.json:ro
+      - ./components.json:/app/components.json:ro
+      - ./.env:/app/.env:ro
       - /app/node_modules
     environment:
       VITE_API_URL: '${VITE_API_URL:-http://localhost:9999}'
+      COREPACK_HOME: /app/.cache/corepack
     env_file: .env
+    user: '1001:1001'
+    tmpfs:
+      - /tmp:nosuid,size=64m
+      - /app/.cache:noexec,nosuid,uid=1001,gid=1001,size=128m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
