@@ -38,15 +38,21 @@ export default defineConfig(({ mode }) => {
       sourcemap: !isAnalyze,
       rollupOptions: {
         output: {
-          manualChunks: {
-            'react-vendor': ['react', 'react-dom'],
-            tanstack: ['@tanstack/react-router'],
-            'ui-libs': [
-              '@radix-ui/react-slot',
-              'class-variance-authority',
-              'clsx',
-              'tailwind-merge',
-            ],
+          manualChunks: id => {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@tanstack/react-router')) {
+              return 'tanstack';
+            }
+            if (
+              id.includes('@radix-ui/react-slot') ||
+              id.includes('class-variance-authority') ||
+              id.includes('clsx') ||
+              id.includes('tailwind-merge')
+            ) {
+              return 'ui-libs';
+            }
           },
         },
       },
