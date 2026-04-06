@@ -333,7 +333,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                 {projectItem.book} {projectItem.chapterNumber}
               </h2>
               <Badge
-                className='col-start-2 row-start-2 mt-2 self-start rounded-full border-2 px-3 py-1 text-sm font-bold whitespace-nowrap text-(--text-disabled) lg:col-start-auto lg:row-start-auto lg:mt-0 lg:self-center'
+                className='col-start-2 row-start-2 mt-2 w-fit self-start rounded-full border-2 px-3 py-1 text-sm font-bold whitespace-nowrap text-(--text-disabled) lg:col-start-auto lg:row-start-auto lg:mt-0 lg:self-center'
                 variant='outline'
               >
                 {getStatusDisplay(projectItem.chapterStatus as ChapterAssignmentStatusType)}
