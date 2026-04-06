@@ -323,18 +323,22 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   return (
     <div className='flex h-full flex-col overflow-hidden'>
       <div className='shrink-0'>
-        <div className='flex items-center justify-between py-4 pr-6'>
+        <div className='flex items-start justify-between py-4 pr-6'>
           <div className='flex shrink-0 items-center gap-4'>
-            {backButton}
-            <h2 className='text-3xl font-bold'>
-              {projectItem.book} {projectItem.chapterNumber}
-            </h2>
-            <Badge
-              className='rounded-full border px-3 py-1 text-sm font-normal whitespace-nowrap text-(--text-disabled)'
-              variant='outline'
-            >
-              {getStatusDisplay(projectItem.chapterStatus as ChapterAssignmentStatusType)}
-            </Badge>
+            <div className='grid grid-cols-[auto_1fr] gap-x-2 lg:flex lg:items-center'>
+              <div className='col-start-1 row-start-1 flex items-center self-center'>
+                {backButton}
+              </div>
+              <h2 className='col-start-2 row-start-1 text-3xl font-bold'>
+                {projectItem.book} {projectItem.chapterNumber}
+              </h2>
+              <Badge
+                className='col-start-2 row-start-2 mt-2 self-start rounded-full border-2 px-3 py-1 text-sm font-bold whitespace-nowrap text-(--text-disabled) lg:col-start-auto lg:row-start-auto lg:mt-0 lg:self-center'
+                variant='outline'
+              >
+                {getStatusDisplay(projectItem.chapterStatus as ChapterAssignmentStatusType)}
+              </Badge>
+            </div>
           </div>
 
           {!readOnly && (
