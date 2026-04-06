@@ -1,5 +1,3 @@
-import { type LoaderFnContext } from '@tanstack/react-router';
-
 import { fetchTargetText } from '@/hooks/useBibleTarget';
 import { fetchBibleText } from '@/hooks/useBibleText';
 import { type ProjectItem, type Source, type TargetVerse } from '@/lib/types';
@@ -29,7 +27,11 @@ const toTargetVerse = (verse: TargetVerseData): TargetVerse => ({
   content: verse.content,
 });
 
-export const translationLoader = async ({ location }: LoaderFnContext) => {
+export const translationLoader = async ({
+  location,
+}: {
+  location: { search?: Record<string, string>; state?: { projectItem?: ProjectItem } };
+}) => {
   await hydrationPromise;
   const { userdetail, currentProjectItem, setCurrentProjectItem } = useAppStore.getState();
 
