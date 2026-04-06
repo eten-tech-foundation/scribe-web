@@ -17,7 +17,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: ${{ github.event_name == 'workflow_dispatch' && 'production' || 'development' }}
-    
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,7 +29,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '24.14.0'
+          node-version: '24.13.0'
 
       - name: Deploy to Azure
         uses: Azure/static-web-apps-deploy@v1
