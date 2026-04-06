@@ -97,6 +97,7 @@ export const UsersWrapper: React.FC = () => {
       />
 
       <UserModal
+        disableRoleSelection={userdetail?.email === selectedUser?.email}
         error={userError ?? mutationError}
         isLoading={mutationIsLoading}
         isOpen={isModalOpen}
