@@ -6,13 +6,14 @@ services:
     ports:
       - '${PORT:-5173}:5173'
     volumes:
-      - ./src:/app/src:ro
+      - ./src:/app/src
       - ./public:/app/public:ro
       - ./index.html:/app/index.html:ro
       - ./vite.config.ts:/app/vite.config.ts
       - ./tsconfig.json:/app/tsconfig.json:ro
       - ./tsconfig.node.json:/app/tsconfig.node.json:ro
       - ./components.json:/app/components.json:ro
+      - ./eslint.config.js:/app/eslint.config.js:ro
       - ./.env:/app/.env:ro
       - fluent-web-node-modules:/app/node_modules
     environment:

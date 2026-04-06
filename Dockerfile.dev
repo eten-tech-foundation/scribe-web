@@ -1,4 +1,4 @@
-FROM node:22.15.0-alpine
+FROM node:24.13.0-alpine
 
 # Install security updates and dumb-init for signal handling
 RUN apk update && \
