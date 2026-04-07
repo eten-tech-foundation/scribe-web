@@ -591,7 +591,18 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                             className='align-center cursor-pointer border-b transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
                             onClick={() => handleChapterRowClick(assignment)}
                           >
-                            <TableCell className='w-12 px-3 py-3 md:px-4 md:py-3.5 lg:px-6 lg:py-4'>
+                            <TableCell
+                              className={`w-12 px-3 py-3 md:px-4 md:py-3.5 lg:px-6 lg:py-4 ${isManager ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700' : ''}`}
+                              onClick={e => {
+                                e.stopPropagation();
+                                if (!isLoadingData && isManager) {
+                                  handleCheckboxChange(
+                                    assignment.assignmentId,
+                                    !selectedAssignments.includes(assignment.assignmentId)
+                                  );
+                                }
+                              }}
+                            >
                               {isManager && (
                                 <Checkbox
                                   checked={selectedAssignments.includes(assignment.assignmentId)}
@@ -599,7 +610,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                                   onCheckedChange={checked =>
                                     handleCheckboxChange(assignment.assignmentId, !!checked)
                                   }
-                                  onClick={e => e.stopPropagation()}
                                 />
                               )}
                             </TableCell>
