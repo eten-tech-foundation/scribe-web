@@ -71,7 +71,9 @@ function Run-Container {
         "-v", "$ScriptDir\.env:/app/.env:ro",
         "-v", "$WebContext\.prettierrc.js:/app/.prettierrc.js:ro",
         "-v", "$WebContext\.prettierignore:/app/.prettierignore:ro",
-        "-v", "${ContainerName}-node-modules:/app/node_modules"
+        "-v", "${ContainerName}-node-modules:/app/node_modules",
+        "-v", "${ContainerName}-cache:/app/.cache",
+        "-v", "${ContainerName}-eslintcache:/app/.eslintcache"
     )
 
     # Environment variables
@@ -104,8 +106,6 @@ function Run-Container {
         "--user", "1001:1001",
         "--read-only",
         "--tmpfs", "/tmp:nosuid,size=64m",
-        "--tmpfs", "/app/.cache:noexec,nosuid,uid=1001,gid=1001,size=128m",
-        "--tmpfs", "/app/.eslintcache:noexec,nosuid,uid=1001,gid=1001,size=16m",
         "--security-opt", "no-new-privileges:true",
         "--cap-drop", "ALL",
         $ImageName
@@ -210,6 +210,8 @@ switch ($Command) {
         if ($confirm -match "^[Yy]$") {
             & $Runtime rm -f $ContainerName 2>$null | Out-Null
             & $Runtime volume rm -f "${ContainerName}-node-modules" 2>$null | Out-Null
+            & $Runtime volume rm -f "${ContainerName}-cache" 2>$null | Out-Null
+            & $Runtime volume rm -f "${ContainerName}-eslintcache" 2>$null | Out-Null
             Write-Host "Cleaned up."
         } else {
             Write-Host "Aborted."
@@ -222,6 +224,8 @@ switch ($Command) {
         if ($confirm -match "^[Yy]$") {
             & $Runtime rm -f $ContainerName 2>$null | Out-Null
             & $Runtime volume rm -f "${ContainerName}-node-modules" 2>$null | Out-Null
+            & $Runtime volume rm -f "${ContainerName}-cache" 2>$null | Out-Null
+            & $Runtime volume rm -f "${ContainerName}-eslintcache" 2>$null | Out-Null
             & $Runtime rmi -f $ImageName 2>$null | Out-Null
             Write-Host ""
             Write-Host "Clean slate. Run '.\fweb.ps1 up' to rebuild and start."

@@ -64,6 +64,8 @@ run_container() {
     -v "$WEB_CONTEXT/.prettierrc.js:/app/.prettierrc.js:ro"
     -v "$WEB_CONTEXT/.prettierignore:/app/.prettierignore:ro"
     -v "${CONTAINER_NAME}-node-modules:/app/node_modules"
+    -v "${CONTAINER_NAME}-cache:/app/.cache"
+    -v "${CONTAINER_NAME}-eslintcache:/app/.eslintcache"
   )
 
   # Environment variables
@@ -95,8 +97,6 @@ run_container() {
     --user "1001:1001" \
     --read-only \
     --tmpfs /tmp:nosuid,size=64m \
-    --tmpfs /app/.cache:noexec,nosuid,uid=1001,gid=1001,size=128m \
-    --tmpfs /app/.eslintcache:noexec,nosuid,uid=1001,gid=1001,size=16m \
     --security-opt no-new-privileges:true \
     --cap-drop ALL \
     "$IMAGE_NAME"
@@ -239,6 +239,8 @@ case "$cmd" in
     if [[ "$confirm" =~ ^[Yy]$ ]]; then
       $RUNTIME rm -f "$CONTAINER_NAME" 2>/dev/null || true
       $RUNTIME volume rm -f "${CONTAINER_NAME}-node-modules" 2>/dev/null || true
+      $RUNTIME volume rm -f "${CONTAINER_NAME}-cache" 2>/dev/null || true
+      $RUNTIME volume rm -f "${CONTAINER_NAME}-eslintcache" 2>/dev/null || true
       echo "Cleaned up."
     else
       echo "Aborted."
@@ -252,6 +254,8 @@ case "$cmd" in
     if [[ "$confirm" =~ ^[Yy]$ ]]; then
       $RUNTIME rm -f "$CONTAINER_NAME" 2>/dev/null || true
       $RUNTIME volume rm -f "${CONTAINER_NAME}-node-modules" 2>/dev/null || true
+      $RUNTIME volume rm -f "${CONTAINER_NAME}-cache" 2>/dev/null || true
+      $RUNTIME volume rm -f "${CONTAINER_NAME}-eslintcache" 2>/dev/null || true
       $RUNTIME rmi -f "$IMAGE_NAME" 2>/dev/null || true
       echo ""
       echo "Clean slate. Run './fweb.sh up' to rebuild and start."
