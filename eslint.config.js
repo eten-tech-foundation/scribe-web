@@ -88,6 +88,7 @@ export default typescriptEslint.config(
       'vite.config.ts',
       'tailwind.config.js',
       '**/stats.html',
+      '**/.cache/**',
     ],
     languageOptions: baseLanguageOptions,
     /* Plugin registration */
