@@ -16,10 +16,12 @@ services:
       - ./eslint.config.js:/app/eslint.config.js:ro
       - ./.env:/app/.env:ro
       - ${WEB_CONTEXT:-../fluent-web}/.prettierrc.js:/app/.prettierrc.js:ro
+      - ${WEB_CONTEXT:-../fluent-web}/.prettierignore:/app/.prettierignore:ro
       - fluent-web-node-modules:/app/node_modules
     environment:
       VITE_API_URL: '${VITE_API_URL:-http://localhost:9999}'
       COREPACK_HOME: /app/.cache/corepack
+      COREPACK_ENABLE_AUTO_PIN: '0'
     env_file: .env
     user: '1001:1001'
     tmpfs:
