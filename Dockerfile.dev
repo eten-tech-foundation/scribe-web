@@ -26,6 +26,10 @@ RUN pnpm install --frozen-lockfile --ignore-scripts && \
 # Rebuild native addons that need compilation (safe — runs node-gyp, not package scripts)
 RUN pnpm rebuild
 
+# Create cache directories with correct ownership for runtime volumes
+RUN mkdir -p /app/.cache /app/.eslintcache && \
+    chown -R nodejs:nodejs /app/.cache /app/.eslintcache
+
 # Switch to non-root user
 USER nodejs
 
