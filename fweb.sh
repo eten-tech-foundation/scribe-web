@@ -7,16 +7,25 @@ cd "$SCRIPT_DIR"
 # ── Runtime detection (prefer Podman) ──────────────────────────────────────────
 
 detect_runtime() {
-  if command -v podman &>/dev/null && command -v podman-compose &>/dev/null; then
-    COMPOSE_CMD="podman-compose"
+  if command -v podman &>/dev/null; then
+    # Check if podman has native compose support (podman compose)
+    if podman compose version &>/dev/null 2>&1; then
+      COMPOSE_CMD=(podman compose)
+    elif command -v podman-compose &>/dev/null; then
+      COMPOSE_CMD=(podman-compose)
+    else
+      echo "Error: Podman found but no compose support."
+      echo "Install with: pip3 install podman-compose"
+      exit 1
+    fi
   elif command -v docker &>/dev/null && docker compose version &>/dev/null 2>&1; then
-    COMPOSE_CMD="docker compose"
+    COMPOSE_CMD=(docker compose)
   elif command -v docker &>/dev/null && command -v docker-compose &>/dev/null; then
-    COMPOSE_CMD="docker-compose"
+    COMPOSE_CMD=(docker-compose)
   else
     echo "Error: No container runtime found."
     echo "Install one of:"
-    echo "  - Podman + podman-compose"
+    echo "  - Podman (with 'podman compose' support)"
     echo "  - Docker Desktop (includes docker compose V2)"
     echo "  - Docker Engine + docker-compose"
     exit 1
@@ -32,52 +41,52 @@ shift || true
 
 case "$cmd" in
   up)
-    $COMPOSE_CMD up -d --build "$@"
+    "${COMPOSE_CMD[@]}" up -d --build "$@"
     ;;
   down)
-    $COMPOSE_CMD down "$@"
+    "${COMPOSE_CMD[@]}" down "$@"
     ;;
   restart)
-    $COMPOSE_CMD restart "$@"
+    "${COMPOSE_CMD[@]}" restart "$@"
     ;;
   logs)
-    $COMPOSE_CMD logs -f "$@"
+    "${COMPOSE_CMD[@]}" logs -f "$@"
     ;;
   status)
-    $COMPOSE_CMD ps "$@"
+    "${COMPOSE_CMD[@]}" ps "$@"
     ;;
   shell)
-    $COMPOSE_CMD exec web sh
+    "${COMPOSE_CMD[@]}" exec web sh
     ;;
 
   # ── Development commands ─────────────────────────────────────────────────
 
   test)
-    $COMPOSE_CMD exec web pnpm test "$@"
+    "${COMPOSE_CMD[@]}" exec web pnpm test "$@"
     ;;
   lint)
-    $COMPOSE_CMD exec web pnpm lint "$@"
+    "${COMPOSE_CMD[@]}" exec web pnpm lint "$@"
     ;;
   lint:fix)
-    $COMPOSE_CMD exec web pnpm lint:fix "$@"
+    "${COMPOSE_CMD[@]}" exec web pnpm lint:fix "$@"
     ;;
   format)
-    $COMPOSE_CMD exec web pnpm format "$@"
+    "${COMPOSE_CMD[@]}" exec web pnpm format "$@"
     ;;
   format:check)
-    $COMPOSE_CMD exec web pnpm format:check "$@"
+    "${COMPOSE_CMD[@]}" exec web pnpm format:check "$@"
     ;;
   typecheck)
-    $COMPOSE_CMD exec web pnpm typecheck "$@"
+    "${COMPOSE_CMD[@]}" exec web pnpm typecheck "$@"
     ;;
   precheck)
-    $COMPOSE_CMD exec web pnpm precheck "$@"
+    "${COMPOSE_CMD[@]}" exec web pnpm precheck "$@"
     ;;
   preview)
-    $COMPOSE_CMD exec web pnpm preview "$@"
+    "${COMPOSE_CMD[@]}" exec web pnpm preview "$@"
     ;;
   run)
-    $COMPOSE_CMD exec web pnpm "$@"
+    "${COMPOSE_CMD[@]}" exec web pnpm "$@"
     ;;
 
   # ── Lifecycle commands ─────────────────────────────────────────────────────
@@ -86,7 +95,7 @@ case "$cmd" in
     echo "This will remove the container and volumes."
     read -rp "Continue? [y/N] " confirm
     if [[ "$confirm" =~ ^[Yy]$ ]]; then
-      $COMPOSE_CMD down -v
+      "${COMPOSE_CMD[@]}" down -v
     else
       echo "Aborted."
     fi
@@ -96,7 +105,7 @@ case "$cmd" in
     echo "Everything will be rebuilt from scratch."
     read -rp "Continue? [y/N] " confirm
     if [[ "$confirm" =~ ^[Yy]$ ]]; then
-      $COMPOSE_CMD down -v --rmi local --remove-orphans
+      "${COMPOSE_CMD[@]}" down -v --rmi local --remove-orphans
       echo ""
       echo "Clean slate. Run './fweb.sh up' to rebuild and start."
     else
@@ -104,7 +113,7 @@ case "$cmd" in
     fi
     ;;
   build)
-    $COMPOSE_CMD build --no-cache "$@"
+    "${COMPOSE_CMD[@]}" build --no-cache "$@"
     ;;
   setup)
     if [ ! -f .env ]; then
