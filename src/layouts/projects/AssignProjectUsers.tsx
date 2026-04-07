@@ -94,17 +94,26 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
     }
   }, [selectedUserToAdd, addProjectUserMutation, handleCloseDialog]);
 
+  const [removingUserIds, setRemovingUserIds] = useState<Set<number>>(new Set());
+
   const handleRemoveProjectUser = useCallback(
     async (userId: number) => {
       setError(null);
+      setRemovingUserIds(prev => new Set(prev).add(userId));
       try {
         await removeProjectUserMutation.mutateAsync({ userId });
       } catch (err: unknown) {
         const message =
-          err instanceof Error && err.message.includes('still has content')
+          err instanceof Error && err.message.includes('User has content')
             ? 'Error: User still has assigned content.'
             : 'Error: User not removed.';
         setError(message);
+      } finally {
+        setRemovingUserIds(prev => {
+          const next = new Set(prev);
+          next.delete(userId);
+          return next;
+        });
       }
     },
     [removeProjectUserMutation]
@@ -156,12 +165,16 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
               <TooltipTrigger asChild>
                 <Button
                   className='h-7 w-7 p-0 hover:text-red-500'
-                  disabled={removeProjectUserMutation.isPending}
+                  disabled={removingUserIds.has(pu.userId)}
                   size='sm'
                   variant='ghost'
                   onClick={() => handleRemoveProjectUser(pu.userId)}
                 >
-                  <Trash2 className='h-4 w-4' />
+                  {removingUserIds.has(pu.userId) ? (
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                  ) : (
+                    <Trash2 className='h-4 w-4' />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent side='top'>Remove user from project</TooltipContent>
@@ -197,14 +210,14 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
         {/*Error banner — only shown when the fetch itself failed */}
         {projectUsersError && (
           <div className='mb-2 flex items-center gap-1.5 text-sm text-red-500'>
-            <TriangleAlert className='h-4 w-4 flex-shrink-0' />
+            <TriangleAlert className='h-4 w-4 shrink-0' />
             <span>Error: Loading users failed.</span>
           </div>
         )}
 
         {error && (
           <div className='mb-2 flex items-center gap-1.5 text-sm text-red-500'>
-            <TriangleAlert className='h-4 w-4 flex-shrink-0' />
+            <TriangleAlert className='h-4 w-4 shrink-0' />
             <span>{error}</span>
           </div>
         )}
@@ -247,7 +260,7 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
               <SelectTrigger className='bg-background w-full'>
                 <SelectValue placeholder='Select a User' />
               </SelectTrigger>
-              <SelectContent className='w-[var(--radix-select-trigger-width)]'>
+              <SelectContent className='w-(--radix-select-trigger-width)'>
                 {usersLoading ? (
                   <SelectItem disabled value='loading'>
                     Loading users...
