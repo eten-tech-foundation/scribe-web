@@ -15,6 +15,7 @@ services:
       - ./components.json:/app/components.json:ro
       - ./eslint.config.js:/app/eslint.config.js:ro
       - ./.env:/app/.env:ro
+      - ${WEB_CONTEXT:-../fluent-web}/.prettierrc.js:/app/.prettierrc.js:ro
       - fluent-web-node-modules:/app/node_modules
     environment:
       VITE_API_URL: '${VITE_API_URL:-http://localhost:9999}'
