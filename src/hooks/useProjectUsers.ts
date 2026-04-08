@@ -115,32 +115,10 @@ export const useRemoveProjectUser = (projectId: number, email: string) => {
 
   return useMutation({
     mutationFn: ({ userId }: { userId: number }) => removeProjectUser(projectId, userId, email),
-    onMutate: async ({ userId }) => {
-      await queryClient.cancelQueries({ queryKey: ['projectUsers', projectId, email] });
-
-      const previousUsers = queryClient.getQueryData<ProjectUser[]>([
-        'projectUsers',
-        projectId,
-        email,
-      ]);
-
+    onSuccess: (_data, { userId }) => {
       queryClient.setQueryData<ProjectUser[]>(['projectUsers', projectId, email], prev =>
         prev ? prev.filter(u => u.userId !== userId) : []
       );
-
-      return { previousUsers };
-    },
-    onError: (err, _variables, context) => {
-      if (context?.previousUsers) {
-        queryClient.setQueryData(['projectUsers', projectId, email], context.previousUsers);
-      }
-      // re-throw so the error propagates to the mutateAsync caller (handleRemoveProjectUser)
-      // which handles it by showing an error message in the UI.
-      // No global MutationCache onError handler exists in this project so double-reporting is not a concern.
-      throw err;
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['projectUsers', projectId, email] });
     },
   });
 };
