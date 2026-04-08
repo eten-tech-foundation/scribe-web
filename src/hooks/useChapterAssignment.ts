@@ -5,8 +5,8 @@ import { type ChapterAssignmentProgress, type UserChapterAssignment } from '@/li
 
 export interface AssignChapterPayload {
   chapterAssignmentId: number[];
-  userId: number;
-  peerCheckerId?: number;
+  userId: number | null;
+  peerCheckerId?: number | null;
 }
 
 export interface ChapterAssignmentsByUser {
