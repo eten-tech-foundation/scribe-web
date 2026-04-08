@@ -6,13 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Table,
   TableBody,
   TableCell,
@@ -21,8 +14,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useAddProjectUser, useProjectUsers, useRemoveProjectUser } from '@/hooks/useProjectUsers';
-import { TruncatedDropdownText } from '@/layouts/projects/AssignUsersDialog';
+import { UserMultiSelect } from '@/components/UserMultiSelect';
+import { useAddProjectUsers, useProjectUsers, useRemoveProjectUser } from '@/hooks/useProjectUsers';
 import { type User } from '@/lib/types';
 
 interface AssignProjectUsersProps {
@@ -44,7 +37,7 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
   onAddUser,
   onCloseAddUser,
 }) => {
-  const [selectedUserToAdd, setSelectedUserToAdd] = useState<string>('');
+  const [selectedUsersToAdd, setSelectedUsersToAdd] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const {
@@ -56,7 +49,7 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
     enabled: !!projectId && !!email,
   });
 
-  const addProjectUserMutation = useAddProjectUser(projectId, email);
+  const addProjectUsersMutation = useAddProjectUsers(projectId, email);
   const removeProjectUserMutation = useRemoveProjectUser(projectId, email);
 
   const availableUsersToAdd = useMemo(() => {
@@ -67,32 +60,32 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
 
   const handleOpenAddDialog = useCallback(() => {
     setError(null);
-    setSelectedUserToAdd('');
+    setSelectedUsersToAdd([]);
     onAddUser?.();
   }, [onAddUser]);
 
   const handleCloseDialog = useCallback(() => {
     setError(null);
-    setSelectedUserToAdd('');
+    setSelectedUsersToAdd([]);
     onCloseAddUser?.();
   }, [onCloseAddUser]);
 
   const handleAddProjectUser = useCallback(async () => {
-    if (!selectedUserToAdd) return;
+    if (selectedUsersToAdd.length === 0) return;
     setError(null);
     try {
-      await addProjectUserMutation.mutateAsync({ userId: parseInt(selectedUserToAdd) });
+      await addProjectUsersMutation.mutateAsync({ userIds: selectedUsersToAdd });
       handleCloseDialog();
     } catch (err: unknown) {
       const message =
         err instanceof TypeError && err.message === 'Failed to fetch'
-          ? 'Error: User not added.'
+          ? 'Error: Users not added.'
           : err instanceof Error
             ? err.message
-            : 'Error: User not added.';
+            : 'Error: Users not added.';
       setError(message);
     }
-  }, [selectedUserToAdd, addProjectUserMutation, handleCloseDialog]);
+  }, [selectedUsersToAdd, addProjectUsersMutation, handleCloseDialog]);
 
   const [removingUserIds, setRemovingUserIds] = useState<Set<number>>(new Set());
 
@@ -256,44 +249,23 @@ export const AssignProjectUsers: React.FC<AssignProjectUsersProps> = ({
             <DialogTitle>Add Project User</DialogTitle>
           </DialogHeader>
           <div className='flex flex-col gap-6 pt-2'>
-            <Select value={selectedUserToAdd} onValueChange={setSelectedUserToAdd}>
-              <SelectTrigger className='bg-background w-full'>
-                <SelectValue placeholder='Select a User' />
-              </SelectTrigger>
-              <SelectContent className='w-(--radix-select-trigger-width)'>
-                {usersLoading ? (
-                  <SelectItem disabled value='loading'>
-                    Loading users...
-                  </SelectItem>
-                ) : availableUsersToAdd.length === 0 ? (
-                  <SelectItem disabled value='none'>
-                    All users already added
-                  </SelectItem>
-                ) : (
-                  availableUsersToAdd
-                    .slice()
-                    .sort((a, b) => a.username.localeCompare(b.username))
-                    .map((user: User) => (
-                      <SelectItem key={user.id} value={user.id.toString()}>
-                        <div className='w-[250px] text-left sm:w-[300px]'>
-                          <TruncatedDropdownText text={user.username} />
-                        </div>
-                      </SelectItem>
-                    ))
-                )}
-              </SelectContent>
-            </Select>
+            <UserMultiSelect
+              isLoading={usersLoading}
+              users={availableUsersToAdd}
+              value={selectedUsersToAdd}
+              onChange={setSelectedUsersToAdd}
+            />
 
             <div className='flex justify-end'>
               <Button
                 className='bg-primary text-white'
-                disabled={!selectedUserToAdd || addProjectUserMutation.isPending}
+                disabled={selectedUsersToAdd.length === 0 || addProjectUsersMutation.isPending}
                 onClick={handleAddProjectUser}
               >
-                {addProjectUserMutation.isPending && (
+                {addProjectUsersMutation.isPending && (
                   <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                 )}
-                Add User
+                Save Users
               </Button>
             </div>
           </div>
