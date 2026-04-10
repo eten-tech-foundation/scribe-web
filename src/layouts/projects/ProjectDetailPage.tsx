@@ -386,12 +386,17 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   }, [selectedAssignments, chapterAssignments, projectUsers]);
 
   const handleAssignUser = useCallback(async () => {
-    if (selectedDrafter && selectedAssignments.length > 0 && userdetail?.email) {
+    const isUnassigning = selectedDrafter === '' && selectedPeerChecker === '';
+    const canProceed =
+      (selectedDrafter || isUnassigning) && selectedAssignments.length > 0 && userdetail?.email;
+    if (canProceed) {
       try {
+        const userId = selectedDrafter === '' ? null : parseInt(selectedDrafter);
+        const peerCheckerId = selectedPeerChecker === '' ? null : parseInt(selectedPeerChecker);
         await assignChapterMutation.mutateAsync({
           chapterAssignmentId: selectedAssignments,
-          userId: parseInt(selectedDrafter),
-          peerCheckerId: parseInt(selectedPeerChecker),
+          userId: userId as unknown as number,
+          peerCheckerId: peerCheckerId as unknown as number,
           email: userdetail.email,
         });
 
@@ -403,7 +408,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         setSelectedAssignmentsStatuses([]);
         setIsDialogOpen(false);
       } catch (error) {
-        Logger.logException(error, { context: 'Error Assigning Chapters' });
+        Logger.logException(error, { context: 'Error Assigning/Unassigning Chapters' });
         setIsRefreshingAfterAssignment(false);
       }
     }
@@ -416,9 +421,13 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   ]);
 
   const handleCheckboxChange = useCallback((assignmentId: number, checked: boolean) => {
-    setSelectedAssignments(prev =>
-      checked ? [...prev, assignmentId] : prev.filter(id => id !== assignmentId)
-    );
+    setSelectedAssignments(prev => {
+      if (checked) {
+        return prev.includes(assignmentId) ? prev : [...prev, assignmentId];
+      } else {
+        return prev.filter(id => id !== assignmentId);
+      }
+    });
   }, []);
 
   if (isRefreshingAfterAssignment && !assignmentsFetching) {

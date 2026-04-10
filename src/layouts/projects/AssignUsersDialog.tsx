@@ -116,6 +116,17 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
   const hasCompleteStatus = selectedAssignmentsStatuses.some(
     status => status === ChapterAssignmentStatus.COMPLETE
   );
+  const isResetState = selectedDrafter === '' && selectedPeerChecker === '';
+  const isInitialAssignment = !selectedDrafter && !selectedPeerChecker;
+  const isDraftingComplete = selectedAssignmentsStatuses.some(
+    status =>
+      status !== ChapterAssignmentStatus.NOT_STARTED && status !== ChapterAssignmentStatus.DRAFT
+  );
+  const isResetDisabled = isInitialAssignment || isDraftingComplete || usersLoading || isAssigning;
+  const handleReset = () => {
+    onDrafterChange('');
+    onPeerCheckerChange('');
+  };
 
   const isDrafterDisabled =
     hasPeerCheckStatus ||
@@ -231,15 +242,24 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
         </div>
 
         <DialogFooter className='flex gap-2'>
+          <Button disabled={isResetDisabled} onClick={handleReset}>
+            Reset Users
+          </Button>
           <Button
-            disabled={!selectedDrafter || !selectedPeerChecker || usersLoading || isAssigning}
+            disabled={
+              (!isResetState && (!selectedDrafter || !selectedPeerChecker)) ||
+              usersLoading ||
+              isAssigning
+            }
             onClick={onAssign}
           >
             {isAssigning ? (
               <>
                 <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                Assigning...
+                {isResetState ? 'Unassigning...' : 'Assigning...'}
               </>
+            ) : isResetState ? (
+              'Unassign Users'
             ) : (
               'Assign Users'
             )}
