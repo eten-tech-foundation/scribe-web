@@ -116,13 +116,17 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
   const hasCompleteStatus = selectedAssignmentsStatuses.some(
     status => status === ChapterAssignmentStatus.COMPLETE
   );
-  const isResetState = selectedDrafter === '' && selectedPeerChecker === '';
-  const isInitialAssignment = !selectedDrafter && !selectedPeerChecker;
+  const isFormEmpty = !selectedDrafter && !selectedPeerChecker;
+  const hasCompleteSelection = !!selectedDrafter && !!selectedPeerChecker;
   const isDraftingComplete = selectedAssignmentsStatuses.some(
     status =>
       status !== ChapterAssignmentStatus.NOT_STARTED && status !== ChapterAssignmentStatus.DRAFT
   );
-  const isResetDisabled = isInitialAssignment || isDraftingComplete || usersLoading || isAssigning;
+  const isResetDisabled = isFormEmpty || isDraftingComplete || usersLoading || isAssigning;
+
+  const canSubmit = isFormEmpty || hasCompleteSelection;
+  const isSubmitDisabled = !canSubmit || usersLoading || isAssigning;
+
   const handleReset = () => {
     onDrafterChange('');
     onPeerCheckerChange('');
@@ -245,20 +249,13 @@ export const AssignUsersDialog: React.FC<AssignUsersDialogProps> = ({
           <Button disabled={isResetDisabled} onClick={handleReset}>
             Reset Users
           </Button>
-          <Button
-            disabled={
-              (!isResetState && (!selectedDrafter || !selectedPeerChecker)) ||
-              usersLoading ||
-              isAssigning
-            }
-            onClick={onAssign}
-          >
+          <Button disabled={isSubmitDisabled} onClick={onAssign}>
             {isAssigning ? (
               <>
                 <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                {isResetState ? 'Unassigning...' : 'Assigning...'}
+                {isFormEmpty ? 'Unassigning...' : 'Assigning...'}{' '}
               </>
-            ) : isResetState ? (
+            ) : isFormEmpty ? (
               'Unassign Users'
             ) : (
               'Assign Users'

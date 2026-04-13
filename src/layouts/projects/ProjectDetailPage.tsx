@@ -386,37 +386,44 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   }, [selectedAssignments, chapterAssignments, projectUsers]);
 
   const handleAssignUser = useCallback(async () => {
-    const isUnassigning = selectedDrafter === '' && selectedPeerChecker === '';
+    const drafterId = selectedDrafter === '' ? null : parseInt(selectedDrafter);
+    const peerCheckerId = selectedPeerChecker === '' ? null : parseInt(selectedPeerChecker);
+    const isUnassigning = drafterId === null && peerCheckerId === null;
     const canProceed =
-      (selectedDrafter || isUnassigning) && selectedAssignments.length > 0 && userdetail?.email;
-    if (canProceed) {
-      try {
-        const userId = selectedDrafter === '' ? null : parseInt(selectedDrafter);
-        const peerCheckerId = selectedPeerChecker === '' ? null : parseInt(selectedPeerChecker);
-        await assignChapterMutation.mutateAsync({
-          chapterAssignmentId: selectedAssignments,
-          userId: userId as unknown as number,
-          peerCheckerId: peerCheckerId as unknown as number,
-          email: userdetail.email,
-        });
+      (drafterId !== null || isUnassigning) &&
+      selectedAssignments.length > 0 &&
+      userdetail?.email &&
+      projectId;
 
-        setIsRefreshingAfterAssignment(true);
+    if (!canProceed) return;
 
-        setSelectedDrafter('');
-        setSelectedPeerChecker('');
-        setSelectedAssignments([]);
-        setSelectedAssignmentsStatuses([]);
-        setIsDialogOpen(false);
-      } catch (error) {
-        Logger.logException(error, { context: 'Error Assigning/Unassigning Chapters' });
-        setIsRefreshingAfterAssignment(false);
-      }
+    try {
+      await assignChapterMutation.mutateAsync({
+        projectId: projectId.toString(),
+        email: userdetail.email,
+        assignments: selectedAssignments.map(id => ({
+          chapterAssignmentId: id,
+          drafterId,
+          peerCheckerId,
+        })),
+      });
+
+      setIsRefreshingAfterAssignment(true);
+      setSelectedDrafter('');
+      setSelectedPeerChecker('');
+      setSelectedAssignments([]);
+      setSelectedAssignmentsStatuses([]);
+      setIsDialogOpen(false);
+    } catch (error) {
+      Logger.logException(error, { context: 'Error Assigning/Unassigning Chapters' });
+      setIsRefreshingAfterAssignment(false);
     }
   }, [
     selectedDrafter,
     selectedPeerChecker,
     selectedAssignments,
     userdetail?.email,
+    projectId,
     assignChapterMutation,
   ]);
 
