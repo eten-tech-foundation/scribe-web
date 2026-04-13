@@ -37,10 +37,10 @@ export function UserMultiSelect({
       }
     };
     update();
-    
+
     const ro = new ResizeObserver(update);
     if (wrapperRef.current) ro.observe(wrapperRef.current);
-    
+
     return () => ro.disconnect(); // ResizeObserver alone covers both cases
   }, []);
 
