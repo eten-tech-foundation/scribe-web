@@ -35,28 +35,22 @@ const fetchProjectUsers = async (projectId: number, email: string): Promise<Proj
 
   return (await res.json()) as ProjectUser[];
 };
-
-const addProjectUser = async (
+const addProjectUsers = async (
   projectId: number,
-  userId: number,
+  userIds: number[],
   email: string
-): Promise<ProjectUser> => {
-  const res = await fetch(`${config.api.url}/projects/${projectId}/users`, {
+): Promise<ProjectUser[]> => {
+  const res = await fetch(`${config.api.url}/projects/${projectId}/users/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-user-email': email,
     },
-    body: JSON.stringify({ userId }),
+    body: JSON.stringify({ userIds }),
   });
 
-  // parseErrorMessage always throws on error, so execution only runs on success
-  if (!res.ok) {
-    await parseErrorMessage(res, 'Failed to add user to project');
-  }
-
-  // API always returns JSON on success
-  return (await res.json()) as ProjectUser;
+  if (!res.ok) await parseErrorMessage(res, 'Failed to add users to project');
+  return (await res.json()) as ProjectUser[];
 };
 
 const removeProjectUser = async (
@@ -93,15 +87,17 @@ export const useProjectUsers = (
   });
 };
 
-export const useAddProjectUser = (projectId: number, email: string) => {
+export const useAddProjectUsers = (projectId: number, email: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ userId }: { userId: number }) => addProjectUser(projectId, userId, email),
-    onSuccess: newUser => {
+    mutationFn: ({ userIds }: { userIds: number[] }) => addProjectUsers(projectId, userIds, email),
+    onSuccess: newUsers => {
       queryClient.setQueryData<ProjectUser[]>(['projectUsers', projectId, email], prev => {
-        if (!prev) return [newUser];
-        return [...prev, newUser].sort((a, b) => a.displayName.localeCompare(b.displayName));
+        const existing = prev ?? [];
+        return [...existing, ...newUsers].sort((a, b) =>
+          a.displayName.localeCompare(b.displayName)
+        );
       });
     },
     onError: () => {
