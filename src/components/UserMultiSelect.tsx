@@ -37,15 +37,11 @@ export function UserMultiSelect({
       }
     };
     update();
-
+    
     const ro = new ResizeObserver(update);
     if (wrapperRef.current) ro.observe(wrapperRef.current);
-    window.addEventListener('resize', update);
-
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', update);
-    };
+    
+    return () => ro.disconnect(); // ResizeObserver alone covers both cases
   }, []);
 
   const sortedUsers = useMemo(
