@@ -135,10 +135,12 @@ const deriveStatusChip = (
 type EnrichedProject = Project & { statusChip: StatusChip };
 
 const StatusChipCell: React.FC<{ chip: StatusChip }> = ({ chip }) => {
+  const badgeClass =
+    'inline-flex items-center rounded-md border-0 px-2.5 py-1 text-xs leading-tight font-medium whitespace-normal text-center';
   if (!chip)
     return (
       <Badge
-        className='inline-flex items-center rounded-full border-0 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap'
+        className={badgeClass}
         style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}
       >
         Active
@@ -146,10 +148,7 @@ const StatusChipCell: React.FC<{ chip: StatusChip }> = ({ chip }) => {
     );
 
   return (
-    <Badge
-      className='inline-flex items-center rounded-full border-0 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap'
-      style={{ backgroundColor: chip.bg, color: chip.text }}
-    >
+    <Badge className={badgeClass} style={{ backgroundColor: chip.bg, color: chip.text }}>
       {chip.label}
     </Badge>
   );
@@ -209,7 +208,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
   };
   return (
     <div className='flex h-full flex-col'>
-      <div className='mb-6 flex-shrink-0'>
+      <div className='mb-6 shrink-0'>
         <h1 className='text-foreground mb-4 text-3xl font-semibold'>{t('projects')}</h1>
         <div className='flex items-center gap-4'>
           {isManager && (
@@ -218,7 +217,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
             </Button>
           )}
           <Select value={sortBy} onValueChange={value => setSortBy(value as SortOption)}>
-            <SelectTrigger className='bg-card !h-10 w-[165px]'>
+            <SelectTrigger className='bg-card h-10! w-[165px]'>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -231,7 +230,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
             value={statusFilter}
             onValueChange={value => setStatusFilter(value as StatusFilter)}
           >
-            <SelectTrigger className='bg-card !h-10 w-[185px]'>
+            <SelectTrigger className='bg-card h-10! w-[185px]'>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -303,7 +302,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
                           <TruncatedText text={project.sourceName} />
                         </TableCell>
                         <TableCell
-                          className='text-popover-foreground px-6 py-4 text-sm'
+                          className='text-popover-foreground overflow-visible px-6 py-4 text-sm text-clip whitespace-normal'
                           style={{ width: colWidth }}
                         >
                           <StatusChipCell chip={project.statusChip} />
