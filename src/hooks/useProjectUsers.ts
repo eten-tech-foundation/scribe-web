@@ -50,7 +50,7 @@ const addProjectUsers = async (
   });
 
   if (!res.ok) await parseErrorMessage(res, 'Failed to add users to project');
-  return res.json() as Promise<ProjectUser[]>;
+  return (await res.json()) as ProjectUser[];
 };
 
 const removeProjectUser = async (
