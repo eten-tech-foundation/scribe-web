@@ -61,7 +61,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const clearCurrentProjectItem = useAppStore(state => state.clearCurrentProjectItem);
   const setPresenceWarning = useAppStore(state => state.setPresenceWarning);
-
+  const isDraft = projectItem.chapterStatus === ChapterAssignmentStatus.DRAFT;
   const isCommunityReview = projectItem.chapterStatus === ChapterAssignmentStatus.COMMUNITY_REVIEW;
   const isLinguistCheck = projectItem.chapterStatus === ChapterAssignmentStatus.LINGUIST_CHECK;
   const isTheologicalCheck =
@@ -323,7 +323,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   return (
     <div className='flex h-full flex-col overflow-hidden'>
       <div className='shrink-0'>
-        <div className='flex items-center justify-between py-4 pr-6'>
+        <div className='flex items-center justify-between py-4 pr-0.5'>
           <div className='flex shrink-0 items-center gap-4'>
             {backButton}
             <h2 className='text-3xl font-bold'>
@@ -366,28 +366,29 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                 </Tooltip>
               </TooltipProvider>
 
-              {!isComplete && (
-                <>
-                  <div className='bg-input rounded-lg border sm:w-40 md:w-50 lg:w-76 xl:w-105'>
-                    <div className='h-4 overflow-hidden rounded-full'>
-                      <div
-                        className='bg-primary h-full rounded-full transition-all duration-300'
-                        style={{ width: `${progressPercentage}%` }}
-                      ></div>
-                    </div>
+              {!isComplete && isDraft && (
+                <div className='bg-input rounded-lg border sm:w-40 md:w-50 lg:w-76 xl:w-105'>
+                  <div className='h-4 overflow-hidden rounded-full'>
+                    <div
+                      className='bg-primary h-full rounded-full transition-all duration-300'
+                      style={{ width: `${progressPercentage}%` }}
+                    ></div>
                   </div>
-                  <Button
-                    className={`shrink-0 px-6 py-2 font-medium transition-all ${
-                      isTranslationComplete
-                        ? 'bg-primary hover:bg-primary-hover cursor-pointer text-white'
-                        : 'cursor-not-allowed bg-gray-300 text-gray-500'
-                    }`}
-                    disabled={!isTranslationComplete}
-                    onClick={handleSubmit}
-                  >
-                    {buttonText}
-                  </Button>
-                </>
+                </div>
+              )}
+
+              {!isComplete && (
+                <Button
+                  className={`shrink-0 px-6 py-2 font-medium transition-all ${
+                    isTranslationComplete
+                      ? 'bg-primary hover:bg-primary-hover cursor-pointer text-white'
+                      : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                  }`}
+                  disabled={!isTranslationComplete}
+                  onClick={handleSubmit}
+                >
+                  {buttonText}
+                </Button>
               )}
             </div>
           )}
