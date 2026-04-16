@@ -17,7 +17,7 @@ export function TailwindTestPage() {
           TailwindCSS 4 Test Page
         </h1>
         <p className='text-primary-foreground/90 mt-4 text-center text-xl'>
-          Displaying available styles from the Scribe theme
+          Displaying available styles from the Fluent theme
         </p>
       </section>
 
