@@ -386,39 +386,55 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   }, [selectedAssignments, chapterAssignments, projectUsers]);
 
   const handleAssignUser = useCallback(async () => {
-    if (selectedDrafter && selectedAssignments.length > 0 && userdetail?.email) {
-      try {
-        await assignChapterMutation.mutateAsync({
-          chapterAssignmentId: selectedAssignments,
-          userId: parseInt(selectedDrafter),
-          peerCheckerId: parseInt(selectedPeerChecker),
-          email: userdetail.email,
-        });
+    const drafterId = selectedDrafter === '' ? null : parseInt(selectedDrafter);
+    const peerCheckerId = selectedPeerChecker === '' ? null : parseInt(selectedPeerChecker);
+    const isUnassigning = drafterId === null && peerCheckerId === null;
+    const canProceed =
+      (drafterId !== null || isUnassigning) &&
+      selectedAssignments.length > 0 &&
+      userdetail?.email &&
+      projectId;
 
-        setIsRefreshingAfterAssignment(true);
+    if (!canProceed) return;
 
-        setSelectedDrafter('');
-        setSelectedPeerChecker('');
-        setSelectedAssignments([]);
-        setSelectedAssignmentsStatuses([]);
-        setIsDialogOpen(false);
-      } catch (error) {
-        Logger.logException(error, { context: 'Error Assigning Chapters' });
-        setIsRefreshingAfterAssignment(false);
-      }
+    try {
+      await assignChapterMutation.mutateAsync({
+        projectId: projectId.toString(),
+        email: userdetail.email,
+        assignments: selectedAssignments.map(id => ({
+          chapterAssignmentId: id,
+          drafterId,
+          peerCheckerId,
+        })),
+      });
+
+      setIsRefreshingAfterAssignment(true);
+      setSelectedDrafter('');
+      setSelectedPeerChecker('');
+      setSelectedAssignments([]);
+      setSelectedAssignmentsStatuses([]);
+      setIsDialogOpen(false);
+    } catch (error) {
+      Logger.logException(error, { context: 'Error Assigning/Unassigning Chapters' });
+      setIsRefreshingAfterAssignment(false);
     }
   }, [
     selectedDrafter,
     selectedPeerChecker,
     selectedAssignments,
     userdetail?.email,
+    projectId,
     assignChapterMutation,
   ]);
 
   const handleCheckboxChange = useCallback((assignmentId: number, checked: boolean) => {
-    setSelectedAssignments(prev =>
-      checked ? [...prev, assignmentId] : prev.filter(id => id !== assignmentId)
-    );
+    setSelectedAssignments(prev => {
+      if (checked) {
+        return prev.includes(assignmentId) ? prev : [...prev, assignmentId];
+      } else {
+        return prev.filter(id => id !== assignmentId);
+      }
+    });
   }, []);
 
   if (isRefreshingAfterAssignment && !assignmentsFetching) {
