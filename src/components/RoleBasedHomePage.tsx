@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 
-import { UserDashboard } from '@/layouts/dashboard/user';
+import { UserDashboard } from '@/features/dashboard/user';
 import { useAppStore } from '@/store/store';
 
 export const RoleBasedHomePage = () => {
