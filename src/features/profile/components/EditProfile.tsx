@@ -1,5 +1,4 @@
 import { UserModal } from '@/components/UserModal';
-import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 import { useUpdateUser } from '@/hooks/useUsers';
 import { Logger } from '@/lib/services/logger';
 import { type User } from '@/lib/types';
@@ -17,7 +16,7 @@ export function EditProfile({ isOpen, onClose }: EditProfileProps) {
   const isModalOpen = isOpen ?? true;
   const handleClose = onClose ?? (() => window.history.back());
 
-  const handleSaveUser = async (userData: User | Omit<User, 'id'>) => {
+  const handleSaveUser = async (userData: User | Omit<User, 'id'>): Promise<void> => {
     try {
       // Updating existing user
       const res = await updateUserMutation.mutateAsync({
@@ -44,16 +43,14 @@ export function EditProfile({ isOpen, onClose }: EditProfileProps) {
   };
 
   return (
-    <ProtectedRoute>
-      <UserModal
-        disableRoleSelection={true}
-        isLoading={updateUserMutation.isPending}
-        isOpen={isModalOpen}
-        mode={'edit'}
-        user={userdetail}
-        onClose={handleClose}
-        onSave={handleSaveUser}
-      />
-    </ProtectedRoute>
+    <UserModal
+      disableRoleSelection={true}
+      isLoading={updateUserMutation.isPending}
+      isOpen={isModalOpen}
+      mode={'edit'}
+      user={userdetail}
+      onClose={handleClose}
+      onSave={handleSaveUser}
+    />
   );
 }
