@@ -10,8 +10,10 @@ import { useAddTranslatedVerse, useSubmitChapter } from '@/hooks/useBibleTarget'
 import { useChapterPresence } from '@/hooks/useChapterPresence';
 import { useDrafting } from '@/hooks/useDrafting';
 import { useResourceState, useSaveResourceState } from '@/hooks/useResourceStatePersistence';
+import { fetchAITranslation } from '@/hooks/useVachanAI';
 import { ResourcePanel } from '@/layouts/resources/ResourcePanel';
 import { getStatusDisplay } from '@/lib/formatters';
+import { Logger } from '@/lib/services/logger';
 import {
   ChapterAssignmentStatus,
   ChapterAssignmentStatusNextAction,
@@ -41,6 +43,10 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   const [showResources, setShowResources] = useState(false);
   const [currentResource, setCurrentResource] = useState<ResourceName>(RESOURCE_NAMES[0]);
   const [currentLanguage, setCurrentLanguage] = useState('');
+
+  // AI translation state
+  const [aiTranslation, setAiTranslation] = useState<string>('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   const { data: savedResourceState, isFetched } = useResourceState(
     projectItem.chapterAssignmentId,
@@ -132,6 +138,52 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
     router.history.back();
   }, [clearCurrentProjectItem, router]);
+
+  // Fetch AI translation whenever active verse changes
+  useEffect(() => {
+    if (readOnly || !activeVerseId) return;
+
+    const activeVerse = sourceVerses.find((v: Source) => v.verseNumber === activeVerseId);
+    if (!activeVerse?.text) return;
+
+    let cancelled = false;
+
+    const fetchTranslation = async () => {
+      setIsAiLoading(true);
+      setAiTranslation('');
+      try {
+        const result = await fetchAITranslation(
+          projectItem.sourceLangCode,
+          projectItem.targetLanguage,
+          [activeVerse.text]
+        );
+        if (!cancelled) {
+          setAiTranslation(result.output[0] ?? '');
+        }
+      } catch (err) {
+        if (!cancelled) {
+          Logger.logException(err, { context: 'AI translation failed' });
+        }
+      } finally {
+        if (!cancelled) {
+          setIsAiLoading(false);
+        }
+      }
+    };
+
+    void fetchTranslation();
+
+    // Cleanup: ignore stale responses if verse changes before fetch completes
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    activeVerseId,
+    sourceVerses,
+    projectItem.sourceLangCode,
+    projectItem.targetLanguage,
+    readOnly,
+  ]);
 
   // Initialize resource state from saved data
   useEffect(() => {
@@ -460,7 +512,9 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                         </div>
                       </div>
 
-                      <div className={`px-6 ${shouldShowTarget ? 'flex' : 'hidden'}`}>
+                      <div
+                        className={`px-6 ${shouldShowTarget ? 'flex flex-col gap-2' : 'hidden'}`}
+                      >
                         {readOnly ? (
                           <div className='bg-card flex-1 rounded-lg border-2 px-4 py-3 shadow-sm'>
                             <p className='min-h-12 leading-snug'>
@@ -487,6 +541,31 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                               onFocus={() => handleActiveVerseChange(verse.verseNumber)}
                               onKeyDown={handleKeyDown}
                             />
+                          </div>
+                        )}
+
+                        {/* AI Suggestion — shown only on the active verse */}
+                        {isActive && (
+                          <div className='rounded-lg border border-dashed border-blue-400 bg-blue-50 px-4 py-2 text-sm text-blue-700'>
+                            {isAiLoading ? (
+                              <span className='flex items-center gap-2'>
+                                <Loader className='h-3 w-3 animate-spin' />
+                                Generating AI suggestion...
+                              </span>
+                            ) : aiTranslation ? (
+                              <div className='flex items-start justify-between gap-2'>
+                                <div>
+                                  <span className='font-semibold'>AI Suggestion: </span>
+                                  <span>{aiTranslation}</span>
+                                </div>
+                                <button
+                                  className='shrink-0 text-xs underline hover:text-blue-900'
+                                  onClick={() => handleTextChange(verse.verseNumber, aiTranslation)}
+                                >
+                                  Use this
+                                </button>
+                              </div>
+                            ) : null}
                           </div>
                         )}
                       </div>
