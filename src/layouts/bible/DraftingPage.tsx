@@ -29,6 +29,69 @@ const RESOURCE_NAMES: ResourceName[] = [
   { id: 'Images', name: 'Images' },
 ];
 
+/**
+ * Returns the text to append when Tab is pressed.
+ * - If aiText starts with currentText, returns the next word (with leading space if needed).
+ * - Otherwise tries to complete the last partial word being typed.
+ */
+const getNextWordSuggestion = (currentText: string, aiText: string): string => {
+  if (!aiText) return '';
+
+  if (aiText.startsWith(currentText)) {
+    const remaining = aiText.slice(currentText.length);
+    if (!remaining) return '';
+    // Return next word including any leading whitespace
+    const match = remaining.match(/^(\s*\S+)/);
+    return match?.[1] ?? remaining;
+  }
+
+  // Try to complete the last partial word the user is typing
+  const lastWordMatch = currentText.match(/(\S+)$/);
+  if (lastWordMatch) {
+    const lastWord = lastWordMatch[1];
+    const aiWords = aiText.split(/\s+/).filter(Boolean);
+    for (const word of aiWords) {
+      if (word.toLowerCase().startsWith(lastWord.toLowerCase()) && word.length > lastWord.length) {
+        return word.slice(lastWord.length);
+      }
+    }
+  }
+
+  return '';
+};
+
+/**
+ * Returns the ghost text to display after the current typed content.
+ * - If aiText starts with currentText, returns the remaining suffix.
+ * - Otherwise tries to show completion of the last partial word + rest of suggestion.
+ */
+const getInlineSuggestion = (currentText: string, aiText: string): string => {
+  if (!aiText) return '';
+  if (!currentText.trim()) return aiText;
+
+  if (aiText.startsWith(currentText)) {
+    return aiText.slice(currentText.length);
+  }
+
+  const lastWordMatch = currentText.match(/(\S+)$/);
+  if (lastWordMatch) {
+    const lastWord = lastWordMatch[1];
+    const aiWords = aiText.split(/\s+/).filter(Boolean);
+    for (let i = 0; i < aiWords.length; i++) {
+      if (
+        aiWords[i].toLowerCase().startsWith(lastWord.toLowerCase()) &&
+        aiWords[i].length > lastWord.length
+      ) {
+        const wordRemainder = aiWords[i].slice(lastWord.length);
+        const rest = aiWords.slice(i + 1).join(' ');
+        return wordRemainder + (rest ? ' ' + rest : '');
+      }
+    }
+  }
+
+  return '';
+};
+
 const DraftingUI: React.FC<DraftingUIProps> = ({
   projectItem,
   sourceVerses,
@@ -335,13 +398,25 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
   ]);
 
   const handleKeyDown = useCallback(
-    async (e: React.KeyboardEvent) => {
+    async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // Tab: accept next word from AI suggestion (like Copilot-style completion)
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        if (!aiTranslation || !activeVerseId) return;
+        const currentContent = (e.target as HTMLTextAreaElement).value;
+        const append = getNextWordSuggestion(currentContent, aiTranslation);
+        if (append) {
+          handleTextChange(activeVerseId, currentContent + append);
+        }
+        return;
+      }
+
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         await moveToNextVerse();
       }
     },
-    [moveToNextVerse]
+    [moveToNextVerse, handleTextChange, aiTranslation, activeVerseId]
   );
 
   const toggleResources = useCallback(() => {
@@ -492,6 +567,13 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                   const shouldShowTarget =
                     readOnly || isActive || revealedVerses.has(verse.verseNumber);
 
+                  // Compute ghost text for this verse (only relevant when isActive)
+                  const currentContent = currentTargetVerse?.content ?? '';
+                  const inlineSuggestion =
+                    isActive && aiTranslation
+                      ? getInlineSuggestion(currentContent, aiTranslation)
+                      : '';
+
                   return (
                     <div
                       key={verse.verseNumber}
@@ -517,34 +599,60 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                       >
                         {readOnly ? (
                           <div className='bg-card flex-1 rounded-lg border-2 px-4 py-3 shadow-sm'>
-                            <p className='min-h-12 leading-snug'>
-                              {currentTargetVerse?.content ?? ''}
-                            </p>
+                            <p className='min-h-12 leading-snug'>{currentContent}</p>
                           </div>
                         ) : (
                           <div
-                            className={`flex-1 rounded-lg border-2 px-4 py-1 shadow-sm transition-all ${
+                            className={`flex-1 rounded-lg border-2 shadow-sm transition-all ${
                               isActive ? 'border-primary' : ''
-                            } ${currentTargetVerse?.content.trim() !== '' && !isActive ? 'bg-card' : ''}`}
+                            } ${currentContent.trim() !== '' && !isActive ? 'bg-card' : ''}`}
                             onClick={() => handleActiveVerseChange(verse.verseNumber)}
                           >
-                            <textarea
-                              ref={el => (textareaRefs.current[verse.verseNumber] = el)}
-                              aria-label={`Translation for verse ${verse.verseNumber}`}
-                              autoCapitalize='sentences'
-                              autoCorrect='on'
-                              className='w-full resize-none border-none bg-transparent text-base leading-snug outline-none'
-                              placeholder='Enter translation...'
-                              spellCheck={true}
-                              value={currentTargetVerse?.content ?? ''}
-                              onChange={e => handleTextChange(verse.verseNumber, e.target.value)}
-                              onFocus={() => handleActiveVerseChange(verse.verseNumber)}
-                              onKeyDown={handleKeyDown}
-                            />
+                            {/*
+                             * Ghost text layer: sits behind the textarea.
+                             * Shows typed text as invisible (to take up space) + suggestion in gray.
+                             * The textarea on top is transparent so the ghost text shows through.
+                             */}
+                            <div className='relative px-4 py-1'>
+                              {isActive && inlineSuggestion && (
+                                <div
+                                  aria-hidden
+                                  className='pointer-events-none absolute inset-0 overflow-hidden px-4 py-1'
+                                >
+                                  <span className='invisible text-base leading-snug whitespace-pre-wrap'>
+                                    {currentContent}
+                                  </span>
+                                  <span className='text-base leading-snug whitespace-pre-wrap text-gray-400'>
+                                    {inlineSuggestion}
+                                  </span>
+                                </div>
+                              )}
+                              <textarea
+                                ref={el => (textareaRefs.current[verse.verseNumber] = el)}
+                                aria-label={`Translation for verse ${verse.verseNumber}`}
+                                autoCapitalize='sentences'
+                                autoCorrect='on'
+                                className='relative w-full resize-none border-none bg-transparent text-base leading-snug outline-none'
+                                placeholder={
+                                  isActive && isAiLoading
+                                    ? 'Fetching AI suggestion...'
+                                    : 'Enter translation...'
+                                }
+                                spellCheck={true}
+                                value={currentContent}
+                                onChange={e => handleTextChange(verse.verseNumber, e.target.value)}
+                                onFocus={() => handleActiveVerseChange(verse.verseNumber)}
+                                onKeyDown={handleKeyDown}
+                              />
+                            </div>
                           </div>
                         )}
 
-                        {/* AI Suggestion — shown only on the active verse */}
+                        {/*
+                         * AI Suggestion panel — shown only on the active verse.
+                         * "Use this" applies the full suggestion.
+                         * Tab key in the textarea accepts word-by-word.
+                         */}
                         {isActive && (
                           <div className='rounded-lg border border-dashed border-blue-400 bg-blue-50 px-4 py-2 text-sm text-blue-700'>
                             {isAiLoading ? (
@@ -554,16 +662,27 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                               </span>
                             ) : aiTranslation ? (
                               <div className='flex items-start justify-between gap-2'>
-                                <div>
+                                <div className='flex-1'>
                                   <span className='font-semibold'>AI Suggestion: </span>
                                   <span>{aiTranslation}</span>
                                 </div>
-                                <button
-                                  className='shrink-0 text-xs underline hover:text-blue-900'
-                                  onClick={() => handleTextChange(verse.verseNumber, aiTranslation)}
-                                >
-                                  Use this
-                                </button>
+                                <div className='flex shrink-0 items-center gap-2'>
+                                  <span className='text-xs text-blue-400'>Tab for next word</span>
+                                  <button
+                                    className='shrink-0 rounded border border-blue-400 px-2 py-0.5 text-xs font-medium hover:bg-blue-100 hover:text-blue-900 focus:ring-2 focus:ring-blue-400 focus:outline-none'
+                                    onClick={() =>
+                                      handleTextChange(verse.verseNumber, aiTranslation)
+                                    }
+                                    onKeyDown={e => {
+                                      if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        handleTextChange(verse.verseNumber, aiTranslation);
+                                      }
+                                    }}
+                                  >
+                                    Use this
+                                  </button>
+                                </div>
                               </div>
                             ) : null}
                           </div>
