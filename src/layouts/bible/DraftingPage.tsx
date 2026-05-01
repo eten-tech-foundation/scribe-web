@@ -30,29 +30,34 @@ const RESOURCE_NAMES: ResourceName[] = [
 ];
 
 /**
- * Returns the text to append when Tab is pressed.
- * - If aiText starts with currentText, returns the next word (with leading space if needed).
- * - Otherwise tries to complete the last partial word being typed.
+ * Given what the user has typed and the full AI suggestion,
+ * returns the ghost text suffix to render after the cursor.
+ *
+ * Case 1: user is typing along the AI text from the start
+ *   → return the remaining suffix of aiText
+ * Case 2: the last partial word the user typed is a prefix of
+ *         any word in the AI suggestion
+ *   → return the word completion + rest of aiText from that word onward
+ * Case 3: no match → return ''
  */
-const getNextWordSuggestion = (currentText: string, aiText: string): string => {
+const getInlineSuggestion = (currentText: string, aiText: string): string => {
   if (!aiText) return '';
 
   if (aiText.startsWith(currentText)) {
-    const remaining = aiText.slice(currentText.length);
-    if (!remaining) return '';
-    // Return next word including any leading whitespace
-    const match = remaining.match(/^(\s*\S+)/);
-    return match?.[1] ?? remaining;
+    return aiText.slice(currentText.length);
   }
 
-  // Try to complete the last partial word the user is typing
   const lastWordMatch = currentText.match(/(\S+)$/);
   if (lastWordMatch) {
-    const lastWord = lastWordMatch[1];
+    const lastWord = lastWordMatch[1].toLowerCase();
     const aiWords = aiText.split(/\s+/).filter(Boolean);
-    for (const word of aiWords) {
-      if (word.toLowerCase().startsWith(lastWord.toLowerCase()) && word.length > lastWord.length) {
-        return word.slice(lastWord.length);
+
+    for (let i = 0; i < aiWords.length; i++) {
+      const aiWord = aiWords[i].toLowerCase();
+      if (aiWord.startsWith(lastWord) && aiWord.length > lastWord.length) {
+        const wordRemainder = aiWords[i].slice(lastWord.length);
+        const rest = aiWords.slice(i + 1).join(' ');
+        return wordRemainder + (rest ? ' ' + rest : '');
       }
     }
   }
@@ -61,30 +66,31 @@ const getNextWordSuggestion = (currentText: string, aiText: string): string => {
 };
 
 /**
- * Returns the ghost text to display after the current typed content.
- * - If aiText starts with currentText, returns the remaining suffix.
- * - Otherwise tries to show completion of the last partial word + rest of suggestion.
+ * Returns the next word (or word completion) to append when Tab is pressed.
+ * Same matching logic as getInlineSuggestion but stops after one word.
  */
-const getInlineSuggestion = (currentText: string, aiText: string): string => {
+const getNextWordSuggestion = (currentText: string, aiText: string): string => {
   if (!aiText) return '';
-  if (!currentText.trim()) return aiText;
 
   if (aiText.startsWith(currentText)) {
-    return aiText.slice(currentText.length);
+    const remaining = aiText.slice(currentText.length);
+    if (!remaining) return '';
+    const match = remaining.match(/^(\s*\S+)/);
+    return match?.[1] ?? remaining;
   }
 
   const lastWordMatch = currentText.match(/(\S+)$/);
   if (lastWordMatch) {
-    const lastWord = lastWordMatch[1];
+    const lastWord = lastWordMatch[1].toLowerCase();
     const aiWords = aiText.split(/\s+/).filter(Boolean);
+
     for (let i = 0; i < aiWords.length; i++) {
-      if (
-        aiWords[i].toLowerCase().startsWith(lastWord.toLowerCase()) &&
-        aiWords[i].length > lastWord.length
-      ) {
+      const aiWord = aiWords[i].toLowerCase();
+      if (aiWord.startsWith(lastWord) && aiWord.length > lastWord.length) {
         const wordRemainder = aiWords[i].slice(lastWord.length);
         const rest = aiWords.slice(i + 1).join(' ');
-        return wordRemainder + (rest ? ' ' + rest : '');
+        const nextWord = rest.split(/\s+/)[0] ?? '';
+        return wordRemainder + (nextWord ? ' ' + nextWord : '');
       }
     }
   }
@@ -236,7 +242,6 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
     void fetchTranslation();
 
-    // Cleanup: ignore stale responses if verse changes before fetch completes
     return () => {
       cancelled = true;
     };
@@ -399,7 +404,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
 
   const handleKeyDown = useCallback(
     async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      // Tab: accept next word from AI suggestion (like Copilot-style completion)
+      // Tab: accept next word from AI suggestion word-by-word
       if (e.key === 'Tab') {
         e.preventDefault();
         if (!aiTranslation || !activeVerseId) return;
@@ -567,12 +572,23 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                   const shouldShowTarget =
                     readOnly || isActive || revealedVerses.has(verse.verseNumber);
 
-                  // Compute ghost text for this verse (only relevant when isActive)
                   const currentContent = currentTargetVerse?.content ?? '';
+
+                  // Ghost text: only when active, suggestion ready and not loading
                   const inlineSuggestion =
-                    isActive && aiTranslation
+                    isActive && aiTranslation && !isAiLoading
                       ? getInlineSuggestion(currentContent, aiTranslation)
                       : '';
+
+                  // Placeholder: empty when suggestion is available so ghost text
+                  // serves as the visual hint instead
+                  const placeholder = isActive
+                    ? isAiLoading
+                      ? 'Fetching AI suggestion...'
+                      : aiTranslation
+                        ? ''
+                        : 'Enter translation...'
+                    : 'Enter translation...';
 
                   return (
                     <div
@@ -608,22 +624,24 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                             } ${currentContent.trim() !== '' && !isActive ? 'bg-card' : ''}`}
                             onClick={() => handleActiveVerseChange(verse.verseNumber)}
                           >
-                            {/*
-                             * Ghost text layer: sits behind the textarea.
-                             * Shows typed text as invisible (to take up space) + suggestion in gray.
-                             * The textarea on top is transparent so the ghost text shows through.
-                             */}
                             <div className='relative px-4 py-1'>
+                              {/*
+                               * Ghost text layer:
+                               * - invisible span mirrors the typed text to push
+                               *   the suggestion to the correct inline position.
+                               * - gray span renders the inline word completion.
+                               * - "→ Tab" badge appended at the end of the ghost text
+                               *   so the user sees the shortcut right at the cursor.
+                               */}
                               {isActive && inlineSuggestion && (
                                 <div
                                   aria-hidden
-                                  className='pointer-events-none absolute inset-0 overflow-hidden px-4 py-1'
+                                  className='pointer-events-none absolute inset-0 overflow-hidden px-4 py-1 text-base leading-snug break-words whitespace-pre-wrap'
                                 >
-                                  <span className='invisible text-base leading-snug whitespace-pre-wrap'>
-                                    {currentContent}
-                                  </span>
-                                  <span className='text-base leading-snug whitespace-pre-wrap text-gray-400'>
-                                    {inlineSuggestion}
+                                  <span className='invisible'>{currentContent}</span>
+                                  <span className='text-gray-400'>{inlineSuggestion}</span>
+                                  <span className='ml-1 inline-flex items-center rounded bg-gray-100 px-1 py-0.5 font-mono text-[10px] text-gray-400 ring-1 ring-gray-300'>
+                                    →Tab
                                   </span>
                                 </div>
                               )}
@@ -633,11 +651,7 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                                 autoCapitalize='sentences'
                                 autoCorrect='on'
                                 className='relative w-full resize-none border-none bg-transparent text-base leading-snug outline-none'
-                                placeholder={
-                                  isActive && isAiLoading
-                                    ? 'Fetching AI suggestion...'
-                                    : 'Enter translation...'
-                                }
+                                placeholder={placeholder}
                                 spellCheck={true}
                                 value={currentContent}
                                 onChange={e => handleTextChange(verse.verseNumber, e.target.value)}
@@ -649,9 +663,10 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                         )}
 
                         {/*
-                         * AI Suggestion panel — shown only on the active verse.
-                         * "Use this" applies the full suggestion.
-                         * Tab key in the textarea accepts word-by-word.
+                         * AI Suggestion panel below the textarea.
+                         * "Use this" now APPENDS the AI suggestion to whatever
+                         * the user has already typed (with a space separator
+                         * when there is existing content), rather than replacing it.
                          */}
                         {isActive && (
                           <div className='rounded-lg border border-dashed border-blue-400 bg-blue-50 px-4 py-2 text-sm text-blue-700'>
@@ -666,23 +681,28 @@ const DraftingUI: React.FC<DraftingUIProps> = ({
                                   <span className='font-semibold'>AI Suggestion: </span>
                                   <span>{aiTranslation}</span>
                                 </div>
-                                <div className='flex shrink-0 items-center gap-2'>
-                                  <span className='text-xs text-blue-400'>Tab for next word</span>
-                                  <button
-                                    className='shrink-0 rounded border border-blue-400 px-2 py-0.5 text-xs font-medium hover:bg-blue-100 hover:text-blue-900 focus:ring-2 focus:ring-blue-400 focus:outline-none'
-                                    onClick={() =>
-                                      handleTextChange(verse.verseNumber, aiTranslation)
+                                <button
+                                  className='shrink-0 rounded border border-blue-400 px-2 py-0.5 text-xs font-medium hover:bg-blue-100 hover:text-blue-900 focus:ring-2 focus:ring-blue-400 focus:outline-none'
+                                  onClick={() => {
+                                    const separator = currentContent.trim().length > 0 ? ' ' : '';
+                                    handleTextChange(
+                                      verse.verseNumber,
+                                      currentContent + separator + aiTranslation
+                                    );
+                                  }}
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      const separator = currentContent.trim().length > 0 ? ' ' : '';
+                                      handleTextChange(
+                                        verse.verseNumber,
+                                        currentContent + separator + aiTranslation
+                                      );
                                     }
-                                    onKeyDown={e => {
-                                      if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        handleTextChange(verse.verseNumber, aiTranslation);
-                                      }
-                                    }}
-                                  >
-                                    Use this
-                                  </button>
-                                </div>
+                                  }}
+                                >
+                                  Use this
+                                </button>
                               </div>
                             ) : null}
                           </div>
